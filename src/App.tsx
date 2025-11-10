@@ -1,6 +1,20 @@
 import React from 'react';
 import Landing from './pages/Landing';
+import Barbers from './pages/Barbers';
 
 export default function App(): JSX.Element {
-	return <Landing />;
+  const path = window.location.pathname || '/';
+  // normalize trailing slashes
+  const p = path.replace(/\/+$/, '') || '/';
+
+  if (p === '/' || p === '/landing' || p === '/landing.html') {
+    return <Landing />;
+  }
+
+  if (p === '/barbers' || p.toLowerCase().includes('barbers.html')) {
+    return <Barbers />;
+  }
+
+  // fallback to landing
+  return <Landing />;
 }
