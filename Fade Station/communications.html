@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fade Station · Communications</title>
+  <meta name="description" content="Fade Station AI Receptionist · Recent calls and SMS conversations">
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Ccircle cx='64' cy='64' r='60' fill='%23000000'/%3E%3Cpath d='M40 80c8 10 40 10 48 0' stroke='%23ffffff' stroke-width='10' stroke-linecap='round' fill='none'/%3E%3Crect x='50' y='34' width='28' height='38' rx='14' fill='%23ffffff'/%3E%3C/svg%3E" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["-apple-system", "BlinkMacSystemFont", "SF Pro Text", "Inter", "system-ui", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "Noto Sans"]
+          },
+          colors: {
+            ios: {
+              bg: "#0a0a0a",
+              card: "#111111",
+              card2: "#0d0d0d",
+              accent: "#0ea5e9",
+              accent2: "#22d3ee",
+              border: "#1f1f1f",
+              textMuted: "#9ca3af"
+            }
+          },
+          boxShadow: {
+            glow: "0 0 0 1px rgba(255,255,255,0.04), 0 10px 30px rgba(0,0,0,0.45)",
+          }
+        }
+      },
+      darkMode: 'class'
+    }
+  </script>
+</head>
+
+<body class="min-h-screen bg-black text-white font-sans">
+  <div class="mx-auto max-w-6xl px-4 py-6">
+    <!-- Header -->
+    <header class="sticky top-0 z-40">
+      <div class="backdrop-blur-md bg-white/5 border border-ios-border rounded-2xl shadow-glow">
+        <div class="flex items-center justify-between px-4 py-3">
+          <div class="flex items-center gap-3">
+            <a href="landing.html" class="flex items-center gap-3 hover:opacity-80 transition">
+              <div
+                class="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/10">
+                <span class="text-xs font-semibold">FS</span>
+              </div>
+              <div>
+                <h1 class="text-lg font-semibold tracking-tight">Communications</h1>
+                <p class="text-xs text-ios-textMuted">Calls & SMS · AI responses</p>
+              </div>
+            </a>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="landing.html"
+              class="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition">Home</a>
+            <a href="index.html"
+              class="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition">Recordings</a>
+            <a href="barbers.html"
+              class="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition">Barbers</a>
+            <a href="training.html"
+              class="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition">Training</a>
+            <a href="flow.html"
+              class="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition">Flow</a>
+            <a href="demo.html"
+              class="px-3 py-1.5 rounded-xl text-xs bg-sky-500/90 hover:bg-sky-500 transition shadow">Demo</a>
+          </div>
+        </div>
+        <!-- Search & filters -->
+        <div class="px-4 pb-4">
+          <div class="flex flex-col md:flex-row md:items-center gap-2">
+            <div class="relative flex-1">
+              <input id="searchInput" type="text" placeholder="Search name, number, message..."
+                class="w-full bg-white/5 border border-ios-border rounded-xl pl-10 pr-3 py-2.5 text-sm placeholder:text-ios-textMuted focus:outline-none focus:ring-2 focus:ring-sky-500/50" />
+              <svg class="absolute left-3 top-2.5 h-5 w-5 text-ios-textMuted" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.3-4.3" />
+              </svg>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="inline-flex bg-white/5 border border-ios-border rounded-xl p-1">
+                <button data-filter="all" class="filter-btn px-3 py-1.5 text-xs rounded-lg bg-white/10">All</button>
+                <button data-filter="call" class="filter-btn px-3 py-1.5 text-xs rounded-lg">Calls</button>
+                <button data-filter="sms" class="filter-btn px-3 py-1.5 text-xs rounded-lg">SMS</button>
+                <button data-filter="completed" class="filter-btn px-3 py-1.5 text-xs rounded-lg">Completed</button>
+              </div>
+              <button id="sortBtn" class="px-3 py-1.5 text-xs rounded-xl bg-white/10 border border-ios-border">Sort:
+                Newest</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="mt-4 space-y-3" id="listContainer">
+      <!-- Items injected by JS -->
+    </main>
+
+    <!-- Empty state -->
+    <template id="emptyStateTpl">
+      <div class="text-center py-20 bg-white/5 border border-ios-border rounded-2xl">
+        <div class="mx-auto h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center mb-4">
+          <svg class="h-7 w-7 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+          </svg>
+        </div>
+        <h3 class="font-semibold">No communications found</h3>
+        <p class="text-sm text-ios-textMuted">Try adjusting your search or filters.</p>
+      </div>
+    </template>
+
+    <!-- Communication item template -->
+    <template id="commItemTpl">
+      <section
+        class="comm-card bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl shadow-glow overflow-hidden">
+        <div class="p-4 flex items-start gap-4">
+          <div
+            class="shrink-0 h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10">
+            <svg class="comm-icon h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <!-- Call icon -->
+              <path class="icon-call"
+                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+              <!-- SMS icon -->
+              <path class="icon-sms hidden" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex flex-wrap items-center gap-2 justify-between">
+              <div class="min-w-0">
+                <h3 class="truncate font-semibold text-sm"><span class="contact-name"></span> <span
+                    class="text-ios-textMuted font-normal">·</span> <span
+                    class="contact-number text-ios-textMuted"></span></h3>
+                <p class="text-xs text-ios-textMuted leading-5"><span class="timestamp"></span> · <span
+                    class="comm-type"></span></p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="status-badge text-[10px] px-2 py-1 rounded-full border"></span>
+                <span class="sentiment-badge text-[10px] px-2 py-1 rounded-full border"></span>
+              </div>
+            </div>
+
+            <!-- Conversation thread -->
+            <div class="mt-3 space-y-2">
+              <div class="conversation-thread">
+                <!-- Messages will be injected here -->
+              </div>
+            </div>
+
+            <!-- AI Response Summary -->
+            <details class="mt-3 group">
+              <summary
+                class="list-none cursor-pointer flex items-center gap-2 text-xs text-ios-textMuted hover:text-white transition">
+                <span
+                  class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 border border-emerald-500/30">🤖</span>
+                AI Response Summary
+                <svg class="ml-auto h-4 w-4 transition group-open:rotate-180" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <div class="mt-2 space-y-2 text-sm leading-6">
+                <div class="ai-summary bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
+                  <p class="text-white/90"></p>
+                </div>
+                <div class="flex flex-wrap gap-2 text-[10px]">
+                  <span
+                    class="tag inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 border border-white/10"></span>
+                  <span
+                    class="action-taken inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 border border-white/10"></span>
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
+        <!-- Footer controls -->
+        <div class="px-4 pb-4 flex items-center justify-between text-xs text-ios-textMuted">
+          <div class="flex items-center gap-2">
+            <button
+              class="action-btn px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">Follow
+              up</button>
+            <button
+              class="action-btn px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">Archive</button>
+          </div>
+          <a class="view-full text-sky-400 hover:text-sky-300" href="#">View full</a>
+        </div>
+      </section>
+    </template>
+
+    <footer class="py-8 text-center text-xs text-ios-textMuted">
+      Fade Station · Communications
+    </footer>
+  </div>
+
+  <script>
+    const mockCommunications = [
+      {
+        id: "comm_101",
+        type: "call",
+        contactName: "Jordan Smith",
+        contactNumber: "+64 21 555 1024",
+        timestamp: "Today · 10:42 AM",
+        status: "completed",
+        sentiment: "positive",
+        tag: "booking",
+        actionTaken: "Appointment booked",
+        aiSummary: "Customer requested fade appointment for Friday afternoon. Successfully booked with Ace at 3:30pm. Confirmation sent via SMS.",
+        conversation: [
+          { sender: "customer", message: "Hi, I'd like to book a fade for Friday afternoon if possible.", time: "10:42:15" },
+          { sender: "ai", message: "Hello! I'd be happy to help you book a fade appointment. What's your name and phone number?", time: "10:42:18" },
+          { sender: "customer", message: "It's Jordan, 021-555-1024. Do you have anything after 3pm?", time: "10:42:45" },
+          { sender: "ai", message: "Perfect! I have Ace available at 3:30pm and 4:00pm on Friday. Which would you prefer? A fade is $45.", time: "10:42:52" },
+          { sender: "customer", message: "3:30pm works great. Do I need to pay upfront?", time: "10:43:12" },
+          { sender: "ai", message: "No payment needed now! I've booked you with Ace for Friday at 3:30pm. You'll get a confirmation text shortly.", time: "10:43:18" }
+        ]
+      },
+      {
+        id: "comm_102",
+        type: "sms",
+        contactName: "Emily Chen",
+        contactNumber: "+64 27 880 3344",
+        timestamp: "Today · 9:15 AM",
+        status: "completed",
+        sentiment: "neutral",
+        tag: "reschedule",
+        actionTaken: "Appointment rescheduled",
+        aiSummary: "Customer requested to move appointment from Friday to Saturday morning and change service from standard cut to line-up and taper.",
+        conversation: [
+          { sender: "customer", message: "Hi, I need to move my appointment from Friday to Saturday morning if possible", time: "09:15:22" },
+          { sender: "ai", message: "I can help you reschedule! What time works best on Saturday morning?", time: "09:15:28" },
+          { sender: "customer", message: "Any time between 9-11am. Also can I change from standard cut to line-up and taper?", time: "09:15:45" },
+          { sender: "ai", message: "Perfect! I have Jay available at 10am on Saturday. Line-up and taper is $40. Should I book that?", time: "09:15:52" },
+          { sender: "customer", message: "Yes please, that works great", time: "09:16:08" },
+          { sender: "ai", message: "Done! Your appointment is now Saturday 10am with Jay for line-up and taper. Confirmation sent.", time: "09:16:12" }
+        ]
+      },
+      {
+        id: "comm_103",
+        type: "call",
+        contactName: "Unknown",
+        contactNumber: "Private",
+        timestamp: "Yesterday · 4:30 PM",
+        status: "missed",
+        sentiment: "neutral",
+        tag: "missed",
+        actionTaken: "SMS follow-up sent",
+        aiSummary: "Missed call from private number. AI automatically sent SMS asking for preferred time and service.",
+        conversation: [
+          { sender: "system", message: "Missed call at 4:30 PM", time: "16:30:00" },
+          { sender: "ai", message: "Hi! We missed your call. What can I help you with today? You can reply with your preferred time and service.", time: "16:30:15" }
+        ]
+      },
+      {
+        id: "comm_104",
+        type: "sms",
+        contactName: "Leo Martinez",
+        contactNumber: "+64 22 901 7777",
+        timestamp: "Yesterday · 2:15 PM",
+        status: "completed",
+        sentiment: "negative",
+        tag: "pricing",
+        actionTaken: "Price clarification sent",
+        aiSummary: "Customer questioned pricing from previous visit. AI provided detailed breakdown of full service pricing with beard and hot towel.",
+        conversation: [
+          { sender: "customer", message: "I think I was charged wrong last time. Can you confirm the price for full service with beard and hot towel?", time: "14:15:30" },
+          { sender: "ai", message: "I'd be happy to clarify our pricing! Full service (cut + beard + hot towel) is $65. Regular cut is $45, beard trim is $15, hot towel is $5.", time: "14:15:45" },
+          { sender: "customer", message: "That sounds right, thanks for clarifying", time: "14:16:12" },
+          { sender: "ai", message: "You're welcome! If you'd like to book another appointment, just let me know your preferred time.", time: "14:16:18" }
+        ]
+      }
+    ];
+
+    const listContainer = document.getElementById('listContainer');
+    const commItemTpl = document.getElementById('commItemTpl');
+    const emptyStateTpl = document.getElementById('emptyStateTpl');
+    const searchInput = document.getElementById('searchInput');
+    const filterButtons = Array.from(document.querySelectorAll('.filter-btn'));
+    const sortBtn = document.getElementById('sortBtn');
+
+    let state = {
+      query: '',
+      filter: 'all',
+      sort: 'newest'
+    };
+
+    function badge(el, kind, value) {
+      const map = {
+        status: {
+          completed: { text: 'Completed', cls: 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10' },
+          missed: { text: 'Missed', cls: 'border-rose-500/30 text-rose-300 bg-rose-500/10' }
+        },
+        sentiment: {
+          positive: { text: 'Positive', cls: 'border-cyan-500/30 text-cyan-300 bg-cyan-500/10' },
+          neutral: { text: 'Neutral', cls: 'border-white/20 text-white/80 bg-white/5' },
+          negative: { text: 'Negative', cls: 'border-amber-500/30 text-amber-300 bg-amber-500/10' }
+        }
+      };
+      const conf = map[kind][value] || { text: value, cls: 'border-white/20 text-white/80 bg-white/5' };
+      el.textContent = conf.text;
+      el.className = `${el.className} ${conf.cls}`;
+    }
+
+    function renderList() {
+      listContainer.innerHTML = '';
+      const q = state.query.trim().toLowerCase();
+      let rows = mockCommunications.filter(r => {
+        const hay = `${r.contactName} ${r.contactNumber} ${r.aiSummary}`.toLowerCase();
+        const matchesQuery = q ? hay.includes(q) : true;
+        const matchesFilter = state.filter === 'all' ? true :
+          state.filter === 'call' ? r.type === 'call' :
+            state.filter === 'sms' ? r.type === 'sms' :
+              r.status === state.filter;
+        return matchesQuery && matchesFilter;
+      });
+
+      rows.sort((a, b) => {
+        if (state.sort === 'newest') return b.id.localeCompare(a.id);
+        return a.id.localeCompare(b.id);
+      });
+
+      if (rows.length === 0) {
+        listContainer.appendChild(emptyStateTpl.content.cloneNode(true));
+        return;
+      }
+
+      for (const r of rows) {
+        const node = commItemTpl.content.cloneNode(true);
+        node.querySelector('.contact-name').textContent = r.contactName;
+        node.querySelector('.contact-number').textContent = r.contactNumber;
+        node.querySelector('.timestamp').textContent = r.timestamp;
+        node.querySelector('.comm-type').textContent = r.type.toUpperCase();
+        node.querySelector('.ai-summary p').textContent = r.aiSummary;
+        node.querySelector('.tag').textContent = `#${r.tag}`;
+        node.querySelector('.action-taken').textContent = r.actionTaken;
+
+        // Set icon based on type
+        const commIcon = node.querySelector('.comm-icon');
+        const callIcon = node.querySelector('.icon-call');
+        const smsIcon = node.querySelector('.icon-sms');
+        if (r.type === 'sms') {
+          callIcon.classList.add('hidden');
+          smsIcon.classList.remove('hidden');
+        }
+
+        const statusEl = node.querySelector('.status-badge');
+        const sentimentEl = node.querySelector('.sentiment-badge');
+        badge(statusEl, 'status', r.status);
+        badge(sentimentEl, 'sentiment', r.sentiment);
+
+        // Render conversation thread
+        const threadEl = node.querySelector('.conversation-thread');
+        threadEl.innerHTML = '';
+        r.conversation.forEach(msg => {
+          const msgEl = document.createElement('div');
+          msgEl.className = `flex items-start gap-2 ${msg.sender === 'customer' ? 'justify-end' : 'justify-start'}`;
+
+          const bubbleEl = document.createElement('div');
+          bubbleEl.className = `max-w-[80%] p-2 rounded-xl text-xs ${msg.sender === 'customer'
+            ? 'bg-blue-500/20 border border-blue-500/30'
+            : msg.sender === 'ai'
+              ? 'bg-emerald-500/20 border border-emerald-500/30'
+              : 'bg-white/10 border border-white/20'
+            }`;
+          bubbleEl.textContent = msg.message;
+
+          msgEl.appendChild(bubbleEl);
+          threadEl.appendChild(msgEl);
+        });
+
+        listContainer.appendChild(node);
+      }
+    }
+
+    // UI events
+    searchInput.addEventListener('input', (e) => {
+      state.query = e.target.value;
+      renderList();
+    });
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach(b => b.classList.remove('bg-white/10'));
+        btn.classList.add('bg-white/10');
+        state.filter = btn.dataset.filter;
+        renderList();
+      });
+    });
+
+    sortBtn.addEventListener('click', () => {
+      state.sort = state.sort === 'newest' ? 'oldest' : 'newest';
+      sortBtn.textContent = `Sort: ${state.sort === 'newest' ? 'Newest' : 'Oldest'}`;
+      renderList();
+    });
+
+    // Initial render
+    renderList();
+  </script>
+</body>
+
+</html>

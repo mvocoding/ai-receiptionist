@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fade Station · Barbers & Availability</title>
+  <meta name="description" content="Fade Station AI Receptionist · Barbers availability and booking slots">
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Ccircle cx='64' cy='64' r='60' fill='%23000000'/%3E%3Cpath d='M40 80c8 10 40 10 48 0' stroke='%23ffffff' stroke-width='10' stroke-linecap='round' fill='none'/%3E%3Crect x='50' y='34' width='28' height='38' rx='14' fill='%23ffffff'/%3E%3C/svg%3E" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["-apple-system", "BlinkMacSystemFont", "SF Pro Text", "Inter", "system-ui", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "Noto Sans"]
+          },
+          colors: {
+            ios: {
+              border: "#1f1f1f",
+              textMuted: "#9ca3af"
+            }
+          },
+          boxShadow: {
+            glow: "0 0 0 1px rgba(255,255,255,0.04), 0 10px 30px rgba(0,0,0,0.45)"
+          }
+        }
+      },
+      darkMode: 'class'
+    }
+  </script>
+</head>
+
+<body class="min-h-screen bg-black text-white font-sans">
+  <div class="mx-auto max-w-6xl px-4 py-6">
+    <header class="sticky top-0 z-40">
+      <div class="backdrop-blur-md bg-white/5 border border-ios-border rounded-2xl shadow-glow">
+        <div class="flex items-center justify-between px-4 py-3">
+          <div class="flex items-center gap-3">
+            <a href="landing.html" class="flex items-center gap-3 hover:opacity-80 transition">
+              <div
+                class="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/10">
+                <span class="text-xs font-semibold">FS</span>
+              </div>
+              <div>
+                <h1 class="text-lg font-semibold tracking-tight">Barbers</h1>
+                <p class="text-xs text-ios-textMuted">Availability · 30-min slots</p>
+              </div>
+            </a>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="landing.html"
+              class="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition">Home</a>
+            <a href="index.html"
+              class="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition">Recordings</a>
+            <a href="communications.html"
+              class="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition">Messages</a>
+            <a href="training.html"
+              class="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition">Training</a>
+            <a href="flow.html"
+              class="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition">Flow</a>
+            <a href="demo.html"
+              class="px-3 py-1.5 rounded-xl text-xs bg-sky-500/90 hover:bg-sky-500 transition shadow">Demo</a>
+          </div>
+        </div>
+        <div class="px-4 pb-4 grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div class="relative">
+            <input id="dateInput" type="date"
+              class="w-full bg-white/5 border border-ios-border rounded-xl px-3 py-2.5 text-sm placeholder:text-ios-textMuted focus:outline-none focus:ring-2 focus:ring-sky-500/50" />
+          </div>
+          <div class="md:col-span-2 flex items-center gap-2">
+            <div class="inline-flex bg-white/5 border border-ios-border rounded-xl p-1">
+              <button data-barber="all" class="barber-tab px-3 py-1.5 text-xs rounded-lg bg-white/10">All</button>
+              <button data-barber="ace" class="barber-tab px-3 py-1.5 text-xs rounded-lg">Ace</button>
+              <button data-barber="jay" class="barber-tab px-3 py-1.5 text-xs rounded-lg">Jay</button>
+              <button data-barber="mia" class="barber-tab px-3 py-1.5 text-xs rounded-lg">Mia</button>
+            </div>
+            <div class="ml-auto">
+              <button id="prevDay"
+                class="px-3 py-1.5 text-xs rounded-xl bg-white/10 border border-ios-border">Prev</button>
+              <button id="nextDay"
+                class="px-3 py-1.5 text-xs rounded-xl bg-white/10 border border-ios-border">Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="mt-4 space-y-4" id="gridRoot">
+      <!-- Cards injected by JS -->
+    </main>
+
+    <footer class="py-8 text-center text-xs text-ios-textMuted">
+      Fade Station · Barbers & Availability
+    </footer>
+  </div>
+
+  <template id="barberCardTpl">
+    <section
+      class="bg-gradient-to-b from-[#111111] to-[#0d0d0d] border border-ios-border rounded-2xl shadow-glow overflow-hidden">
+      <div class="p-4 flex items-start gap-3">
+        <div class="h-12 w-12 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center">
+          <span class="avatar text-sm font-semibold"></span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-semibold text-sm barber-name"></h3>
+              <p class="text-xs text-ios-textMuted">Available slots · <span class="slot-count">0</span></p>
+            </div>
+            <div class="inline-flex items-center gap-2 text-[10px]">
+              <span class="px-2 py-1 rounded-full border border-white/10 bg-white/5 text-white/80 service"></span>
+            </div>
+          </div>
+          <div class="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+            <!-- slots here -->
+          </div>
+        </div>
+      </div>
+    </section>
+  </template>
+
+  <template id="emptyTpl">
+    <div class="text-center py-20 bg-white/5 border border-ios-border rounded-2xl">
+      <div class="mx-auto h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center mb-4">
+        <svg class="h-7 w-7 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12h3m12 0h3M8 12h8M12 8v8" />
+        </svg>
+      </div>
+      <h3 class="font-semibold">No availability</h3>
+      <p class="text-sm text-ios-textMuted">Try a different day or barber.</p>
+    </div>
+  </template>
+
+  <script>
+    // Mock schedule: 9:00 - 18:00 in 30-min blocks; booked slots removed per barber/date
+    const barbers = [
+      { id: 'ace', name: 'Ace', services: 'Fades · Beard · Kids' },
+      { id: 'jay', name: 'Jay', services: 'Tapers · Line-ups' },
+      { id: 'mia', name: 'Mia', services: 'Skin Fades · Scissor' },
+    ];
+
+    const bookedByDate = {
+      // yyyy-mm-dd: { barberId: ['09:30', '11:00'] }
+    };
+
+    const barberCardTpl = document.getElementById('barberCardTpl');
+    const emptyTpl = document.getElementById('emptyTpl');
+    const gridRoot = document.getElementById('gridRoot');
+    const dateInput = document.getElementById('dateInput');
+    const barberTabs = Array.from(document.querySelectorAll('.barber-tab'));
+    const prevDay = document.getElementById('prevDay');
+    const nextDay = document.getElementById('nextDay');
+
+    const state = {
+      date: new Date(),
+      barber: 'all',
+      open: '09:00',
+      close: '18:00',
+      stepMin: 30,
+    };
+
+    function pad(n) { return n.toString().padStart(2, '0'); }
+    function fmtDate(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+    function parseTime(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+    function toTimeString(mins) { const h = Math.floor(mins / 60), m = mins % 60; return `${pad(h)}:${pad(m)}`; }
+
+    function generateSlots(open, close, stepMin) {
+      const start = parseTime(open), end = parseTime(close);
+      const slots = [];
+      for (let m = start; m < end; m += stepMin) {
+        slots.push(toTimeString(m));
+      }
+      return slots; // e.g., ["09:00","09:30",...]
+    }
+
+    function getAvailableSlotsFor(barberId, dateStr) {
+      const all = generateSlots(state.open, state.close, state.stepMin);
+      const booked = (bookedByDate[dateStr] && bookedByDate[dateStr][barberId]) || [];
+      const set = new Set(booked);
+      return all.filter(s => !set.has(s));
+    }
+
+    function render() {
+      const dateStr = fmtDate(state.date);
+      dateInput.value = dateStr;
+      gridRoot.innerHTML = '';
+
+      const ids = state.barber === 'all' ? barbers.map(b => b.id) : [state.barber];
+      if (ids.length === 0) {
+        gridRoot.appendChild(emptyTpl.content.cloneNode(true));
+        return;
+      }
+
+      for (const barberId of ids) {
+        const b = barbers.find(x => x.id === barberId);
+        if (!b) continue;
+        const card = barberCardTpl.content.cloneNode(true);
+        card.querySelector('.avatar').textContent = b.name[0];
+        card.querySelector('.barber-name').textContent = b.name;
+        card.querySelector('.service').textContent = b.services;
+
+        const slotsWrap = card.querySelector('.grid');
+        const slots = getAvailableSlotsFor(b.id, dateStr);
+        card.querySelector('.slot-count').textContent = slots.length;
+
+        if (slots.length === 0) {
+          const chip = document.createElement('div');
+          chip.className = 'text-xs text-ios-textMuted';
+          chip.textContent = 'No slots today';
+          slotsWrap.appendChild(chip);
+        } else {
+          for (const s of slots) {
+            const btn = document.createElement('button');
+            btn.className = 'slot-btn px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs transition';
+            btn.textContent = s.replace(':', ':');
+            btn.addEventListener('click', () => {
+              // Placeholder booking action
+              btn.classList.toggle('bg-emerald-500/20');
+              btn.classList.toggle('border-emerald-400/30');
+            });
+            slotsWrap.appendChild(btn);
+          }
+        }
+
+        gridRoot.appendChild(card);
+      }
+    }
+
+    // Initialize with some sample booked data for demo
+    (function seed() {
+      const today = fmtDate(new Date());
+      bookedByDate[today] = {
+        ace: ['09:00', '10:00', '14:30'],
+        jay: ['11:30', '15:00'],
+        mia: ['09:30', '13:00', '16:00']
+      };
+      const tomorrow = fmtDate(new Date(Date.now() + 86400000));
+      bookedByDate[tomorrow] = {
+        ace: ['12:00', '12:30', '13:00'],
+        jay: ['09:00', '09:30', '10:00', '10:30'],
+        mia: []
+      };
+    })();
+
+    // Events
+    barberTabs.forEach(tab => tab.addEventListener('click', () => {
+      barberTabs.forEach(t => t.classList.remove('bg-white/10'));
+      tab.classList.add('bg-white/10');
+      state.barber = tab.dataset.barber;
+      render();
+    }));
+
+    dateInput.addEventListener('change', (e) => {
+      const d = new Date(e.target.value + 'T00:00:00');
+      if (!isNaN(d)) {
+        state.date = d;
+        render();
+      }
+    });
+
+    prevDay.addEventListener('click', () => {
+      state.date = new Date(state.date.getTime() - 86400000);
+      render();
+    });
+    nextDay.addEventListener('click', () => {
+      state.date = new Date(state.date.getTime() + 86400000);
+      render();
+    });
+
+    render();
+  </script>
+</body>
+
+</html>

@@ -1,7 +1,6 @@
-import LiveGemini from "./components/LiveGemini";
+import React from 'react';
+import Landing from './pages/Landing';
 
-function App() {
-  return <LiveGemini />;
+export default function App(): JSX.Element {
+	return <Landing />;
 }
-
-export default App;
