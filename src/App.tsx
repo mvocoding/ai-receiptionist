@@ -1,6 +1,7 @@
 import React from 'react';
 import Landing from './pages/Landing';
 import Barbers from './pages/Barbers';
+import Communications from './pages/Communications';
 
 export default function App(): JSX.Element {
   const path = window.location.pathname || '/';
@@ -13,6 +14,13 @@ export default function App(): JSX.Element {
 
   if (p === '/barbers' || p.toLowerCase().includes('barbers.html')) {
     return <Barbers />;
+  }
+
+  if (
+    p === '/communications' ||
+    p.toLowerCase().includes('communications.html')
+  ) {
+    return <Communications />;
   }
 
   // fallback to landing
