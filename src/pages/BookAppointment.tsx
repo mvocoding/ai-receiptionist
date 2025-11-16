@@ -5,11 +5,13 @@ type Barber = {
   name: string;
   specialty: string;
   image: string;
-  nextSlot: string;
   price: number;
 };
 
 type BookingForm = {
+  barberId: string;
+  date: string;
+  time: string;
   name: string;
   email: string;
   phone: string;
@@ -23,7 +25,6 @@ const BARBERS: Barber[] = [
     specialty: 'Fades · Beard · Kids',
     image:
       'https://images.unsplash.com/photo-1585518419759-7fe2e0fbf8a6?auto=format&fit=crop&q=80&w=200&h=200',
-    nextSlot: '2:30 PM Today',
     price: 45,
   },
   {
@@ -32,7 +33,6 @@ const BARBERS: Barber[] = [
     specialty: 'Tapers · Line-ups',
     image:
       'https://images.unsplash.com/photo-1534308143481-c55f00be8bd7?auto=format&fit=crop&q=80&w=200&h=200',
-    nextSlot: '10:00 AM Tomorrow',
     price: 40,
   },
   {
@@ -41,101 +41,301 @@ const BARBERS: Barber[] = [
     specialty: 'Skin Fades · Scissor',
     image:
       'https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&q=80&w=200&h=200',
-    nextSlot: '3:00 PM Today',
     price: 45,
   },
 ];
 
+const TIME_SLOTS = [
+  '09:00',
+  '09:30',
+  '10:00',
+  '10:30',
+  '11:00',
+  '11:30',
+  '14:00',
+  '14:30',
+  '15:00',
+  '15:30',
+  '16:00',
+  '16:30',
+  '17:00',
+];
+
 export default function BookAppointment(): JSX.Element {
-  const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
+  const [selectedBarber, setSelectedBarber] = useState<string | null>(null);
   const [form, setForm] = useState<BookingForm>({
+    barberId: '',
+    date: '',
+    time: '',
     name: '',
     email: '',
     phone: '',
     notes: '',
   });
 
+  const handleSelectBarber = (barberId: string) => {
+    setSelectedBarber(barberId);
+    setForm((prev) => ({ ...prev, barberId }));
+  };
+
   const handleBook = (e: React.FormEvent) => {
     e.preventDefault();
-    // Demo: Show success and clear form
+    if (!form.date || !form.time) {
+      alert('Please select a date and time');
+      return;
+    }
+    const barber = BARBERS.find((b) => b.id === form.barberId);
     alert(
-      `Booking confirmed with ${selectedBarber?.name} for ${selectedBarber?.nextSlot}`
+      `Booking confirmed with ${barber?.name} on ${form.date} at ${form.time}`
     );
     setSelectedBarber(null);
-    setForm({ name: '', email: '', phone: '', notes: '' });
+    setForm({
+      barberId: '',
+      date: '',
+      time: '',
+      name: '',
+      email: '',
+      phone: '',
+      notes: '',
+    });
   };
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
-      {/* Hero section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-sky-900/20 via-black to-cyan-900/20" />
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMxMTExMTEiIGZpbGwtb3BhY2l0eT0iMC40Ij48cGF0aCBkPSJNMzYgMzR2MjBoMlYzNGgtMnpNMjQgMjR2MmgxMnYtMmgtMTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
+      <div className="border-b border-white/10 bg-gradient-to-b from-white/5 to-transparent">
+        <div className="mx-auto max-w-7xl px-4 py-16">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="rounded-xl overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800"
+                alt="Fade Station Barbershop"
+                className="w-full h-96 object-cover"
+              />
+            </div>
 
-        <div className="relative mx-auto max-w-6xl px-4 py-20">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Book Your Next Cut
-            </h1>
-            <p className="text-xl text-ios-textMuted max-w-2xl mx-auto">
-              Choose your preferred barber and time. We'll have you looking
-              fresh in no time.
-            </p>
-          </div>
-
-          {/* Barber cards grid */}
-          <div className="grid md:grid-cols-3 gap-6">
-            {BARBERS.map((barber) => (
-              <div
-                key={barber.id}
-                className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl p-6 shadow-glow"
-              >
-                <img
-                  src={barber.image}
-                  alt={barber.name}
-                  className="w-24 h-24 rounded-xl mb-4 object-cover"
-                />
-                <h3 className="text-xl font-semibold mb-1">{barber.name}</h3>
-                <p className="text-ios-textMuted text-sm mb-4">
-                  {barber.specialty}
+            <div className="space-y-8">
+              <div>
+                <h1 className="text-5xl font-bold tracking-tight mb-2">
+                  Fade Station
+                </h1>
+                <p className="text-xl text-white/60">
+                  Premium Barbershop Experience
                 </p>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-sm">
-                    <span className="text-ios-textMuted">Next available:</span>
-                    <br />
-                    <span className="text-emerald-400">{barber.nextSlot}</span>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                    <svg
+                      className="w-6 h-6 text-sky-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
                   </div>
-                  <div className="text-right">
-                    <span className="text-ios-textMuted text-sm">From</span>
-                    <br />
-                    <span className="text-xl font-semibold">
-                      ${barber.price}
-                    </span>
+                  <div>
+                    <p className="text-sm text-white/60 mb-1">HOURS</p>
+                    <p className="text-white/90">Mon-Fri: 9:00 AM - 6:00 PM</p>
+                    <p className="text-white/90">Sat: 9:00 AM - 5:00 PM</p>
+                    <p className="text-white/60">Sun: Closed</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setSelectedBarber(barber)}
-                  className="w-full px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 transition"
-                >
-                  Book Appointment
-                </button>
+
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                    <svg
+                      className="w-6 h-6 text-emerald-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm text-white/60 mb-1">ADDRESS</p>
+                    <p className="text-white/90">123 Barbershop Avenue</p>
+                    <p className="text-white/90 mb-2">Auckland, NZ 1010</p>
+                    <a
+                      href="https://maps.google.com/?q=123+Barbershop+Ave+Auckland"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sky-400 hover:text-sky-300 text-sm font-medium"
+                    >
+                      View on Google Maps →
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                    <svg
+                      className="w-6 h-6 text-cyan-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm text-white/60 mb-1">CONTACT</p>
+                    <a
+                      href="tel:+64123456789"
+                      className="text-sky-400 hover:text-sky-300 text-lg font-medium"
+                    >
+                      +64 1 234 56789
+                    </a>
+                  </div>
+                </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Booking modal */}
-      {selectedBarber && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-gradient-to-b from-[#0b0b0b] to-[#0d0d0d] border border-ios-border rounded-2xl p-6 shadow-glow max-w-md w-full">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold">
-                Book with {selectedBarber.name}
-              </h3>
+      <div className="mx-auto max-w-7xl px-4 py-20">
+        <div className="mb-16">
+          <h2 className="text-4xl font-bold tracking-tight mb-3">
+            Book Your Appointment
+          </h2>
+          <p className="text-xl text-white/60">
+            Select a barber and choose your preferred date and time
+          </p>
+        </div>
+
+        <div className="mb-16">
+          <h3 className="text-lg font-semibold mb-6 text-white/90">
+            Choose Your Barber
+          </h3>
+          <div className="grid md:grid-cols-3 gap-4">
+            {BARBERS.map((barber) => (
               <button
-                onClick={() => setSelectedBarber(null)}
-                className="text-ios-textMuted hover:text-white"
+                key={barber.id}
+                onClick={() => handleSelectBarber(barber.id)}
+                className={`group relative rounded-xl overflow-hidden transition-all duration-300 ${
+                  selectedBarber === barber.id
+                    ? 'ring-2 ring-sky-500 scale-105'
+                    : 'hover:scale-102'
+                }`}
+              >
+                <div
+                  className={`relative bg-white/5 border border-white/10 rounded-xl p-6 transition-all ${
+                    selectedBarber === barber.id
+                      ? 'border-sky-500/50 bg-sky-500/10'
+                      : 'hover:bg-white/10'
+                  }`}
+                >
+                  <img
+                    src={barber.image}
+                    alt={barber.name}
+                    className="w-16 h-16 rounded-lg mb-4 object-cover"
+                  />
+                  <div className="text-left">
+                    <h4 className="text-lg font-semibold">{barber.name}</h4>
+                    <p className="text-sm text-white/60 mb-3">
+                      {barber.specialty}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sky-400 font-medium">
+                        From ${barber.price}
+                      </span>
+                      {selectedBarber === barber.id && (
+                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500">
+                          <svg
+                            className="w-3 h-3 text-white"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {selectedBarber && (
+          <div className="mb-12">
+            <h3 className="text-lg font-semibold mb-6 text-white/90">
+              Select Date & Time
+            </h3>
+            <div className="grid lg:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={form.date}
+                  onChange={(e) => setForm({ ...form, date: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  Time
+                </label>
+                <select
+                  value={form.time}
+                  onChange={(e) => setForm({ ...form, time: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition"
+                >
+                  <option value="">Select a time...</option>
+                  {TIME_SLOTS.map((slot) => (
+                    <option key={slot} value={slot}>
+                      {slot}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {form.date && form.time && (
+              <button
+                onClick={() =>
+                  setForm((prev) => ({
+                    ...prev,
+                    name: '',
+                    email: '',
+                    phone: '',
+                    notes: '',
+                  }))
+                }
+                className="mt-8 w-full bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white font-semibold py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                Continue to Details →
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {selectedBarber && form.date && form.time && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-8 shadow-2xl max-w-md w-full backdrop-blur-xl">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold">Confirm Booking</h3>
+              <button
+                onClick={() =>
+                  setForm((prev) => ({ ...prev, date: '', time: '' }))
+                }
+                className="text-white/60 hover:text-white text-2xl leading-none"
               >
                 ✕
               </button>
@@ -143,20 +343,20 @@ export default function BookAppointment(): JSX.Element {
 
             <form onSubmit={handleBook} className="space-y-4">
               <div>
-                <label className="block text-sm text-ios-textMuted mb-1">
-                  Your name
+                <label className="block text-sm font-medium text-white/70 mb-2">
+                  Full Name
                 </label>
                 <input
                   type="text"
                   required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full bg-white/5 border border-ios-border rounded-xl px-3 py-2 text-sm"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-ios-textMuted mb-1">
+                <label className="block text-sm font-medium text-white/70 mb-2">
                   Email
                 </label>
                 <input
@@ -164,12 +364,12 @@ export default function BookAppointment(): JSX.Element {
                   required
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full bg-white/5 border border-ios-border rounded-xl px-3 py-2 text-sm"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-ios-textMuted mb-1">
+                <label className="block text-sm font-medium text-white/70 mb-2">
                   Phone
                 </label>
                 <input
@@ -177,30 +377,47 @@ export default function BookAppointment(): JSX.Element {
                   required
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="w-full bg-white/5 border border-ios-border rounded-xl px-3 py-2 text-sm"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-ios-textMuted mb-1">
+                <label className="block text-sm font-medium text-white/70 mb-2">
                   Notes (optional)
                 </label>
                 <textarea
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  className="w-full bg-white/5 border border-ios-border rounded-xl px-3 py-2 text-sm"
-                  rows={3}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                  rows={2}
                 />
               </div>
 
-              <div className="flex items-center justify-between pt-4">
-                <div className="text-sm">
-                  <p className="text-ios-textMuted">Appointment time:</p>
-                  <p className="font-medium">{selectedBarber.nextSlot}</p>
-                </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-4 my-6">
+                <p className="text-xs text-white/60 uppercase tracking-wide mb-2">
+                  Appointment Summary
+                </p>
+                <p className="text-lg font-semibold">
+                  {BARBERS.find((b) => b.id === form.barberId)?.name}
+                </p>
+                <p className="text-white/70 text-sm">
+                  {form.date} at {form.time}
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((prev) => ({ ...prev, date: '', time: '' }))
+                  }
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition font-medium"
+                >
+                  Back
+                </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 transition"
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 transition font-semibold shadow-lg"
                 >
                   Confirm Booking
                 </button>
