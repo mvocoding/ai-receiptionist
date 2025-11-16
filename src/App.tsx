@@ -1,21 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Landing from './pages/Landing';
 import Barbers from './pages/Barbers';
 import Communications from './pages/Communications';
 import Flow from './pages/Flow';
-
-// Safely import Recordings module (handles default or named exports)
-import * as RecordingsModule from './pages/Recordings';
-const RecordingsCandidate: any =
-  (RecordingsModule as any).default ||
-  (RecordingsModule as any).Recordings ||
-  (RecordingsModule as any).RecordingsPage ||
-  (RecordingsModule as any).RecordingsComponent ||
-  RecordingsModule;
+import Recordings from './pages/Recordings';
+import SignIn from './pages/SignIn';
+import ConfirmCode from './pages/ConfirmCode';
+import LiveGemini from './pages/LiveGemini'; // added
+import BookAppointment from './pages/BookAppointment';
 
 export default function App(): JSX.Element {
-  const path = window.location.pathname || '/';
-  const p = path.replace(/\/+$/, '') || '/';
+  const [path, setPath] = useState(() => window.location.pathname || '/');
+
+  useEffect(() => {
+    const onPop = () => setPath(window.location.pathname || '/');
+    window.addEventListener('popstate', onPop);
+
+    (window as any).__navigate = (to: string) => {
+      if (!to) return;
+      if (to !== window.location.pathname) {
+        window.history.pushState({}, '', to);
+        setPath(to);
+      }
+    };
+
+    return () => {
+      window.removeEventListener('popstate', onPop);
+      delete (window as any).__navigate;
+    };
+  }, []);
+
+  const p = (path || '/').replace(/\/+$/, '') || '/';
 
   if (p === '/' || p === '/landing' || p === '/landing.html')
     return <Landing />;
@@ -31,25 +46,18 @@ export default function App(): JSX.Element {
 
   if (p === '/flow' || p.toLowerCase().includes('flow.html')) return <Flow />;
 
-  if (p === '/recordings' || p.toLowerCase().includes('recordings.html')) {
-    const Rec = RecordingsCandidate;
-    // If the resolved export is the module object, try to use common keys or fallback to a simple fragment
-    if (!Rec || (typeof Rec === 'object' && !('$$typeof' in Rec))) {
-      // try known named exports
-      const maybe =
-        (RecordingsModule as any).Recordings ||
-        (RecordingsModule as any).RecordingsPage ||
-        (RecordingsModule as any).RecordingsComponent;
-      if (maybe) return React.createElement(maybe);
-      // final fallback: render an empty placeholder to avoid crash
-      return (
-        <div className="min-h-screen flex items-center justify-center text-ios-textMuted">
-          Recordings page not found
-        </div>
-      );
-    }
-    return React.createElement(Rec);
-  }
+  if (p === '/recordings' || p.toLowerCase().includes('recordings.html'))
+    return <Recordings />;
+
+  if (p === '/signin' || p.toLowerCase().includes('signin')) return <SignIn />;
+  if (p === '/confirm' || p.toLowerCase().includes('confirm'))
+    return <ConfirmCode />;
+
+  if (p === '/live-gemini' || p.toLowerCase().includes('live-gemini'))
+    return <LiveGemini />; // added
+
+  if (p === '/book' || p.toLowerCase().includes('book.html'))
+    return <BookAppointment />;
 
   // fallback to landing
   return <Landing />;

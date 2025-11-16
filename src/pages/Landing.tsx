@@ -33,41 +33,70 @@ export default function Landing(): JSX.Element {
               <span className="text-xl font-semibold">Fade Station</span>
             </div>
             <div className="flex items-center gap-4">
+              {/* Internal navigation uses client-side helper to avoid full reloads */}
               <a
-                href="index.html"
+                href="/recordings"
+                onClick={(e) => {
+                  e.preventDefault();
+                  (window as any).__navigate?.('/recordings');
+                }}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
                 Recordings
               </a>
               <a
-                href="communications.html"
+                href="/communications"
+                onClick={(e) => {
+                  e.preventDefault();
+                  (window as any).__navigate?.('/communications');
+                }}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
                 Messages
               </a>
               <a
-                href="barbers.html"
+                href="/barbers"
+                onClick={(e) => {
+                  e.preventDefault();
+                  (window as any).__navigate?.('/barbers');
+                }}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
                 Barbers
               </a>
               <a
-                href="training.html"
+                href="/training.html"
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
                 Training
               </a>
               <a
-                href="flow.html"
+                href="/flow"
+                onClick={(e) => {
+                  e.preventDefault();
+                  (window as any).__navigate?.('/flow');
+                }}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
                 Flow
               </a>
               <a
-                href="demo.html"
+                href="/demo.html"
                 className="px-4 py-2 rounded-xl text-sm bg-emerald-500/90 hover:bg-emerald-500 transition shadow-lg"
               >
                 Try Demo
+              </a>
+
+              {/* Live Gemini now routes to an in-app page */}
+              <a
+                href="/live-gemini"
+                onClick={(e) => {
+                  e.preventDefault();
+                  (window as any).__navigate?.('/live-gemini');
+                }}
+                className="text-sm text-ios-textMuted hover:text-white transition px-3 py-1.5 border border-white/10 rounded-lg"
+              >
+                Live Gemini
               </a>
             </div>
           </nav>
@@ -85,11 +114,23 @@ export default function Landing(): JSX.Element {
               customer inquiries—all with natural AI conversation.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button className="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-medium bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 transition shadow-lg shadow-cyan-500/30">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  (window as any).__navigate?.('/signin');
+                }}
+                className="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-medium bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 transition shadow-lg shadow-cyan-500/30"
+              >
                 Start Free Trial
               </button>
-              <button className="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-medium bg-white/10 border border-white/20 hover:bg-white/15 transition backdrop-blur-md">
-                Watch Demo
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  (window as any).__navigate?.('/book');
+                }}
+                className="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-medium bg-white/10 border border-white/20 hover:bg-white/15 transition backdrop-blur-md"
+              >
+                Book Appointment
               </button>
             </div>
           </div>
@@ -318,11 +359,14 @@ export default function Landing(): JSX.Element {
             Ready to Transform Your Barbershop?
           </h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button className="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-medium bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 transition shadow-lg shadow-cyan-500/30">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                (window as any).__navigate?.('/signin');
+              }}
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-medium bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 transition shadow-lg shadow-cyan-500/30"
+            >
               Start Free Trial
-            </button>
-            <button className="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-medium bg-white/10 border border-white/20 hover:bg-white/15 transition">
-              Schedule Demo
             </button>
           </div>
         </div>

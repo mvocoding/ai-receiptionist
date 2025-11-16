@@ -40,7 +40,8 @@ const MOCK_RECORDINGS: Rec[] = [
     sentiment: 'neutral',
     tags: ['missed', 'callback'],
     assignee: 'Unassigned',
-    transcript: 'Missed call. AI sent an SMS asking for preferred time and service.',
+    transcript:
+      'Missed call. AI sent an SMS asking for preferred time and service.',
     audioUrl: '',
   },
   {
@@ -65,4 +66,55 @@ const MOCK_RECORDINGS: Rec[] = [
     timestamp: 'Mon · 2:30 PM',
     duration: 188,
     status: 'completed',
-    sentiment: '
+    sentiment: 'neutral',
+    tags: ['booking', 'fade'],
+    assignee: 'Barber · Ace',
+    transcript:
+      'I would like to book a fade haircut for tomorrow. Also, can you tell me if you have time for a beard trim?',
+    audioUrl:
+      'https://cdn.pixabay.com/download/audio/2021/09/16/audio_8c4d3f2b7d.mp3?filename=click-124467.mp3',
+  },
+];
+
+const Recordings: React.FC = () => {
+  const [recordings, setRecordings] = useState<Rec[]>(MOCK_RECORDINGS);
+  const [filter, setFilter] = useState<'all' | 'completed' | 'missed'>('all');
+
+  const filteredRecordings = useMemo(() => {
+    if (filter === 'all') return recordings;
+    return recordings.filter((rec) => rec.status === filter);
+  }, [filter, recordings]);
+
+  return (
+    <div>
+      <h1>Recordings</h1>
+      <div>
+        <button onClick={() => setFilter('all')}>All</button>
+        <button onClick={() => setFilter('completed')}>Completed</button>
+        <button onClick={() => setFilter('missed')}>Missed</button>
+      </div>
+      <ul>
+        {filteredRecordings.map((rec) => (
+          <li key={rec.id}>
+            <h2>{rec.callerName}</h2>
+            <p>{rec.timestamp}</p>
+            <p>Duration: {rec.duration} seconds</p>
+            <p>Status: {rec.status}</p>
+            <p>Sentiment: {rec.sentiment}</p>
+            <p>Tags: {rec.tags.join(', ')}</p>
+            <p>Assignee: {rec.assignee}</p>
+            <p>Transcript: {rec.transcript}</p>
+            {rec.audioUrl && (
+              <audio controls>
+                <source src={rec.audioUrl} type="audio/mpeg" />
+                Your browser does not support the audio element.
+              </audio>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default Recordings;
