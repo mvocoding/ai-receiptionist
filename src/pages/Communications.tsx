@@ -5,9 +5,10 @@ type Message = {
   message: string;
   time: string;
 };
+
 type Comm = {
   id: string;
-  type: 'call' | 'sms';
+  type: 'call' | 'sms' | 'recording';
   contactName: string;
   contactNumber: string;
   timestamp: string;
@@ -16,11 +17,15 @@ type Comm = {
   tag: string;
   actionTaken: string;
   aiSummary: string;
-  conversation: Message[];
+  conversation?: Message[];
+  duration?: number;
+  transcript?: string;
+  audioUrl?: string;
 };
 
-const MOCK_COMM: Comm[] = [
-  // ...existing data...
+// Combined mock data
+const MOCK_DATA: Comm[] = [
+  // SMS/Call communications
   {
     id: 'comm_101',
     type: 'call',
@@ -180,6 +185,59 @@ const MOCK_COMM: Comm[] = [
       },
     ],
   },
+  {
+    id: 'rec_101',
+    type: 'recording',
+    contactName: 'Jordan Smith',
+    contactNumber: '+64 21 555 1024',
+    timestamp: 'Today · 10:42 AM',
+    status: 'completed',
+    sentiment: 'positive',
+    tag: 'booking',
+    actionTaken: 'Appointment booked',
+    aiSummary:
+      'Customer called requesting skin fade tomorrow after 3pm. Flexible on time. Asked about beard trim add-on pricing.',
+    duration: 132,
+    transcript:
+      "Hey, I was wondering if you have any availability for a skin fade tomorrow after 3pm? I'm flexible on the time. Also what's the price for beard trim add-on?",
+    audioUrl:
+      'https://cdn.pixabay.com/download/audio/2021/09/16/audio_8c4d3f2b7d.mp3?filename=click-124467.mp3',
+  },
+  {
+    id: 'rec_102',
+    type: 'recording',
+    contactName: 'Unknown',
+    contactNumber: 'Private',
+    timestamp: 'Today · 9:05 AM',
+    status: 'missed',
+    sentiment: 'neutral',
+    tag: 'missed',
+    actionTaken: 'Callback SMS sent',
+    aiSummary:
+      'Missed call. AI sent an SMS asking for preferred time and service.',
+    duration: 0,
+    transcript:
+      'Missed call. AI sent an SMS asking for preferred time and service.',
+    audioUrl: '',
+  },
+  {
+    id: 'rec_103',
+    type: 'recording',
+    contactName: 'Emily Chen',
+    contactNumber: '+64 27 880 3344',
+    timestamp: 'Yesterday · 4:18 PM',
+    status: 'completed',
+    sentiment: 'neutral',
+    tag: 'reschedule',
+    actionTaken: 'Appointment rescheduled',
+    aiSummary:
+      'Customer requested to move appointment from Friday to Saturday morning and change from standard cut to line-up and taper.',
+    duration: 245,
+    transcript:
+      'Hi, I need to move my appointment from Friday to Saturday morning if possible. Also, can I change from a standard cut to a line-up and taper?',
+    audioUrl:
+      'https://cdn.pixabay.com/download/audio/2022/03/15/audio_e6a3b.mp3?filename=notification-112557.mp3',
+  },
 ];
 
 function badgeConf(kind: 'status' | 'sentiment', value: string) {
@@ -213,6 +271,13 @@ function badgeConf(kind: 'status' | 'sentiment', value: string) {
   );
 }
 
+function formatDuration(seconds: number): string {
+  if (seconds === 0) return '--';
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}m ${secs}s`;
+}
+
 export default function Communications(): JSX.Element {
   useEffect(() => {
     document.title = 'Fade Station · Communications';
@@ -222,7 +287,7 @@ export default function Communications(): JSX.Element {
     meta.setAttribute('name', 'description');
     meta.setAttribute(
       'content',
-      'Fade Station AI Receptionist · Recent calls and SMS conversations'
+      'Fade Station AI Receptionist · Calls, SMS, and Recordings'
     );
     if (!document.querySelector('meta[name="description"]'))
       document.head.appendChild(meta);
@@ -230,13 +295,13 @@ export default function Communications(): JSX.Element {
 
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<
-    'all' | 'call' | 'sms' | 'completed' | 'missed'
+    'all' | 'call' | 'sms' | 'recording' | 'completed' | 'missed'
   >('all');
   const [sortNewest, setSortNewest] = useState(true);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let items = MOCK_COMM.filter((r) => {
+    let items = MOCK_DATA.filter((r) => {
       const hay =
         `${r.contactName} ${r.contactNumber} ${r.aiSummary}`.toLowerCase();
       const matchesQuery = q ? hay.includes(q) : true;
@@ -247,6 +312,8 @@ export default function Communications(): JSX.Element {
           ? r.type === 'call'
           : filter === 'sms'
           ? r.type === 'sms'
+          : filter === 'recording'
+          ? r.type === 'recording'
           : r.status === filter;
       return matchesQuery && matchesFilter;
     });
@@ -276,7 +343,7 @@ export default function Communications(): JSX.Element {
                       Communications
                     </h1>
                     <p className="text-xs text-ios-textMuted">
-                      Calls & SMS · AI responses
+                      Calls, SMS & Recordings
                     </p>
                   </div>
                 </a>
@@ -287,12 +354,6 @@ export default function Communications(): JSX.Element {
                   className="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition"
                 >
                   Home
-                </a>
-                <a
-                  href="/index.html"
-                  className="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition"
-                >
-                  Recordings
                 </a>
                 <a
                   href="/barbers"
@@ -307,7 +368,7 @@ export default function Communications(): JSX.Element {
                   Training
                 </a>
                 <a
-                  href="/flow.html"
+                  href="/flow"
                   className="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition"
                 >
                   Flow
@@ -326,7 +387,6 @@ export default function Communications(): JSX.Element {
               <div className="flex flex-col md:flex-row md:items-center gap-2">
                 <div className="relative flex-1">
                   <input
-                    id="searchInput"
                     type="text"
                     placeholder="Search name, number, message..."
                     value={query}
@@ -371,6 +431,14 @@ export default function Communications(): JSX.Element {
                       SMS
                     </button>
                     <button
+                      onClick={() => setFilter('recording')}
+                      className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
+                        filter === 'recording' ? 'bg-white/10' : ''
+                      }`}
+                    >
+                      Recordings
+                    </button>
+                    <button
                       onClick={() => setFilter('completed')}
                       className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
                         filter === 'completed' ? 'bg-white/10' : ''
@@ -381,7 +449,6 @@ export default function Communications(): JSX.Element {
                   </div>
                   <button
                     onClick={() => setSortNewest((s) => !s)}
-                    id="sortBtn"
                     className="px-3 py-1.5 text-xs rounded-xl bg-white/10 border border-ios-border"
                   >
                     Sort: {sortNewest ? 'Newest' : 'Oldest'}
@@ -393,7 +460,7 @@ export default function Communications(): JSX.Element {
         </header>
 
         {/* Content */}
-        <main className="mt-4 space-y-3" id="listContainer">
+        <main className="mt-4 space-y-3">
           {rows.length === 0 ? (
             <div className="text-center py-20 bg-white/5 border border-ios-border rounded-2xl">
               <div className="mx-auto h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center mb-4">
@@ -419,64 +486,69 @@ export default function Communications(): JSX.Element {
               return (
                 <section
                   key={r.id}
-                  className="comm-card bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl shadow-glow overflow-hidden"
+                  className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl shadow-glow overflow-hidden"
                 >
                   <div className="p-4 flex items-start gap-4">
                     <div className="shrink-0 h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10">
                       <svg
-                        className="comm-icon h-6 w-6"
+                        className="h-6 w-6"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
                       >
-                        {r.type === 'call' ? (
+                        {r.type === 'call' && (
                           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                        ) : (
+                        )}
+                        {r.type === 'sms' && (
                           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        )}
+                        {r.type === 'recording' && (
+                          <path d="M12 1a11 11 0 0 1 11 11v6a11 11 0 0 1-11 11H7a11 11 0 0 1-11-11v-6a11 11 0 0 1 11-11z" />
                         )}
                       </svg>
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 justify-between">
+                      <div className="flex flex-wrap items-center gap-2 justify-between mb-2">
                         <div className="min-w-0">
                           <h3 className="truncate font-semibold text-sm">
-                            <span className="contact-name">
-                              {r.contactName}
-                            </span>{' '}
+                            <span>{r.contactName}</span>{' '}
                             <span className="text-ios-textMuted font-normal">
                               ·
                             </span>{' '}
-                            <span className="contact-number text-ios-textMuted">
+                            <span className="text-ios-textMuted">
                               {r.contactNumber}
                             </span>
                           </h3>
-                          <p className="text-xs text-ios-textMuted leading-5">
-                            <span className="timestamp">{r.timestamp}</span> ·{' '}
-                            <span className="comm-type">
-                              {r.type.toUpperCase()}
+                          <p className="text-xs text-ios-textMuted">
+                            <span>{r.timestamp}</span> ·{' '}
+                            <span className="uppercase">
+                              {r.type === 'recording' ? 'Recording' : r.type}
                             </span>
+                            {r.duration !== undefined && (
+                              <span> · {formatDuration(r.duration)}</span>
+                            )}
                           </p>
                         </div>
 
                         <div className="flex items-center gap-2">
                           <span
-                            className={`status-badge text-[10px] px-2 py-1 rounded-full ${status.cls}`}
+                            className={`text-[10px] px-2 py-1 rounded-full ${status.cls}`}
                           >
                             {status.text}
                           </span>
                           <span
-                            className={`sentiment-badge text-[10px] px-2 py-1 rounded-full ${sentiment.cls}`}
+                            className={`text-[10px] px-2 py-1 rounded-full ${sentiment.cls}`}
                           >
                             {sentiment.text}
                           </span>
                         </div>
                       </div>
 
-                      {/* Conversation thread */}
-                      <div className="mt-3 space-y-2">
-                        <div className="conversation-thread">
+                      {/* Conversation or Transcript */}
+                      {r.conversation && (
+                        <div className="mt-3 space-y-2 mb-3">
                           {r.conversation.map((msg, idx) => (
                             <div
                               key={idx}
@@ -500,15 +572,23 @@ export default function Communications(): JSX.Element {
                             </div>
                           ))}
                         </div>
-                      </div>
+                      )}
 
-                      {/* AI Response Summary */}
-                      <details className="mt-3 group">
+                      {r.type === 'recording' && r.audioUrl && (
+                        <div className="mb-3">
+                          <audio controls className="w-full h-6">
+                            <source src={r.audioUrl} type="audio/mpeg" />
+                          </audio>
+                        </div>
+                      )}
+
+                      {/* Summary */}
+                      <details className="group">
                         <summary className="list-none cursor-pointer flex items-center gap-2 text-xs text-ios-textMuted hover:text-white transition">
                           <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 border border-emerald-500/30">
                             🤖
                           </span>
-                          AI Response Summary
+                          Summary
                           <svg
                             className="ml-auto h-4 w-4 transition group-open:rotate-180"
                             viewBox="0 0 24 24"
@@ -520,14 +600,14 @@ export default function Communications(): JSX.Element {
                           </svg>
                         </summary>
                         <div className="mt-2 space-y-2 text-sm leading-6">
-                          <div className="ai-summary bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
+                          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
                             <p className="text-white/90">{r.aiSummary}</p>
                           </div>
                           <div className="flex flex-wrap gap-2 text-[10px]">
-                            <span className="tag inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 border border-white/10">
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 border border-white/10">
                               #{r.tag}
                             </span>
-                            <span className="action-taken inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 border border-white/10">
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 border border-white/10">
                               {r.actionTaken}
                             </span>
                           </div>
@@ -539,17 +619,14 @@ export default function Communications(): JSX.Element {
                   {/* Footer controls */}
                   <div className="px-4 pb-4 flex items-center justify-between text-xs text-ios-textMuted">
                     <div className="flex items-center gap-2">
-                      <button className="action-btn px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
+                      <button className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
                         Follow up
                       </button>
-                      <button className="action-btn px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
+                      <button className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
                         Archive
                       </button>
                     </div>
-                    <a
-                      className="view-full text-sky-400 hover:text-sky-300"
-                      href="#"
-                    >
+                    <a className="text-sky-400 hover:text-sky-300" href="#">
                       View full
                     </a>
                   </div>

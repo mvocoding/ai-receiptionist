@@ -27,7 +27,6 @@ export default function ConfirmCode(): JSX.Element | null {
   useEffect(() => {
     const raw = sessionStorage.getItem('fs_signin');
     if (!raw) {
-      // no pending signin -> go back to signin
       (window as any).__navigate?.('/signin') ??
         (window.location.pathname = '/signin');
       return;
@@ -46,11 +45,9 @@ export default function ConfirmCode(): JSX.Element | null {
     if (!stored) return;
     const user = { email: stored.email, loggedAt: Date.now() };
     localStorage.setItem('fs_user', JSON.stringify(user));
-    // clear session code
     sessionStorage.removeItem('fs_signin');
-    // navigate into app (recordings)
-    (window as any).__navigate?.('/recordings') ??
-      (window.location.pathname = '/recordings');
+    (window as any).__navigate?.('/dashboard') ??
+      (window.location.pathname = '/dashboard');
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -75,7 +72,6 @@ export default function ConfirmCode(): JSX.Element | null {
     sessionStorage.setItem('fs_signin', JSON.stringify(payload));
     setStored(payload);
     setInfo(`A new code was sent to ${payload.email}. (Check console in demo)`);
-    // eslint-disable-next-line no-console
     console.info(
       'Resent sign-in code (simulate email):',
       newCode,

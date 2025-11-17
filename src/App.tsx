@@ -6,8 +6,9 @@ import Flow from './pages/Flow';
 import Recordings from './pages/Recordings';
 import SignIn from './pages/SignIn';
 import ConfirmCode from './pages/ConfirmCode';
-import LiveGemini from './pages/LiveGemini'; // added
+import LiveGemini from './pages/LiveGemini';
 import BookAppointment from './pages/BookAppointment';
+import Dashboard from './pages/Dashboard'; // added
 
 export default function App(): JSX.Element {
   const [path, setPath] = useState(() => window.location.pathname || '/');
@@ -54,10 +55,13 @@ export default function App(): JSX.Element {
     return <ConfirmCode />;
 
   if (p === '/live-gemini' || p.toLowerCase().includes('live-gemini'))
-    return <LiveGemini />; // added
+    return <LiveGemini />;
 
   if (p === '/book' || p.toLowerCase().includes('book.html'))
     return <BookAppointment />;
+
+  if (p === '/dashboard' || p.toLowerCase().includes('dashboard'))
+    return <Dashboard />; // added
 
   // fallback to landing
   return <Landing />;
