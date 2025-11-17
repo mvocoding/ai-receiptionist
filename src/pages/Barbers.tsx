@@ -15,6 +15,16 @@ type BarberCard = {
   workingDays: string[];
 };
 
+function formatDateDisplay(dateStr: string): string {
+  const date = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dateStr;
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
 const fallbackBarbers: BarberCard[] = [
   {
     id: 'fallback-ace',
@@ -88,7 +98,14 @@ export default function Barbers(): JSX.Element {
   const [barbers, setBarbers] = useState<BarberCard[]>([]);
   const [loadingBarbers, setLoadingBarbers] = useState(true);
   const [slotsLoading, setSlotsLoading] = useState(false);
-  const [bookedSlots, setBookedSlots] = useState<Record<string, string[]>>({});
+  const [appointmentsByBarber, setAppointmentsByBarber] = useState<
+    Record<string, DBAppointment[]>
+  >({});
+  const [activeAppointment, setActiveAppointment] = useState<{
+    data: DBAppointment;
+    barberName: string;
+    barberServices: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedSlots, setSelectedSlots] = useState<
     Record<string, Set<string>>
@@ -149,23 +166,23 @@ export default function Barbers(): JSX.Element {
       try {
         const { data, error: appointmentsError } = await supabase
           .from('appointments')
-          .select('barber_id, slot_time, status')
+          .select('*')
           .eq('appointment_date', dateStr)
           .not('status', 'eq', 'cancelled');
 
         if (appointmentsError) throw appointmentsError;
 
-        const grouped: Record<string, string[]> = {};
+        const grouped: Record<string, DBAppointment[]> = {};
         (data as DBAppointment[] | null)?.forEach((appt) => {
           if (!grouped[appt.barber_id]) grouped[appt.barber_id] = [];
-          grouped[appt.barber_id].push(appt.slot_time);
+          grouped[appt.barber_id].push(appt);
         });
 
-        setBookedSlots(grouped);
+        setAppointmentsByBarber(grouped);
       } catch (err) {
         console.error('Error loading appointments:', err);
         setError('Unable to load appointments for this date.');
-        setBookedSlots({});
+        setAppointmentsByBarber({});
       } finally {
         setSlotsLoading(false);
       }
@@ -173,12 +190,6 @@ export default function Barbers(): JSX.Element {
 
     fetchAppointments();
   }, [dateStr]);
-
-  function getAvailableSlotsFor(barberId: string) {
-    const booked = bookedSlots[barberId] || [];
-    const set = new Set(booked);
-    return allSlots.filter((s) => !set.has(s));
-  }
 
   function toggleSelect(barberId: string, slot: string) {
     setSelectedSlots((prev) => {
@@ -283,8 +294,14 @@ export default function Barbers(): JSX.Element {
           )}
 
           {visibleBarbers.map((barberInfo) => {
-            const slots = getAvailableSlotsFor(barberInfo.id);
+            const currentAppointments = appointmentsByBarber[barberInfo.id] || [];
+            const appointmentBySlot = new Map(
+              currentAppointments.map((appt) => [appt.slot_time, appt])
+            );
             const selected = selectedSlots[barberInfo.id] || new Set<string>();
+            const availableCount = allSlots.filter(
+              (slot) => !appointmentBySlot.has(slot)
+            ).length;
             return (
               <section
                 key={barberInfo.id}
@@ -304,7 +321,7 @@ export default function Barbers(): JSX.Element {
                         </h3>
                         <p className="text-xs text-ios-textMuted">
                           Available slots ·{' '}
-                          <span className="slot-count">{slots.length}</span>
+                          <span className="slot-count">{availableCount}</span>
                         </p>
                       </div>
                       <div className="inline-flex items-center gap-2 text-[10px]">
@@ -319,22 +336,32 @@ export default function Barbers(): JSX.Element {
                         <div className="col-span-full text-xs text-ios-textMuted">
                           Loading availability…
                         </div>
-                      ) : slots.length === 0 ? (
-                        <div className="text-xs text-ios-textMuted">
-                          No slots today
-                        </div>
                       ) : (
-                        slots.map((s) => {
+                        allSlots.map((s) => {
+                          const appointment = appointmentBySlot.get(s);
+                          const isBooked = Boolean(appointment);
                           const isSelected = selected.has(s);
                           return (
                             <button
                               key={s}
-                              onClick={() => toggleSelect(barberInfo.id, s)}
+                              onClick={() => {
+                                if (appointment) {
+                                  setActiveAppointment({
+                                    data: appointment,
+                                    barberName: barberInfo.name,
+                                    barberServices: barberInfo.services,
+                                  });
+                                } else {
+                                  toggleSelect(barberInfo.id, s);
+                                }
+                              }}
                               className={
-                                'slot-btn px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs transition ' +
-                                (isSelected
-                                  ? 'bg-emerald-500/20 border-emerald-400/30'
-                                  : '')
+                                'slot-btn px-3 py-2 rounded-xl text-xs transition border ' +
+                                (isBooked
+                                  ? 'bg-rose-500/20 border-rose-500/40 text-rose-200 hover:bg-rose-500/30'
+                                  : isSelected
+                                  ? 'bg-emerald-500/20 border-emerald-400/40'
+                                  : 'bg-white/5 border-white/10 hover:bg-white/10')
                               }
                             >
                               {s}
@@ -355,6 +382,88 @@ export default function Barbers(): JSX.Element {
           Fade Station · Barbers & Availability
         </footer>
       </div>
+
+      {activeAppointment && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-[#101010] border border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-xs text-ios-textMuted uppercase tracking-wide">
+                  Appointment
+                </p>
+                <h3 className="text-2xl font-semibold">Booking details</h3>
+              </div>
+              <button
+                onClick={() => setActiveAppointment(null)}
+                className="text-white/70 hover:text-white text-2xl leading-none"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-sm">
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                <p className="text-xs text-white/50 uppercase">Barber</p>
+                <p className="text-lg font-medium">
+                  {activeAppointment.barberName}
+                </p>
+                <p className="text-white/60">{activeAppointment.barberServices}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <p className="text-xs text-white/50 uppercase mb-1">Date</p>
+                  <p className="font-medium">
+                    {formatDateDisplay(activeAppointment.data.appointment_date)}
+                  </p>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <p className="text-xs text-white/50 uppercase mb-1">Time</p>
+                  <p className="font-medium">{activeAppointment.data.slot_time}</p>
+                </div>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+                <div>
+                  <p className="text-xs text-white/50 uppercase mb-1">
+                    Customer
+                  </p>
+                  <p className="font-medium">
+                    {activeAppointment.data.customer_name || '—'}
+                  </p>
+                  <p className="text-white/60">
+                    {activeAppointment.data.customer_email || 'No email on file'}
+                  </p>
+                  <p className="text-white/60">
+                    {activeAppointment.data.customer_phone || 'No phone on file'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-white/50 uppercase mb-1">
+                    Status
+                  </p>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-200 text-xs">
+                    {activeAppointment.data.status}
+                  </span>
+                </div>
+                {activeAppointment.data.notes && (
+                  <div>
+                    <p className="text-xs text-white/50 uppercase mb-1">Notes</p>
+                    <p className="text-white/70">{activeAppointment.data.notes}</p>
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={() => setActiveAppointment(null)}
+                className="w-full mt-4 px-4 py-2 rounded-xl bg-white/10 border border-white/20 hover:bg-white/15 transition text-sm font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
