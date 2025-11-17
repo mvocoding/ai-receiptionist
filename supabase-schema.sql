@@ -1,6 +1,4 @@
 -- Fade Station Database Schema
--- Run this SQL in your Supabase SQL Editor to create the tables
--- This script drops all existing objects and recreates them
 
 DROP TABLE IF EXISTS appointments CASCADE;
 DROP TABLE IF EXISTS communications CASCADE;
@@ -13,9 +11,6 @@ DROP TABLE IF EXISTS store_settings CASCADE;
 DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
 DROP FUNCTION IF EXISTS get_distinct_customers() CASCADE;
 
--- ============================================
--- CREATE TABLES
--- ============================================
 
 -- Store Settings Table
 CREATE TABLE store_settings (
@@ -105,8 +100,7 @@ VALUES (
   'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800',
   'Welcome to Fade Station. Premium Barbershop Experience.',
   '0483 804 500',
-  '123 Barbershop Avenue
-Auckland, NZ 1010',
+  '1 Fern Court, Parafield Gardens, SA 5107',
   'Mon-Fri: 9:00 AM - 6:00 PM
 Sat: 9:00 AM - 5:00 PM
 Sun: Closed'
@@ -321,11 +315,7 @@ ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE communications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comm_messages ENABLE ROW LEVEL SECURITY;
 
--- ============================================
--- CREATE POLICIES
--- ============================================
 
--- Create policies to allow all operations (adjust based on your auth needs)
 CREATE POLICY "Allow all operations on store_settings"
   ON store_settings
   FOR ALL

@@ -11,7 +11,7 @@ export default function ConfirmCode(): JSX.Element | null {
     meta.setAttribute('name', 'description');
     meta.setAttribute(
       'content',
-      'Enter the 4-digit code sent to your email to sign in.'
+      'Enter the 8-digit code sent to your email to sign in.'
     );
     if (!document.querySelector('meta[name="description"]'))
       document.head.appendChild(meta);
@@ -35,16 +35,14 @@ export default function ConfirmCode(): JSX.Element | null {
   }, []);
 
   async function upsertUserProfile(authUserId: string, userEmail: string) {
-    const { error: upsertError } = await supabase
-      .from('users')
-      .upsert(
-        {
-          id: authUserId,
-          email: userEmail,
-          last_login_at: new Date().toISOString(),
-        },
-        { onConflict: 'id' }
-      );
+    const { error: upsertError } = await supabase.from('users').upsert(
+      {
+        id: authUserId,
+        email: userEmail,
+        last_login_at: new Date().toISOString(),
+      },
+      { onConflict: 'id' }
+    );
 
     if (upsertError) throw upsertError;
   }
@@ -122,7 +120,7 @@ export default function ConfirmCode(): JSX.Element | null {
   }
 
   if (!email) {
-    return null; // redirecting
+    return null;
   }
 
   return (
