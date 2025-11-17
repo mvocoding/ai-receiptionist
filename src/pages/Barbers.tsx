@@ -25,6 +25,9 @@ function formatDateDisplay(dateStr: string): string {
   });
 }
 
+const defaultAvatar =
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200';
+
 const fallbackBarbers: BarberCard[] = [
   {
     id: 'fallback-ace',
@@ -308,11 +311,14 @@ export default function Barbers(): JSX.Element {
                 className="bg-gradient-to-b from-[#111111] to-[#0d0d0d] border border-ios-border rounded-2xl shadow-glow overflow-hidden"
               >
                 <div className="p-4 flex items-start gap-3">
-                  <div className="h-12 w-12 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center">
-                    <span className="avatar text-sm font-semibold">
-                      {barberInfo.name[0]}
-                    </span>
-                  </div>
+                  <img
+                    src={barberInfo.image || defaultAvatar}
+                    alt={barberInfo.name}
+                    className="h-12 w-12 rounded-2xl object-cover border border-white/10 bg-white/5"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = defaultAvatar;
+                    }}
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <div>

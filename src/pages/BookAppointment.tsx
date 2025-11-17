@@ -24,6 +24,14 @@ type BookingForm = {
   notes: string;
 };
 
+const defaultBanner =
+  'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800';
+const defaultAddress = '123 Barbershop Avenue\nAuckland, NZ 1010';
+const defaultHours = 'Mon-Fri: 9:00 AM - 6:00 PM\nSat: 9:00 AM - 5:00 PM\nSun: Closed';
+const defaultPhone = '+64 1 234 56789';
+const barberAvatarFallback =
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200';
+
 const TIME_SLOTS = [
   '09:00',
   '09:30',
@@ -71,6 +79,12 @@ export default function BookAppointment(): JSX.Element {
     email: '',
     notes: '',
   });
+  const [storeDetails, setStoreDetails] = useState({
+    bannerUrl: defaultBanner,
+    hours: defaultHours,
+    address: defaultAddress,
+    phone: defaultPhone,
+  });
 
   useEffect(() => {
     const fetchBarbers = async () => {
@@ -101,6 +115,33 @@ export default function BookAppointment(): JSX.Element {
     };
 
     fetchBarbers();
+  }, []);
+
+  useEffect(() => {
+    const fetchStoreDetails = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('store_settings')
+          .select('*')
+          .limit(1)
+          .single();
+
+        if (error && error.code !== 'PGRST116') throw error;
+
+        if (data) {
+          setStoreDetails({
+            bannerUrl: data.banner_url || defaultBanner,
+            hours: data.hours || defaultHours,
+            address: data.address || defaultAddress,
+            phone: data.phone_number || defaultPhone,
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to load store settings for booking page:', err);
+      }
+    };
+
+    fetchStoreDetails();
   }, []);
 
   const today = useMemo(() => new Date(), []);
@@ -222,9 +263,12 @@ export default function BookAppointment(): JSX.Element {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="rounded-xl overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800"
+                src={storeDetails.bannerUrl}
                 alt="Fade Station Barbershop"
                 className="w-full h-96 object-cover"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = defaultBanner;
+                }}
               />
             </div>
 
@@ -254,9 +298,11 @@ export default function BookAppointment(): JSX.Element {
                   </div>
                   <div>
                     <p className="text-sm text-white/60 mb-1">HOURS</p>
-                    <p className="text-white/90">Mon-Fri: 9:00 AM - 6:00 PM</p>
-                    <p className="text-white/90">Sat: 9:00 AM - 5:00 PM</p>
-                    <p className="text-white/60">Sun: Closed</p>
+                    {storeDetails.hours.split('\n').map((line) => (
+                      <p key={line} className="text-white/80">
+                        {line}
+                      </p>
+                    ))}
                   </div>
                 </div>
 
@@ -275,10 +321,18 @@ export default function BookAppointment(): JSX.Element {
                   </div>
                   <div>
                     <p className="text-sm text-white/60 mb-1">ADDRESS</p>
-                    <p className="text-white/90">123 Barbershop Avenue</p>
-                    <p className="text-white/90 mb-2">Auckland, NZ 1010</p>
+                    {storeDetails.address.split('\n').map((line, idx) => (
+                      <p
+                        key={`${line}-${idx}`}
+                        className={`text-white/${idx === 0 ? '90' : '70'} ${idx === 0 ? '' : 'mb-2'}`}
+                      >
+                        {line}
+                      </p>
+                    ))}
                     <a
-                      href="https://maps.google.com/?q=123+Barbershop+Ave+Auckland"
+                      href={`https://maps.google.com/?q=${encodeURIComponent(
+                        storeDetails.address.replace(/\n/g, ' ')
+                      )}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sky-400 hover:text-sky-300 text-sm font-medium"
@@ -303,10 +357,10 @@ export default function BookAppointment(): JSX.Element {
                   <div>
                     <p className="text-sm text-white/60 mb-1">CONTACT</p>
                     <a
-                      href="tel:+64123456789"
+                      href={`tel:${storeDetails.phone.replace(/\s+/g, '')}`}
                       className="text-sky-400 hover:text-sky-300 text-lg font-medium"
                     >
-                      +64 1 234 56789
+                      {storeDetails.phone}
                     </a>
                   </div>
                 </div>
@@ -361,7 +415,10 @@ export default function BookAppointment(): JSX.Element {
                   <img
                     src={barber.image}
                     alt={barber.name}
-                    className="w-16 h-16 rounded-lg mb-4 object-cover"
+                        className="w-16 h-16 rounded-lg mb-4 object-cover border border-white/10"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = barberAvatarFallback;
+                        }}
                   />
                   <div className="text-left">
                     <h4 className="text-lg font-semibold">{barber.name}</h4>
