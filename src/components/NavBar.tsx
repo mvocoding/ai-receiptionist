@@ -63,12 +63,6 @@ export default function NavBar(): JSX.Element {
             >
               Book
             </button>
-            <a
-              href="/training.html"
-              className="text-sm text-ios-textMuted hover:text-white transition"
-            >
-              Training
-            </a>
             <button
               onClick={() => nav('/dashboard')}
               className="text-sm text-ios-textMuted hover:text-white transition"
