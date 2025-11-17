@@ -326,10 +326,6 @@ export default function Barbers(): JSX.Element {
                           <h3 className="font-semibold text-sm barber-name">
                             {barberInfo.name}
                           </h3>
-                          <p className="text-xs text-ios-textMuted">
-                            Available slots ·{' '}
-                            <span className="slot-count">{availableCount}</span>
-                          </p>
                         </div>
                         <div className="inline-flex items-center gap-2 text-[10px]">
                           <span className="px-2 py-1 rounded-full border border-white/10 bg-white/5 text-white/80 service">
