@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
+import {
+  supabase,
+  type StoreSettings as DBStoreSettings,
+  type Barber as DBBarber,
+} from '../lib/supabase';
 
 type Barber = {
   id: string;
@@ -29,6 +34,19 @@ const DAYS_OF_WEEK = [
 ];
 
 export default function Dashboard(): JSX.Element {
+  const [settings, setSettings] = useState<StoreSettings>({
+    bannerUrl:
+      'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800',
+    introText: 'Welcome to Fade Station. Premium Barbershop Experience.',
+    phoneNumber: '+64 1 234 56789',
+    address: '123 Barbershop Avenue\nAuckland, NZ 1010',
+    hours: 'Mon-Fri: 9:00 AM - 6:00 PM\nSat: 9:00 AM - 5:00 PM\nSun: Closed',
+  });
+
+  const [barbers, setBarbers] = useState<Barber[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [settingsId, setSettingsId] = useState<string | null>(null);
+
   useEffect(() => {
     document.title = 'Dashboard · Fade Station';
     const meta =
@@ -43,58 +61,59 @@ export default function Dashboard(): JSX.Element {
       document.head.appendChild(meta);
   }, []);
 
-  const [settings, setSettings] = useState<StoreSettings>({
-    bannerUrl:
-      'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800',
-    introText: 'Welcome to Fade Station. Premium Barbershop Experience.',
-    phoneNumber: '+64 1 234 56789',
-    address: '123 Barbershop Avenue\nAuckland, NZ 1010',
-    hours: 'Mon-Fri: 9:00 AM - 6:00 PM\nSat: 9:00 AM - 5:00 PM\nSun: Closed',
-  });
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
 
-  const [barbers, setBarbers] = useState<Barber[]>([
-    {
-      id: 'ace',
-      name: 'Ace',
-      specialty: 'Fades · Beard · Kids',
-      image:
-        'https://images.unsplash.com/photo-1585518419759-7fe2e0fbf8a6?auto=format&fit=crop&q=80&w=200&h=200',
-      price: 45,
-      workingDays: [
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-      ],
-    },
-    {
-      id: 'jay',
-      name: 'Jay',
-      specialty: 'Tapers · Line-ups',
-      image:
-        'https://images.unsplash.com/photo-1534308143481-c55f00be8bd7?auto=format&fit=crop&q=80&w=200&h=200',
-      price: 40,
-      workingDays: ['Monday', 'Wednesday', 'Friday', 'Saturday'],
-    },
-    {
-      id: 'mia',
-      name: 'Mia',
-      specialty: 'Skin Fades · Scissor',
-      image:
-        'https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&q=80&w=200&h=200',
-      price: 45,
-      workingDays: [
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-        'Sunday',
-      ],
-    },
-  ]);
+        const { data: settingsData, error: settingsError } = await supabase
+          .from('store_settings')
+          .select('*')
+          .limit(1)
+          .single();
+
+        if (settingsError && settingsError.code !== 'PGRST116') {
+          console.error('Error fetching settings:', settingsError);
+        } else if (settingsData) {
+          setSettingsId(settingsData.id);
+          setSettings({
+            bannerUrl: settingsData.banner_url || '',
+            introText: settingsData.intro_text || '',
+            phoneNumber: settingsData.phone_number || '',
+            address: settingsData.address || '',
+            hours: settingsData.hours || '',
+          });
+        }
+
+        // Fetch barbers
+        const { data: barbersData, error: barbersError } = await supabase
+          .from('barbers')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (barbersError) {
+          console.error('Error fetching barbers:', barbersError);
+        } else if (barbersData) {
+          setBarbers(
+            barbersData.map((b: DBBarber) => ({
+              id: b.id,
+              name: b.name,
+              specialty: b.specialty,
+              image: b.image,
+              price: Number(b.price),
+              workingDays: b.working_days || [],
+            }))
+          );
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const [showAddBarber, setShowAddBarber] = useState(false);
   const [editingBarber, setEditingBarber] = useState<Barber | null>(null);
@@ -130,7 +149,7 @@ export default function Dashboard(): JSX.Element {
     });
   };
 
-  const handleAddBarber = (e: React.FormEvent) => {
+  const handleAddBarber = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
       !newBarber.name.trim() ||
@@ -141,19 +160,43 @@ export default function Dashboard(): JSX.Element {
       alert('Please fill in all fields and select at least one working day');
       return;
     }
-    const barber: Barber = {
-      id: `barber_${Date.now()}`,
-      name: newBarber.name,
-      specialty: newBarber.specialty,
-      image:
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200',
-      price: Number(newBarber.price),
-      workingDays: newBarber.workingDays,
-    };
-    setBarbers([...barbers, barber]);
-    setNewBarber({ name: '', specialty: '', price: '', workingDays: [] });
-    setShowAddBarber(false);
-    alert('Barber added successfully!');
+
+    try {
+      const { data, error } = await supabase
+        .from('barbers')
+        .insert({
+          name: newBarber.name,
+          specialty: newBarber.specialty,
+          image:
+            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200',
+          price: Number(newBarber.price),
+          working_days: newBarber.workingDays,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setBarbers([
+          {
+            id: data.id,
+            name: data.name,
+            specialty: data.specialty,
+            image: data.image,
+            price: Number(data.price),
+            workingDays: data.working_days || [],
+          },
+          ...barbers,
+        ]);
+        setNewBarber({ name: '', specialty: '', price: '', workingDays: [] });
+        setShowAddBarber(false);
+        alert('Barber added successfully!');
+      }
+    } catch (error) {
+      console.error('Error adding barber:', error);
+      alert('Failed to add barber. Please try again.');
+    }
   };
 
   const handleEditBarber = (barber: Barber) => {
@@ -166,7 +209,7 @@ export default function Dashboard(): JSX.Element {
     });
   };
 
-  const handleUpdateBarber = (e: React.FormEvent) => {
+  const handleUpdateBarber = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingBarber) return;
     if (
@@ -178,26 +221,95 @@ export default function Dashboard(): JSX.Element {
       alert('Please fill in all fields and select at least one working day');
       return;
     }
-    setBarbers(
-      barbers.map((b) =>
-        b.id === editingBarber.id
-          ? {
-              ...b,
-              name: newBarber.name,
-              specialty: newBarber.specialty,
-              price: Number(newBarber.price),
-              workingDays: newBarber.workingDays,
-            }
-          : b
-      )
-    );
-    setEditingBarber(null);
-    setNewBarber({ name: '', specialty: '', price: '', workingDays: [] });
-    alert('Barber updated successfully!');
+
+    try {
+      const { data, error } = await supabase
+        .from('barbers')
+        .update({
+          name: newBarber.name,
+          specialty: newBarber.specialty,
+          price: Number(newBarber.price),
+          working_days: newBarber.workingDays,
+        })
+        .eq('id', editingBarber.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setBarbers(
+          barbers.map((b) =>
+            b.id === editingBarber.id
+              ? {
+                  ...b,
+                  name: data.name,
+                  specialty: data.specialty,
+                  price: Number(data.price),
+                  workingDays: data.working_days || [],
+                }
+              : b
+          )
+        );
+        setEditingBarber(null);
+        setNewBarber({ name: '', specialty: '', price: '', workingDays: [] });
+        alert('Barber updated successfully!');
+      }
+    } catch (error) {
+      console.error('Error updating barber:', error);
+      alert('Failed to update barber. Please try again.');
+    }
   };
 
-  const deleteBarber = (id: string) => {
-    setBarbers(barbers.filter((b) => b.id !== id));
+  const deleteBarber = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this barber?')) return;
+
+    try {
+      const { error } = await supabase.from('barbers').delete().eq('id', id);
+
+      if (error) throw error;
+
+      setBarbers(barbers.filter((b) => b.id !== id));
+      alert('Barber deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting barber:', error);
+      alert('Failed to delete barber. Please try again.');
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      const updateData = {
+        banner_url: settings.bannerUrl,
+        intro_text: settings.introText,
+        phone_number: settings.phoneNumber,
+        address: settings.address,
+        hours: settings.hours,
+      };
+
+      if (settingsId) {
+        const { error } = await supabase
+          .from('store_settings')
+          .update(updateData)
+          .eq('id', settingsId);
+
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from('store_settings')
+          .insert(updateData)
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data) setSettingsId(data.id);
+      }
+
+      alert('Store settings saved!');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Failed to save settings. Please try again.');
+    }
   };
 
   return (
@@ -237,7 +349,10 @@ export default function Dashboard(): JSX.Element {
               <textarea
                 value={settings.introText}
                 onChange={(e) =>
-                  setSettings((prev) => ({ ...prev, introText: e.target.value }))
+                  setSettings((prev) => ({
+                    ...prev,
+                    introText: e.target.value,
+                  }))
                 }
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
                 rows={3}
@@ -252,7 +367,10 @@ export default function Dashboard(): JSX.Element {
               <textarea
                 value={settings.phoneNumber}
                 onChange={(e) =>
-                  setSettings((prev) => ({ ...prev, phoneNumber: e.target.value }))
+                  setSettings((prev) => ({
+                    ...prev,
+                    phoneNumber: e.target.value,
+                  }))
                 }
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
                 rows={1}
@@ -295,10 +413,11 @@ Sun: Closed"
             </div>
 
             <button
-              onClick={() => alert('Store settings saved!')}
-              className="px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 transition font-medium"
+              onClick={handleSaveSettings}
+              disabled={loading}
+              className="px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save Changes
+              {loading ? 'Loading...' : 'Save Changes'}
             </button>
           </div>
         </div>
