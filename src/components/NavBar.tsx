@@ -57,6 +57,12 @@ export default function NavBar(): JSX.Element {
             >
               Flow
             </button>
+            <button
+              onClick={() => nav('/book')}
+              className="text-sm text-ios-textMuted hover:text-white transition"
+            >
+              Book
+            </button>
             <a
               href="/training.html"
               className="text-sm text-ios-textMuted hover:text-white transition"
