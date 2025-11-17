@@ -37,7 +37,6 @@ export type Appointment = {
   id: string;
   barber_id: string;
   customer_name?: string;
-  customer_email?: string;
   customer_phone?: string;
   appointment_date: string;
   slot_time: string;

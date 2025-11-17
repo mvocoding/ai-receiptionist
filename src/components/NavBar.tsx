@@ -50,14 +50,10 @@ export default function NavBar(): JSX.Element {
               onClick={() => nav('/landing')}
               className="flex items-center gap-3 hover:opacity-80 transition"
             >
-              <div className="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center border border-white/10">
-                <span className="text-xs font-semibold">FS</span>
-              </div>
               <div>
                 <h1 className="text-lg font-semibold tracking-tight">
                   Fade Station
                 </h1>
-                <p className="text-xs text-ios-textMuted">AI Receptionist</p>
               </div>
             </button>
           </div>

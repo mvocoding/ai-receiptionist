@@ -18,7 +18,6 @@ export default function Landing(): JSX.Element {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
-      {/* unified nav */}
       <NavBar />
 
       <div className="relative overflow-hidden">

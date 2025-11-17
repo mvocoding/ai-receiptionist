@@ -26,8 +26,9 @@ type BookingForm = {
 const defaultBanner =
   'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800';
 const defaultAddress = '123 Barbershop Avenue\nAuckland, NZ 1010';
-const defaultHours = 'Mon-Fri: 9:00 AM - 6:00 PM\nSat: 9:00 AM - 5:00 PM\nSun: Closed';
-const defaultPhone = '+64 1 234 56789';
+const defaultHours =
+  'Mon-Fri: 9:00 AM - 6:00 PM\nSat: 9:00 AM - 5:00 PM\nSun: Closed';
+const defaultPhone = '0483234567';
 const defaultIntro = 'Premium Barbershop Experience';
 const barberAvatarFallback =
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200';
@@ -67,7 +68,9 @@ export default function BookAppointment(): JSX.Element {
   const [loadingBarbers, setLoadingBarbers] = useState(true);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
-  const [bookingStatus, setBookingStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const [bookingStatus, setBookingStatus] = useState<
+    'idle' | 'submitting' | 'success'
+  >('idle');
   const [bookingError, setBookingError] = useState<string | null>(null);
 
   const [form, setForm] = useState<BookingForm>({
@@ -172,7 +175,9 @@ export default function BookAppointment(): JSX.Element {
           .not('status', 'eq', 'cancelled');
 
         if (error) throw error;
-        setBookedSlots((data as DBAppointment[] | null)?.map((a) => a.slot_time) || []);
+        setBookedSlots(
+          (data as DBAppointment[] | null)?.map((a) => a.slot_time) || []
+        );
       } catch (err) {
         console.error('Error loading appointments:', err);
         setBookedSlots([]);
@@ -213,7 +218,9 @@ export default function BookAppointment(): JSX.Element {
     }
 
     if (bookedSlots.includes(form.time)) {
-      setBookingError('This time slot was just booked. Please pick another one.');
+      setBookingError(
+        'This time slot was just booked. Please pick another one.'
+      );
       return;
     }
 
@@ -222,7 +229,6 @@ export default function BookAppointment(): JSX.Element {
       const { error } = await supabase.from('appointments').insert({
         barber_id: form.barberId,
         customer_name: form.name.trim(),
-        customer_email: null,
         customer_phone: form.phone.trim(),
         appointment_date: form.date,
         slot_time: form.time,
@@ -277,9 +283,7 @@ export default function BookAppointment(): JSX.Element {
                 <h1 className="text-5xl font-bold tracking-tight mb-2">
                   Fade Station
                 </h1>
-                <p className="text-xl text-white/60">
-                  {storeDetails.intro}
-                </p>
+                <p className="text-xl text-white/60">{storeDetails.intro}</p>
               </div>
 
               <div className="space-y-6">
@@ -324,12 +328,13 @@ export default function BookAppointment(): JSX.Element {
                     {storeDetails.address.split('\n').map((line, idx) => (
                       <p
                         key={`${line}-${idx}`}
-                        className={`text-white/${idx === 0 ? '90' : '70'} ${idx === 0 ? '' : 'mb-2'}`}
+                        className={`text-white/${idx === 0 ? '90' : '70'} ${
+                          idx === 0 ? '' : 'mb-2'
+                        }`}
                       >
                         {line}
                       </p>
                     ))}
-                    
                   </div>
                 </div>
 
@@ -406,10 +411,11 @@ export default function BookAppointment(): JSX.Element {
                   <img
                     src={barber.image}
                     alt={barber.name}
-                        className="w-16 h-16 rounded-lg mb-4 object-cover border border-white/10"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src = barberAvatarFallback;
-                        }}
+                    className="w-16 h-16 rounded-lg mb-4 object-cover border border-white/10"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src =
+                        barberAvatarFallback;
+                    }}
                   />
                   <div className="text-left">
                     <h4 className="text-lg font-semibold">{barber.name}</h4>
@@ -570,7 +576,7 @@ export default function BookAppointment(): JSX.Element {
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
-                  placeholder="+64 21 123 4567"
+                  placeholder="0483 234 567"
                 />
               </div>
 
@@ -625,7 +631,9 @@ export default function BookAppointment(): JSX.Element {
                   disabled={bookingStatus === 'submitting'}
                   className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 transition font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {bookingStatus === 'submitting' ? 'Booking...' : 'Confirm Booking'}
+                  {bookingStatus === 'submitting'
+                    ? 'Booking...'
+                    : 'Confirm Booking'}
                 </button>
               </div>
             </form>

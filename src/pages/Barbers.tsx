@@ -438,9 +438,6 @@ export default function Barbers(): JSX.Element {
                     {activeAppointment.data.customer_name || '—'}
                   </p>
                   <p className="text-white/60">
-                    {activeAppointment.data.customer_email || 'No email on file'}
-                  </p>
-                  <p className="text-white/60">
                     {activeAppointment.data.customer_phone || 'No phone on file'}
                   </p>
                 </div>

@@ -52,11 +52,7 @@ export default function Customers(): JSX.Element {
         (
           data as (DBAppointment & { barbers?: { name?: string } })[] | null
         )?.forEach((appt) => {
-          const key =
-            appt.customer_email ||
-            appt.customer_phone ||
-            appt.customer_name ||
-            appt.id;
+          const key = appt.customer_phone || appt.customer_name || appt.id;
           if (!grouped[key]) {
             grouped[key] = {
               id: key,
@@ -113,15 +109,6 @@ export default function Customers(): JSX.Element {
           <div>
             <h1 className="text-4xl font-bold tracking-tight">Client list</h1>
           </div>
-          <div className="w-full sm:w-80">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search name, email, or phone..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/50"
-            />
-          </div>
         </header>
 
         {loading && (
@@ -146,7 +133,7 @@ export default function Customers(): JSX.Element {
               key={customer.id}
               className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition"
             >
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-white/10 pb-4 mb-4">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
                 <div>
                   <h2 className="text-xl font-semibold">{customer.name}</h2>
                   <p className="text-sm text-white/60">
@@ -158,39 +145,6 @@ export default function Customers(): JSX.Element {
                     Last visit · {customer.lastAppointment}
                   </div>
                 )}
-              </div>
-
-              <div className="space-y-3">
-                {customer.appointments.map((appt, idx) => (
-                  <div
-                    key={`${customer.id}-appt-${idx}`}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {formatDateTime(appt.date, appt.time)}
-                      </p>
-                      <p className="text-sm text-white/60">
-                        {appt.barberName
-                          ? `Barber · ${appt.barberName}`
-                          : 'Barber not recorded'}
-                      </p>
-                    </div>
-                    <span
-                      className="inline-flex w-fit items-center px-3 py-1 rounded-full border text-xs uppercase tracking-wide
-                      ${
-                        appt.status === 'completed'
-                          ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
-                          : appt.status === 'cancelled'
-                          ? 'bg-rose-500/15 border-rose-500/30 text-rose-300'
-                          : 'bg-white/10 border-white/20 text-white/70'
-                      }
-                    "
-                    >
-                      {appt.status}
-                    </span>
-                  </div>
-                ))}
               </div>
             </section>
           ))}

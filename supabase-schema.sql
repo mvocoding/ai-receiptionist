@@ -2,10 +2,6 @@
 -- Run this SQL in your Supabase SQL Editor to create the tables
 -- This script drops all existing objects and recreates them
 
--- ============================================
--- DROP EXISTING OBJECTS
--- ============================================
-
 DROP TABLE IF EXISTS appointments CASCADE;
 DROP TABLE IF EXISTS communications CASCADE;
 DROP TABLE IF EXISTS comm_messages CASCADE;
@@ -26,9 +22,8 @@ CREATE TABLE store_settings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   banner_url TEXT NOT NULL DEFAULT 'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800',
   intro_text TEXT NOT NULL DEFAULT 'Welcome to Fade Station. Premium Barbershop Experience.',
-  phone_number TEXT NOT NULL DEFAULT '+64 1 234 56789',
-  address TEXT NOT NULL DEFAULT '123 Barbershop Avenue
-Auckland, NZ 1010',
+  phone_number TEXT NOT NULL DEFAULT '0483 804 522',
+  address TEXT NOT NULL DEFAULT '1 Fern Court, Parafield Gardens, SA 5107',
   hours TEXT NOT NULL DEFAULT 'Mon-Fri: 9:00 AM - 6:00 PM
 Sat: 9:00 AM - 5:00 PM
 Sun: Closed',
@@ -54,7 +49,6 @@ CREATE TABLE appointments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   barber_id UUID NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
   customer_name TEXT,
-  customer_email TEXT,
   customer_phone TEXT,
   appointment_date DATE NOT NULL,
   slot_time TEXT NOT NULL,
@@ -110,7 +104,7 @@ VALUES (
   '00000000-0000-0000-0000-000000000001',
   'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800',
   'Welcome to Fade Station. Premium Barbershop Experience.',
-  '+64 1 234 56789',
+  '0483 804 500',
   '123 Barbershop Avenue
 Auckland, NZ 1010',
   'Mon-Fri: 9:00 AM - 6:00 PM
@@ -125,7 +119,7 @@ VALUES
     'Ace',
     'Fades · Beard · Kids',
     'https://images.unsplash.com/photo-1585518419759-7fe2e0fbf8a6?auto=format&fit=crop&q=80&w=200&h=200',
-    '+64 1 234 5678',
+    '0483 804 522',
     45.00,
     ARRAY['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   ),
@@ -133,7 +127,7 @@ VALUES
     'Jay',
     'Tapers · Line-ups',
     'https://images.unsplash.com/photo-1534308143481-c55f00be8bd7?auto=format&fit=crop&q=80&w=200&h=200',
-    '+64 1 234 5679',
+    '0483 804 533',
     40.00,
     ARRAY['Monday', 'Wednesday', 'Friday', 'Saturday']
   ),
@@ -141,29 +135,29 @@ VALUES
     'Mia',
     'Skin Fades · Scissor',
     'https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&q=80&w=200&h=200',
-    '+64 1 234 5680',
+    '0483 804 544',
     45.00,
     ARRAY['Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   );
 
 -- Insert sample appointments referencing the seeded barbers
-INSERT INTO appointments (barber_id, customer_name, customer_email, customer_phone, appointment_date, slot_time, status)
-SELECT id, 'Jordan Client', 'jordan@example.com', '+64 1 234 5678', CURRENT_DATE, '09:00', 'booked'
+INSERT INTO appointments (barber_id, customer_name, customer_phone, appointment_date, slot_time, status)
+SELECT id, 'Jordan Client', '0483 804 600', CURRENT_DATE, '09:00', 'booked'
 FROM barbers WHERE name = 'Ace'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO appointments (barber_id, customer_name, customer_email, customer_phone, appointment_date, slot_time, status)
-SELECT id, 'Casey Demo', 'casey@example.com', '+64 1 234 5679', CURRENT_DATE, '10:30', 'booked'
+INSERT INTO appointments (barber_id, customer_name, customer_phone, appointment_date, slot_time, status)
+SELECT id, 'Casey Demo', '0483 804 601', CURRENT_DATE, '10:30', 'booked'
 FROM barbers WHERE name = 'Ace'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO appointments (barber_id, customer_name, customer_email, customer_phone, appointment_date, slot_time, status)
-SELECT id, 'Morgan Test', 'morgan@example.com', '+64 1 234 5680', CURRENT_DATE + INTERVAL '1 day', '11:00', 'booked'
+INSERT INTO appointments (barber_id, customer_name, customer_phone, appointment_date, slot_time, status)
+SELECT id, 'Morgan Test', '0483 804 602', CURRENT_DATE + INTERVAL '1 day', '11:00', 'booked'
 FROM barbers WHERE name = 'Jay'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO appointments (barber_id, customer_name, customer_email, customer_phone, appointment_date, slot_time, status)
-SELECT id, 'Taylor Sample', 'taylor@example.com', '+64 1 234 5681', CURRENT_DATE + INTERVAL '1 day', '15:30', 'booked'
+INSERT INTO appointments (barber_id, customer_name, customer_phone, appointment_date, slot_time, status)
+SELECT id, 'Taylor Sample', '0483 804 603', CURRENT_DATE + INTERVAL '1 day', '15:30', 'booked'
 FROM barbers WHERE name = 'Mia'
 ON CONFLICT DO NOTHING;
 
@@ -185,7 +179,7 @@ WITH inserted_call AS (
   VALUES (
     'call',
     'Jordan Smith',
-    '+64 21 555 1024',
+    '0483 555 1024',
     'completed',
     'positive',
     'booking',
@@ -224,7 +218,7 @@ WITH inserted_sms AS (
   VALUES (
     'sms',
     'Emily Chen',
-    '+64 27 880 3344',
+    '0483 880 3344',
     'completed',
     'neutral',
     'reschedule',
@@ -246,9 +240,7 @@ LATERAL (VALUES
   ('ai', 'Done! Your appointment is now Saturday 10am with Jay for line-up and taper. Confirmation sent.')
 ) AS msg(sender, message);
 
--- ============================================
--- CREATE INDEXES
--- ============================================
+
 
 CREATE INDEX idx_appointments_barber_date
   ON appointments (barber_id, appointment_date);
@@ -256,11 +248,7 @@ CREATE INDEX idx_appointments_barber_date
 CREATE INDEX idx_appointments_date
   ON appointments (appointment_date);
 
--- ============================================
--- CREATE FUNCTIONS
--- ============================================
 
--- Create function to update updated_at timestamp
 CREATE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
