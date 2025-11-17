@@ -143,7 +143,6 @@ export default function ConfirmCode(): JSX.Element | null {
           >
             Resend code
           </button>
-          <span>Need help? Contact support</span>
         </div>
       </div>
     </div>

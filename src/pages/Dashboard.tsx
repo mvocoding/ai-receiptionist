@@ -6,12 +6,23 @@ type Barber = {
   specialty: string;
   image: string;
   price: number;
+  workingDays: string[]; // e.g., ['Monday', 'Tuesday', ...]
 };
 
 type StoreSettings = {
   bannerUrl: string;
   introText: string;
 };
+
+const DAYS_OF_WEEK = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+];
 
 export default function Dashboard(): JSX.Element {
   useEffect(() => {
@@ -42,6 +53,14 @@ export default function Dashboard(): JSX.Element {
       image:
         'https://images.unsplash.com/photo-1585518419759-7fe2e0fbf8a6?auto=format&fit=crop&q=80&w=200&h=200',
       price: 45,
+      workingDays: [
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+      ],
     },
     {
       id: 'jay',
@@ -50,6 +69,7 @@ export default function Dashboard(): JSX.Element {
       image:
         'https://images.unsplash.com/photo-1534308143481-c55f00be8bd7?auto=format&fit=crop&q=80&w=200&h=200',
       price: 40,
+      workingDays: ['Monday', 'Wednesday', 'Friday', 'Saturday'],
     },
     {
       id: 'mia',
@@ -58,14 +78,24 @@ export default function Dashboard(): JSX.Element {
       image:
         'https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&q=80&w=200&h=200',
       price: 45,
+      workingDays: [
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
+      ],
     },
   ]);
 
   const [showAddBarber, setShowAddBarber] = useState(false);
+  const [editingBarber, setEditingBarber] = useState<Barber | null>(null);
   const [newBarber, setNewBarber] = useState({
     name: '',
     specialty: '',
     price: '',
+    workingDays: [] as string[],
   });
   const [bannerFile, setBannerFile] = useState<File | null>(null);
 
@@ -84,14 +114,24 @@ export default function Dashboard(): JSX.Element {
     }
   };
 
+  const toggleWorkingDay = (day: string) => {
+    setNewBarber((prev) => {
+      const days = prev.workingDays.includes(day)
+        ? prev.workingDays.filter((d) => d !== day)
+        : [...prev.workingDays, day];
+      return { ...prev, workingDays: days };
+    });
+  };
+
   const handleAddBarber = (e: React.FormEvent) => {
     e.preventDefault();
     if (
       !newBarber.name.trim() ||
       !newBarber.specialty.trim() ||
-      !newBarber.price.trim()
+      !newBarber.price.trim() ||
+      newBarber.workingDays.length === 0
     ) {
-      alert('Please fill in all fields');
+      alert('Please fill in all fields and select at least one working day');
       return;
     }
     const barber: Barber = {
@@ -101,11 +141,52 @@ export default function Dashboard(): JSX.Element {
       image:
         'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200',
       price: Number(newBarber.price),
+      workingDays: newBarber.workingDays,
     };
     setBarbers([...barbers, barber]);
-    setNewBarber({ name: '', specialty: '', price: '' });
+    setNewBarber({ name: '', specialty: '', price: '', workingDays: [] });
     setShowAddBarber(false);
     alert('Barber added successfully!');
+  };
+
+  const handleEditBarber = (barber: Barber) => {
+    setEditingBarber(barber);
+    setNewBarber({
+      name: barber.name,
+      specialty: barber.specialty,
+      price: String(barber.price),
+      workingDays: barber.workingDays,
+    });
+  };
+
+  const handleUpdateBarber = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBarber) return;
+    if (
+      !newBarber.name.trim() ||
+      !newBarber.specialty.trim() ||
+      !newBarber.price.trim() ||
+      newBarber.workingDays.length === 0
+    ) {
+      alert('Please fill in all fields and select at least one working day');
+      return;
+    }
+    setBarbers(
+      barbers.map((b) =>
+        b.id === editingBarber.id
+          ? {
+              ...b,
+              name: newBarber.name,
+              specialty: newBarber.specialty,
+              price: Number(newBarber.price),
+              workingDays: newBarber.workingDays,
+            }
+          : b
+      )
+    );
+    setEditingBarber(null);
+    setNewBarber({ name: '', specialty: '', price: '', workingDays: [] });
+    alert('Barber updated successfully!');
   };
 
   const deleteBarber = (id: string) => {
@@ -176,7 +257,6 @@ export default function Dashboard(): JSX.Element {
           </div>
         </div>
 
-        {/* Store Intro Section */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Store Introduction</h2>
           <div className="bg-white/5 border border-white/10 rounded-xl p-6">
@@ -205,17 +285,31 @@ export default function Dashboard(): JSX.Element {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Barbers</h2>
             <button
-              onClick={() => setShowAddBarber(!showAddBarber)}
+              onClick={() => {
+                setShowAddBarber(!showAddBarber);
+                setEditingBarber(null);
+                setNewBarber({
+                  name: '',
+                  specialty: '',
+                  price: '',
+                  workingDays: [],
+                });
+              }}
               className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 transition font-medium text-sm"
             >
               + Add Barber
             </button>
           </div>
 
-          {showAddBarber && (
+          {(showAddBarber || editingBarber) && (
             <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-8">
-              <h3 className="text-lg font-semibold mb-4">Add New Barber</h3>
-              <form onSubmit={handleAddBarber} className="space-y-4">
+              <h3 className="text-lg font-semibold mb-4">
+                {editingBarber ? 'Edit Barber' : 'Add New Barber'}
+              </h3>
+              <form
+                onSubmit={editingBarber ? handleUpdateBarber : handleAddBarber}
+                className="space-y-4"
+              >
                 <div>
                   <label className="block text-sm font-medium text-white/70 mb-2">
                     Name
@@ -258,16 +352,48 @@ export default function Dashboard(): JSX.Element {
                     placeholder="45"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-3">
+                    Working Days
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {DAYS_OF_WEEK.map((day) => (
+                      <label
+                        key={day}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={newBarber.workingDays.includes(day)}
+                          onChange={() => toggleWorkingDay(day)}
+                          className="w-4 h-4 rounded border-white/30 bg-white/5 checked:bg-sky-500 cursor-pointer"
+                        />
+                        <span className="text-sm text-white/70">{day}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="flex gap-2 pt-4">
                   <button
                     type="submit"
                     className="flex-1 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 transition font-medium"
                   >
-                    Add Barber
+                    {editingBarber ? 'Update Barber' : 'Add Barber'}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setShowAddBarber(false)}
+                    onClick={() => {
+                      setShowAddBarber(false);
+                      setEditingBarber(null);
+                      setNewBarber({
+                        name: '',
+                        specialty: '',
+                        price: '',
+                        workingDays: [],
+                      });
+                    }}
                     className="flex-1 px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition font-medium"
                   >
                     Cancel
@@ -283,7 +409,7 @@ export default function Dashboard(): JSX.Element {
                 key={barber.id}
                 className="bg-white/5 border border-white/10 rounded-xl p-6"
               >
-                <div className="flex gap-4">
+                <div className="flex gap-4 mb-4">
                   <img
                     src={barber.image}
                     alt={barber.name}
@@ -298,9 +424,34 @@ export default function Dashboard(): JSX.Element {
                       ${barber.price}
                     </p>
                   </div>
+                </div>
+
+                <div className="mb-4 pb-4 border-t border-white/10">
+                  <p className="text-xs text-white/60 mb-2 uppercase">
+                    Working Days
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {barber.workingDays.map((day) => (
+                      <span
+                        key={day}
+                        className="inline-block px-2 py-1 rounded text-xs bg-sky-500/20 border border-sky-500/30 text-sky-300"
+                      >
+                        {day.slice(0, 3)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEditBarber(barber)}
+                    className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-sky-500/20 border border-sky-500/30 text-sky-300 hover:bg-sky-500/30 transition"
+                  >
+                    Edit
+                  </button>
                   <button
                     onClick={() => deleteBarber(barber.id)}
-                    className="self-start px-3 py-1.5 text-xs rounded-lg bg-rose-500/20 border border-rose-500/30 text-rose-300 hover:bg-rose-500/30 transition"
+                    className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-rose-500/20 border border-rose-500/30 text-rose-300 hover:bg-rose-500/30 transition"
                   >
                     Delete
                   </button>
