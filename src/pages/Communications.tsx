@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect } from 'react';
 import NavBar from '../components/NavBar';
 
 type Message = {
@@ -241,37 +241,6 @@ const MOCK_DATA: Comm[] = [
   },
 ];
 
-function badgeConf(kind: 'status' | 'sentiment', value: string) {
-  const map: Record<string, { text: string; cls: string }> = {
-    completed: {
-      text: 'Completed',
-      cls: 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10',
-    },
-    missed: {
-      text: 'Missed',
-      cls: 'border-rose-500/30 text-rose-300 bg-rose-500/10',
-    },
-    positive: {
-      text: 'Positive',
-      cls: 'border-cyan-500/30 text-cyan-300 bg-cyan-500/10',
-    },
-    neutral: {
-      text: 'Neutral',
-      cls: 'border-white/20 text-white/80 bg-white/5',
-    },
-    negative: {
-      text: 'Negative',
-      cls: 'border-amber-500/30 text-amber-300 bg-amber-500/10',
-    },
-  };
-  return (
-    map[value] || {
-      text: value,
-      cls: 'border-white/20 text-white/80 bg-white/5',
-    }
-  );
-}
-
 function formatDuration(seconds: number): string {
   if (seconds === 0) return '--';
   const mins = Math.floor(seconds / 60);
@@ -294,297 +263,95 @@ export default function Communications(): JSX.Element {
       document.head.appendChild(meta);
   }, []);
 
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<
-    'all' | 'call' | 'sms' | 'recording' | 'completed' | 'missed'
-  >('all');
-  const [sortNewest, setSortNewest] = useState(true);
-
-  const rows = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    let items = MOCK_DATA.filter((r) => {
-      const hay =
-        `${r.contactName} ${r.contactNumber} ${r.aiSummary}`.toLowerCase();
-      const matchesQuery = q ? hay.includes(q) : true;
-      const matchesFilter =
-        filter === 'all'
-          ? true
-          : filter === 'call'
-          ? r.type === 'call'
-          : filter === 'sms'
-          ? r.type === 'sms'
-          : filter === 'recording'
-          ? r.type === 'recording'
-          : r.status === filter;
-      return matchesQuery && matchesFilter;
-    });
-    items = items.sort((a, b) =>
-      sortNewest ? b.id.localeCompare(a.id) : a.id.localeCompare(b.id)
-    );
-    return items;
-  }, [query, filter, sortNewest]);
+  // Sort by newest first
+  const rows = MOCK_DATA.sort((a, b) => b.id.localeCompare(a.id));
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
-      <div className="mx-auto max-w-6xl px-4 py-6">
-        {/* unified nav */}
+      <div className="mx-auto max-w-4xl px-4 py-8">
         <NavBar />
 
-        {/* Search & filters */}
-        <div className="px-4 pb-4">
-          <div className="flex flex-col md:flex-row md:items-center gap-2">
-            <div className="relative flex-1">
-              <input
-                type="text"
-                placeholder="Search name, number, message..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="w-full bg-white/5 border border-ios-border rounded-xl pl-10 pr-3 py-2.5 text-sm placeholder:text-ios-textMuted focus:outline-none focus:ring-2 focus:ring-sky-500/50"
-              />
-              <svg
-                className="absolute left-3 top-2.5 h-5 w-5 text-ios-textMuted"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
+        <main className="space-y-4 py-4">
+          {rows.map((r) => {
+            return (
+              <section
+                key={r.id}
+                className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition"
               >
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.3-4.3" />
-              </svg>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="inline-flex bg-white/5 border border-ios-border rounded-xl p-1">
-                <button
-                  onClick={() => setFilter('all')}
-                  className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
-                    filter === 'all' ? 'bg-white/10' : ''
-                  }`}
-                >
-                  All
-                </button>
-                <button
-                  onClick={() => setFilter('call')}
-                  className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
-                    filter === 'call' ? 'bg-white/10' : ''
-                  }`}
-                >
-                  Calls
-                </button>
-                <button
-                  onClick={() => setFilter('sms')}
-                  className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
-                    filter === 'sms' ? 'bg-white/10' : ''
-                  }`}
-                >
-                  SMS
-                </button>
-                <button
-                  onClick={() => setFilter('recording')}
-                  className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
-                    filter === 'recording' ? 'bg-white/10' : ''
-                  }`}
-                >
-                  Recordings
-                </button>
-                <button
-                  onClick={() => setFilter('completed')}
-                  className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
-                    filter === 'completed' ? 'bg-white/10' : ''
-                  }`}
-                >
-                  Completed
-                </button>
-              </div>
-              <button
-                onClick={() => setSortNewest((s) => !s)}
-                className="px-3 py-1.5 text-xs rounded-xl bg-white/10 border border-ios-border"
-              >
-                Sort: {sortNewest ? 'Newest' : 'Oldest'}
-              </button>
-            </div>
-          </div>
-        </div>
+                <div className="flex items-start gap-4">
+                  <div className="shrink-0 h-12 w-12 rounded-xl bg-sky-500/20 flex items-center justify-center border border-sky-500/30">
+                    <svg
+                      className="h-6 w-6 text-sky-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      {r.type === 'call' && (
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                      )}
+                      {r.type === 'sms' && (
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                      )}
+                      {r.type === 'recording' && (
+                        <path d="M12 1a11 11 0 0 1 11 11v6a11 11 0 0 1-11 11H7a11 11 0 0 1-11-11v-6a11 11 0 0 1 11-11z" />
+                      )}
+                    </svg>
+                  </div>
 
-        {/* Content */}
-        <main className="mt-4 space-y-3">
-          {rows.length === 0 ? (
-            <div className="text-center py-20 bg-white/5 border border-ios-border rounded-2xl">
-              <div className="mx-auto h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center mb-4">
-                <svg
-                  className="h-7 w-7 text-white/70"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold">No communications found</h3>
-              <p className="text-sm text-ios-textMuted">
-                Try adjusting your search or filters.
-              </p>
-            </div>
-          ) : (
-            rows.map((r) => {
-              const status = badgeConf('status' as any, r.status);
-              const sentiment = badgeConf('sentiment' as any, r.sentiment);
-              return (
-                <section
-                  key={r.id}
-                  className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl shadow-glow overflow-hidden"
-                >
-                  <div className="p-4 flex items-start gap-4">
-                    <div className="shrink-0 h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10">
-                      <svg
-                        className="h-6 w-6"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        {r.type === 'call' && (
-                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  <div className="flex-1 min-w-0">
+                    <div className="mb-3">
+                      <h3 className="font-semibold text-lg mb-1">
+                        {r.contactName}
+                      </h3>
+                      <p className="text-sm text-white/60">
+                        {r.contactNumber} · {r.timestamp}
+                        {r.duration !== undefined && (
+                          <span> · {formatDuration(r.duration)}</span>
                         )}
-                        {r.type === 'sms' && (
-                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                        )}
-                        {r.type === 'recording' && (
-                          <path d="M12 1a11 11 0 0 1 11 11v6a11 11 0 0 1-11 11H7a11 11 0 0 1-11-11v-6a11 11 0 0 1 11-11z" />
-                        )}
-                      </svg>
+                      </p>
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 justify-between mb-2">
-                        <div className="min-w-0">
-                          <h3 className="truncate font-semibold text-sm">
-                            <span>{r.contactName}</span>{' '}
-                            <span className="text-ios-textMuted font-normal">
-                              ·
-                            </span>{' '}
-                            <span className="text-ios-textMuted">
-                              {r.contactNumber}
-                            </span>
-                          </h3>
-                          <p className="text-xs text-ios-textMuted">
-                            <span>{r.timestamp}</span> ·{' '}
-                            <span className="uppercase">
-                              {r.type === 'recording' ? 'Recording' : r.type}
-                            </span>
-                            {r.duration !== undefined && (
-                              <span> · {formatDuration(r.duration)}</span>
-                            )}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`text-[10px] px-2 py-1 rounded-full ${status.cls}`}
+                    {r.conversation && (
+                      <div className="mt-4 space-y-2.5">
+                        {r.conversation.map((msg, idx) => (
+                          <div
+                            key={idx}
+                            className={`flex ${
+                              msg.sender === 'customer'
+                                ? 'justify-end'
+                                : 'justify-start'
+                            }`}
                           >
-                            {status.text}
-                          </span>
-                          <span
-                            className={`text-[10px] px-2 py-1 rounded-full ${sentiment.cls}`}
-                          >
-                            {sentiment.text}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Conversation or Transcript */}
-                      {r.conversation && (
-                        <div className="mt-3 space-y-2 mb-3">
-                          {r.conversation.map((msg, idx) => (
                             <div
-                              key={idx}
-                              className={`flex items-start gap-2 ${
+                              className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm ${
                                 msg.sender === 'customer'
-                                  ? 'justify-end'
-                                  : 'justify-start'
+                                  ? 'bg-sky-500 text-white'
+                                  : msg.sender === 'ai'
+                                  ? 'bg-white/10 text-white border border-white/20'
+                                  : 'bg-white/5 text-white/70 border border-white/10'
                               }`}
                             >
-                              <div
-                                className={`max-w-[80%] p-2 rounded-xl text-xs ${
-                                  msg.sender === 'customer'
-                                    ? 'bg-blue-500/20 border border-blue-500/30'
-                                    : msg.sender === 'ai'
-                                    ? 'bg-emerald-500/20 border border-emerald-500/30'
-                                    : 'bg-white/10 border border-white/20'
-                                }`}
-                              >
-                                {msg.message}
-                              </div>
+                              {msg.message}
                             </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {r.type === 'recording' && r.audioUrl && (
-                        <div className="mb-3">
-                          <audio controls className="w-full h-6">
-                            <source src={r.audioUrl} type="audio/mpeg" />
-                          </audio>
-                        </div>
-                      )}
-
-                      {/* Summary */}
-                      <details className="group">
-                        <summary className="list-none cursor-pointer flex items-center gap-2 text-xs text-ios-textMuted hover:text-white transition">
-                          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 border border-emerald-500/30">
-                            🤖
-                          </span>
-                          Summary
-                          <svg
-                            className="ml-auto h-4 w-4 transition group-open:rotate-180"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path d="m6 9 6 6 6-6" />
-                          </svg>
-                        </summary>
-                        <div className="mt-2 space-y-2 text-sm leading-6">
-                          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
-                            <p className="text-white/90">{r.aiSummary}</p>
                           </div>
-                          <div className="flex flex-wrap gap-2 text-[10px]">
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 border border-white/10">
-                              #{r.tag}
-                            </span>
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 border border-white/10">
-                              {r.actionTaken}
-                            </span>
-                          </div>
-                        </div>
-                      </details>
-                    </div>
-                  </div>
+                        ))}
+                      </div>
+                    )}
 
-                  {/* Footer controls */}
-                  <div className="px-4 pb-4 flex items-center justify-between text-xs text-ios-textMuted">
-                    <div className="flex items-center gap-2">
-                      <button className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
-                        Follow up
-                      </button>
-                      <button className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
-                        Archive
-                      </button>
-                    </div>
-                    <a className="text-sky-400 hover:text-sky-300" href="#">
-                      View full
-                    </a>
+                    {r.type === 'recording' && r.audioUrl && (
+                      <div className="mt-4">
+                        <audio controls className="w-full h-10 rounded-lg">
+                          <source src={r.audioUrl} type="audio/mpeg" />
+                        </audio>
+                      </div>
+                    )}
                   </div>
-                </section>
-              );
-            })
-          )}
+                </div>
+              </section>
+            );
+          })}
         </main>
-
-        <footer className="py-8 text-center text-xs text-ios-textMuted">
-          Fade Station · Communications
-        </footer>
       </div>
     </div>
   );
