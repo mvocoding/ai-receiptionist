@@ -15,6 +15,7 @@ DROP TABLE IF EXISTS store_settings CASCADE;
 
 -- Drop functions (after tables are dropped)
 DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
+DROP FUNCTION IF EXISTS get_distinct_customers() CASCADE;
 
 -- ============================================
 -- CREATE TABLES
@@ -267,6 +268,29 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Function to list distinct customers by phone or name
+CREATE FUNCTION get_distinct_customers()
+RETURNS TABLE (
+  customer_key TEXT,
+  customer_name TEXT,
+  customer_phone TEXT,
+  last_appointment TIMESTAMP WITH TIME ZONE
+) AS $$
+  SELECT
+    COALESCE(customer_phone, customer_name, id::text) AS customer_key,
+    customer_name,
+    customer_phone,
+    MAX(
+      appointment_date::timestamp
+      + make_interval(
+          hours := split_part(slot_time, ':', 1)::int,
+          mins := split_part(slot_time, ':', 2)::int
+        )
+    ) AS last_appointment
+  FROM appointments
+  GROUP BY customer_key, customer_name, customer_phone;
+$$ LANGUAGE SQL STABLE;
 
 -- ============================================
 -- CREATE TRIGGERS

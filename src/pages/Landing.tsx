@@ -35,7 +35,7 @@ export default function Landing(): JSX.Element {
             </h1>
             <p className="text-xl text-ios-textMuted mb-10 max-w-2xl mx-auto">
               Answer calls 24/7, book appointments, answer FAQs, and handle
-              customer inquiries—all with natural AI conversation.
+              customer inquiries
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button

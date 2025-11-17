@@ -11,6 +11,7 @@ import ConfirmCode from './pages/ConfirmCode';
 import LiveGemini from './pages/LiveGemini';
 import BookAppointment from './pages/BookAppointment';
 import Dashboard from './pages/Dashboard';
+import Customers from './pages/Customers';
 
 export default function App(): JSX.Element {
   const [path, setPath] = useState(() => window.location.pathname || '/');
@@ -71,6 +72,9 @@ export default function App(): JSX.Element {
 
   if (p === '/dashboard' || p.toLowerCase().includes('dashboard'))
     return <Dashboard />;
+
+  if (p === '/customers' || p.toLowerCase().includes('customers'))
+    return <Customers />;
 
   return <Landing />;
 }

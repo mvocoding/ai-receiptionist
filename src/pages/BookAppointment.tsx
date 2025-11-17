@@ -20,7 +20,6 @@ type BookingForm = {
   time: string;
   name: string;
   phone: string;
-  email: string;
   notes: string;
 };
 
@@ -77,7 +76,6 @@ export default function BookAppointment(): JSX.Element {
     time: '',
     name: '',
     phone: '',
-    email: '',
     notes: '',
   });
   const [storeDetails, setStoreDetails] = useState({
@@ -204,7 +202,7 @@ export default function BookAppointment(): JSX.Element {
     e.preventDefault();
     setBookingError(null);
 
-    if (!form.name.trim() || !form.phone.trim() || !form.email.trim()) {
+    if (!form.name.trim() || !form.phone.trim()) {
       setBookingError('Please fill in all required fields.');
       return;
     }
@@ -224,7 +222,7 @@ export default function BookAppointment(): JSX.Element {
       const { error } = await supabase.from('appointments').insert({
         barber_id: form.barberId,
         customer_name: form.name.trim(),
-        customer_email: form.email.trim(),
+        customer_email: null,
         customer_phone: form.phone.trim(),
         appointment_date: form.date,
         slot_time: form.time,
@@ -245,7 +243,6 @@ export default function BookAppointment(): JSX.Element {
           time: '',
           name: '',
           phone: '',
-          email: '',
           notes: '',
         });
       }, 1500);
@@ -574,20 +571,6 @@ export default function BookAppointment(): JSX.Element {
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
                   placeholder="+64 21 123 4567"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-white/70 mb-2">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
-                  placeholder="you@example.com"
                 />
               </div>
 

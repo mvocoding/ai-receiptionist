@@ -64,7 +64,7 @@ export default function NavBar(): JSX.Element {
 
           {user && (
             <nav className="flex items-center gap-3">
-            <button
+              <button
                 onClick={() => nav('/dashboard')}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
@@ -83,6 +83,12 @@ export default function NavBar(): JSX.Element {
                 Barbers
               </button>
               <button
+                onClick={() => nav('/customers')}
+                className="text-sm text-ios-textMuted hover:text-white transition"
+              >
+                Customers
+              </button>
+              <button
                 onClick={() => nav('/flow')}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
@@ -94,7 +100,6 @@ export default function NavBar(): JSX.Element {
               >
                 Book Appointment
               </button>
-              
             </nav>
           )}
 
