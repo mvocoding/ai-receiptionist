@@ -1,5 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import NavBar from '../components/NavBar';
+import {
+  supabase,
+  type Barber as DBBarber,
+  type Appointment as DBAppointment,
+} from '../lib/supabase';
 
 type Barber = {
   id: string;
@@ -15,35 +20,9 @@ type BookingForm = {
   time: string;
   name: string;
   phone: string;
+  email: string;
   notes: string;
 };
-
-const BARBERS: Barber[] = [
-  {
-    id: 'ace',
-    name: 'Ace',
-    specialty: 'Fades · Beard · Kids',
-    image:
-      'https://images.unsplash.com/photo-1585518419759-7fe2e0fbf8a6?auto=format&fit=crop&q=80&w=200&h=200',
-    price: 45,
-  },
-  {
-    id: 'jay',
-    name: 'Jay',
-    specialty: 'Tapers · Line-ups',
-    image:
-      'https://images.unsplash.com/photo-1534308143481-c55f00be8bd7?auto=format&fit=crop&q=80&w=200&h=200',
-    price: 40,
-  },
-  {
-    id: 'mia',
-    name: 'Mia',
-    specialty: 'Skin Fades · Scissor',
-    image:
-      'https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&q=80&w=200&h=200',
-    price: 45,
-  },
-];
 
 const TIME_SLOTS = [
   '09:00',
@@ -76,14 +55,53 @@ function formatDateDisplay(dateStr: string): string {
 
 export default function BookAppointment(): JSX.Element {
   const [selectedBarber, setSelectedBarber] = useState<string | null>(null);
+  const [barbers, setBarbers] = useState<Barber[]>([]);
+  const [loadingBarbers, setLoadingBarbers] = useState(true);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [bookingStatus, setBookingStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const [bookingError, setBookingError] = useState<string | null>(null);
+
   const [form, setForm] = useState<BookingForm>({
     barberId: '',
     date: '',
     time: '',
     name: '',
     phone: '',
+    email: '',
     notes: '',
   });
+
+  useEffect(() => {
+    const fetchBarbers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('barbers')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        if (data) {
+          setBarbers(
+            data.map((b: DBBarber) => ({
+              id: b.id,
+              name: b.name,
+              specialty: b.specialty,
+              image: b.image,
+              price: Number(b.price),
+            }))
+          );
+        }
+      } catch (err) {
+        console.error('Error fetching barbers:', err);
+      } finally {
+        setLoadingBarbers(false);
+      }
+    };
+
+    fetchBarbers();
+  }, []);
 
   const today = useMemo(() => new Date(), []);
   const tomorrow = useMemo(() => {
@@ -95,9 +113,39 @@ export default function BookAppointment(): JSX.Element {
   const todayISO = formatDateToISO(today);
   const tomorrowISO = formatDateToISO(tomorrow);
 
+  useEffect(() => {
+    async function fetchBookedSlots() {
+      if (!form.date || !form.barberId) {
+        setBookedSlots([]);
+        return;
+      }
+
+      setSlotsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('appointments')
+          .select('slot_time, status')
+          .eq('barber_id', form.barberId)
+          .eq('appointment_date', form.date)
+          .not('status', 'eq', 'cancelled');
+
+        if (error) throw error;
+        setBookedSlots((data as DBAppointment[] | null)?.map((a) => a.slot_time) || []);
+      } catch (err) {
+        console.error('Error loading appointments:', err);
+        setBookedSlots([]);
+      } finally {
+        setSlotsLoading(false);
+      }
+    }
+
+    fetchBookedSlots();
+  }, [form.date, form.barberId]);
+
   const handleSelectBarber = (barberId: string) => {
     setSelectedBarber(barberId);
-    setForm((prev) => ({ ...prev, barberId }));
+    setForm((prev) => ({ ...prev, barberId, date: '', time: '' }));
+    setBookedSlots([]);
   };
 
   const handleSelectDate = (dateStr: string) => {
@@ -108,25 +156,60 @@ export default function BookAppointment(): JSX.Element {
     setForm((prev) => ({ ...prev, time: timeStr }));
   };
 
-  const handleBook = (e: React.FormEvent) => {
+  const handleBook = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim() || !form.phone.trim()) {
-      alert('Please fill in all required fields');
+    setBookingError(null);
+
+    if (!form.name.trim() || !form.phone.trim() || !form.email.trim()) {
+      setBookingError('Please fill in all required fields.');
       return;
     }
-    const barber = BARBERS.find((b) => b.id === form.barberId);
-    alert(
-      `Booking confirmed with ${barber?.name} on ${form.date} at ${form.time}`
-    );
-    setSelectedBarber(null);
-    setForm({
-      barberId: '',
-      date: '',
-      time: '',
-      name: '',
-      phone: '',
-      notes: '',
-    });
+
+    if (!form.barberId || !form.date || !form.time) {
+      setBookingError('Please select barber, date, and time.');
+      return;
+    }
+
+    if (bookedSlots.includes(form.time)) {
+      setBookingError('This time slot was just booked. Please pick another one.');
+      return;
+    }
+
+    setBookingStatus('submitting');
+    try {
+      const { error } = await supabase.from('appointments').insert({
+        barber_id: form.barberId,
+        customer_name: form.name.trim(),
+        customer_email: form.email.trim(),
+        customer_phone: form.phone.trim(),
+        appointment_date: form.date,
+        slot_time: form.time,
+        status: 'booked',
+        notes: form.notes.trim() || null,
+      });
+
+      if (error) throw error;
+
+      setBookingStatus('success');
+      setBookedSlots((prev) => [...prev, form.time]);
+      setTimeout(() => {
+        setBookingStatus('idle');
+        setSelectedBarber(null);
+        setForm({
+          barberId: '',
+          date: '',
+          time: '',
+          name: '',
+          phone: '',
+          email: '',
+          notes: '',
+        });
+      }, 1500);
+    } catch (err) {
+      console.error('Error booking appointment:', err);
+      setBookingError('Failed to confirm booking. Please try again.');
+      setBookingStatus('idle');
+    }
   };
 
   return (
@@ -248,7 +331,17 @@ export default function BookAppointment(): JSX.Element {
             Choose Your Barber
           </h3>
           <div className="grid md:grid-cols-3 gap-4">
-            {BARBERS.map((barber) => (
+            {loadingBarbers && (
+              <div className="col-span-full text-center text-white/60">
+                Loading barbers...
+              </div>
+            )}
+            {!loadingBarbers && barbers.length === 0 && (
+              <div className="col-span-full text-center text-white/60">
+                No barbers found.
+              </div>
+            )}
+            {barbers.map((barber) => (
               <button
                 key={barber.id}
                 onClick={() => handleSelectBarber(barber.id)}
@@ -342,20 +435,31 @@ export default function BookAppointment(): JSX.Element {
                   Select Time
                 </h3>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                  {TIME_SLOTS.map((slot) => (
-                    <button
-                      key={slot}
-                      onClick={() => handleSelectTime(slot)}
-                      className={`px-3 py-3 rounded-lg font-medium transition-all ${
-                        form.time === slot
-                          ? 'bg-emerald-500 text-white shadow-lg'
-                          : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
-                      }`}
-                    >
-                      {slot}
-                    </button>
-                  ))}
+                  {TIME_SLOTS.map((slot) => {
+                    const isBooked = bookedSlots.includes(slot);
+                    return (
+                      <button
+                        key={slot}
+                        onClick={() => !isBooked && handleSelectTime(slot)}
+                        disabled={isBooked || slotsLoading}
+                        className={`px-3 py-3 rounded-lg font-medium transition-all ${
+                          isBooked
+                            ? 'bg-rose-500/20 border border-rose-400/40 text-rose-200 cursor-not-allowed'
+                            : form.time === slot
+                            ? 'bg-emerald-500 text-white shadow-lg'
+                            : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
+                        }`}
+                      >
+                        {slot}
+                      </button>
+                    );
+                  })}
                 </div>
+                {slotsLoading && (
+                  <p className="text-xs text-white/50 mt-2">
+                    Checking latest availability...
+                  </p>
+                )}
               </div>
             )}
 
@@ -424,6 +528,20 @@ export default function BookAppointment(): JSX.Element {
 
               <div>
                 <label className="block text-sm font-medium text-white/70 mb-2">
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                  placeholder="you@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-2">
                   Notes (optional)
                 </label>
                 <textarea
@@ -435,12 +553,23 @@ export default function BookAppointment(): JSX.Element {
                 />
               </div>
 
+              {bookingError && (
+                <div className="text-sm text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2">
+                  {bookingError}
+                </div>
+              )}
+              {bookingStatus === 'success' && (
+                <div className="text-sm text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-3 py-2">
+                  Booking confirmed! Sending you back to the booking screen…
+                </div>
+              )}
+
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 my-6">
                 <p className="text-xs text-white/60 uppercase tracking-wide mb-2">
                   Appointment Summary
                 </p>
                 <p className="text-lg font-semibold">
-                  {BARBERS.find((b) => b.id === form.barberId)?.name}
+                  {barbers.find((b) => b.id === form.barberId)?.name}
                 </p>
                 <p className="text-white/70 text-sm">
                   {formatDateDisplay(form.date)} at {form.time}
@@ -459,9 +588,10 @@ export default function BookAppointment(): JSX.Element {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 transition font-semibold shadow-lg"
+                  disabled={bookingStatus === 'submitting'}
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 transition font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Confirm Booking
+                  {bookingStatus === 'submitting' ? 'Booking...' : 'Confirm Booking'}
                 </button>
               </div>
             </form>

@@ -51,6 +51,7 @@ CREATE TABLE appointments (
   barber_id UUID NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
   customer_name TEXT,
   customer_email TEXT,
+  customer_phone TEXT,
   appointment_date DATE NOT NULL,
   slot_time TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'booked',
@@ -113,23 +114,23 @@ VALUES
   );
 
 -- Insert sample appointments referencing the seeded barbers
-INSERT INTO appointments (barber_id, customer_name, customer_email, appointment_date, slot_time, status)
-SELECT id, 'Jordan Client', 'jordan@example.com', CURRENT_DATE, '09:00', 'booked'
+INSERT INTO appointments (barber_id, customer_name, customer_email, customer_phone, appointment_date, slot_time, status)
+SELECT id, 'Jordan Client', 'jordan@example.com', '+64 1 234 5678', CURRENT_DATE, '09:00', 'booked'
 FROM barbers WHERE name = 'Ace'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO appointments (barber_id, customer_name, customer_email, appointment_date, slot_time, status)
-SELECT id, 'Casey Demo', 'casey@example.com', CURRENT_DATE, '10:30', 'booked'
+INSERT INTO appointments (barber_id, customer_name, customer_email, customer_phone, appointment_date, slot_time, status)
+SELECT id, 'Casey Demo', 'casey@example.com', '+64 1 234 5679', CURRENT_DATE, '10:30', 'booked'
 FROM barbers WHERE name = 'Ace'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO appointments (barber_id, customer_name, customer_email, appointment_date, slot_time, status)
-SELECT id, 'Morgan Test', 'morgan@example.com', CURRENT_DATE + INTERVAL '1 day', '11:00', 'booked'
+INSERT INTO appointments (barber_id, customer_name, customer_email, customer_phone, appointment_date, slot_time, status)
+SELECT id, 'Morgan Test', 'morgan@example.com', '+64 1 234 5680', CURRENT_DATE + INTERVAL '1 day', '11:00', 'booked'
 FROM barbers WHERE name = 'Jay'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO appointments (barber_id, customer_name, customer_email, appointment_date, slot_time, status)
-SELECT id, 'Taylor Sample', 'taylor@example.com', CURRENT_DATE + INTERVAL '1 day', '15:30', 'booked'
+INSERT INTO appointments (barber_id, customer_name, customer_email, customer_phone, appointment_date, slot_time, status)
+SELECT id, 'Taylor Sample', 'taylor@example.com', '+64 1 234 5681', CURRENT_DATE + INTERVAL '1 day', '15:30', 'booked'
 FROM barbers WHERE name = 'Mia'
 ON CONFLICT DO NOTHING;
 
