@@ -47,6 +47,30 @@ export type Appointment = {
   updated_at?: string;
 };
 
+export type Communication = {
+  id: string;
+  comm_type: 'call' | 'sms' | 'recording';
+  contact_name?: string;
+  contact_number?: string;
+  status: string;
+  sentiment?: string;
+  tag?: string;
+  action_taken?: string;
+  ai_summary?: string;
+  timestamp?: string;
+  duration?: number;
+  audio_url?: string;
+  created_at?: string;
+};
+
+export type CommunicationMessage = {
+  id: string;
+  communication_id: string;
+  sender: 'customer' | 'ai' | 'system';
+  message: string;
+  message_time?: string;
+};
+
 export type User = {
   id: string;
   email: string;

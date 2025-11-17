@@ -7,6 +7,8 @@
 -- ============================================
 
 DROP TABLE IF EXISTS appointments CASCADE;
+DROP TABLE IF EXISTS communications CASCADE;
+DROP TABLE IF EXISTS comm_messages CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS barbers CASCADE;
 DROP TABLE IF EXISTS store_settings CASCADE;
@@ -60,6 +62,32 @@ CREATE TABLE appointments (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   CONSTRAINT appointments_unique_slot UNIQUE (barber_id, appointment_date, slot_time)
+);
+
+-- Communications Table
+CREATE TABLE communications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  comm_type TEXT NOT NULL CHECK (comm_type IN ('call', 'sms', 'recording')),
+  contact_name TEXT,
+  contact_number TEXT,
+  status TEXT NOT NULL,
+  sentiment TEXT,
+  tag TEXT,
+  action_taken TEXT,
+  ai_summary TEXT,
+  timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  duration INTEGER,
+  audio_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Communication Messages
+CREATE TABLE comm_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  communication_id UUID NOT NULL REFERENCES communications(id) ON DELETE CASCADE,
+  sender TEXT NOT NULL CHECK (sender IN ('customer', 'ai', 'system')),
+  message TEXT NOT NULL,
+  message_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Users Table
@@ -138,6 +166,85 @@ SELECT id, 'Taylor Sample', 'taylor@example.com', '+64 1 234 5681', CURRENT_DATE
 FROM barbers WHERE name = 'Mia'
 ON CONFLICT DO NOTHING;
 
+-- Insert sample communications
+WITH inserted_call AS (
+  INSERT INTO communications (
+    comm_type,
+    contact_name,
+    contact_number,
+    status,
+    sentiment,
+    tag,
+    action_taken,
+    ai_summary,
+    timestamp,
+    duration,
+    audio_url
+  )
+  VALUES (
+    'call',
+    'Jordan Smith',
+    '+64 21 555 1024',
+    'completed',
+    'positive',
+    'booking',
+    'Appointment booked',
+    'Customer requested fade appointment for Friday afternoon. Successfully booked with Ace at 3:30pm. Confirmation sent via SMS.',
+    NOW(),
+    180,
+    'https://cdn.pixabay.com/download/audio/2021/09/16/audio_8c4d3f2b7d.mp3?filename=click-124467.mp3'
+  )
+  RETURNING id
+)
+INSERT INTO comm_messages (communication_id, sender, message, message_time)
+SELECT id, msg.sender, msg.message, NOW()
+FROM inserted_call,
+LATERAL (VALUES
+  ('customer', 'Hi, I''d like to book a fade for Friday afternoon if possible.'),
+  ('ai', 'Hello! I''d be happy to help you book a fade appointment. What''s your name and phone number?'),
+  ('customer', 'It''s Jordan, 021-555-1024. Do you have anything after 3pm?'),
+  ('ai', 'Perfect! I have Ace available at 3:30pm and 4:00pm on Friday. Which would you prefer? A fade is $45.'),
+  ('customer', '3:30pm works great. Do I need to pay upfront?'),
+  ('ai', 'No payment needed now! I''ve booked you with Ace for Friday at 3:30pm. You''ll get a confirmation text shortly.')
+) AS msg(sender, message);
+
+WITH inserted_sms AS (
+  INSERT INTO communications (
+    comm_type,
+    contact_name,
+    contact_number,
+    status,
+    sentiment,
+    tag,
+    action_taken,
+    ai_summary,
+    timestamp
+  )
+  VALUES (
+    'sms',
+    'Emily Chen',
+    '+64 27 880 3344',
+    'completed',
+    'neutral',
+    'reschedule',
+    'Appointment rescheduled',
+    'Customer requested to move appointment from Friday to Saturday morning and change service from standard cut to line-up and taper.',
+    NOW()
+  )
+  RETURNING id
+)
+INSERT INTO comm_messages (communication_id, sender, message, message_time)
+SELECT id, msg.sender, msg.message, NOW()
+FROM inserted_sms,
+LATERAL (VALUES
+  ('customer', 'Hi, I need to move my appointment from Friday to Saturday morning if possible'),
+  ('ai', 'I can help you reschedule! What time works best on Saturday morning?'),
+  ('customer', 'Any time between 9-11am. Also can I change from standard cut to line-up and taper?'),
+  ('ai', 'Perfect! I have Jay available at 10am on Saturday. Line-up and taper is $40. Should I book that?'),
+  ('customer', 'Yes please, that works great'),
+  ('ai', 'Done! Your appointment is now Saturday 10am with Jay for line-up and taper. Confirmation sent.')
+) AS msg(sender, message);
+
 -- ============================================
 -- CREATE INDEXES
 -- ============================================
@@ -186,6 +293,11 @@ CREATE TRIGGER update_appointments_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_communications_updated_at
+  BEFORE UPDATE ON communications
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
 -- ============================================
 -- ENABLE ROW LEVEL SECURITY
 -- ============================================
@@ -194,6 +306,8 @@ ALTER TABLE store_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE barbers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE communications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE comm_messages ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
 -- CREATE POLICIES
@@ -220,6 +334,18 @@ CREATE POLICY "Allow all operations on users"
 
 CREATE POLICY "Allow all operations on appointments"
   ON appointments
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on communications"
+  ON communications
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on comm_messages"
+  ON comm_messages
   FOR ALL
   USING (true)
   WITH CHECK (true);

@@ -29,6 +29,7 @@ const defaultBanner =
 const defaultAddress = '123 Barbershop Avenue\nAuckland, NZ 1010';
 const defaultHours = 'Mon-Fri: 9:00 AM - 6:00 PM\nSat: 9:00 AM - 5:00 PM\nSun: Closed';
 const defaultPhone = '+64 1 234 56789';
+const defaultIntro = 'Premium Barbershop Experience';
 const barberAvatarFallback =
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200';
 
@@ -84,6 +85,7 @@ export default function BookAppointment(): JSX.Element {
     hours: defaultHours,
     address: defaultAddress,
     phone: defaultPhone,
+    intro: defaultIntro,
   });
 
   useEffect(() => {
@@ -134,6 +136,7 @@ export default function BookAppointment(): JSX.Element {
             hours: data.hours || defaultHours,
             address: data.address || defaultAddress,
             phone: data.phone_number || defaultPhone,
+            intro: data.intro_text || defaultIntro,
           });
         }
       } catch (err) {
@@ -278,7 +281,7 @@ export default function BookAppointment(): JSX.Element {
                   Fade Station
                 </h1>
                 <p className="text-xl text-white/60">
-                  Premium Barbershop Experience
+                  {storeDetails.intro}
                 </p>
               </div>
 

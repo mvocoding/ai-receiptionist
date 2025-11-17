@@ -1,5 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
+import {
+  supabase,
+  type Communication as DBCommunication,
+  type CommunicationMessage as DBCommunicationMessage,
+} from '../lib/supabase';
 
 type Message = {
   sender: 'customer' | 'ai' | 'system';
@@ -14,236 +19,43 @@ type Comm = {
   contactNumber: string;
   timestamp: string;
   status: string;
-  sentiment: string;
-  tag: string;
-  actionTaken: string;
-  aiSummary: string;
+  sentiment?: string;
+  tag?: string;
+  actionTaken?: string;
+  aiSummary?: string;
   conversation?: Message[];
   duration?: number;
-  transcript?: string;
   audioUrl?: string;
 };
 
-const MOCK_DATA: Comm[] = [
-  {
-    id: 'comm_101',
-    type: 'call',
-    contactName: 'Jordan Smith',
-    contactNumber: '+64 21 555 1024',
-    timestamp: 'Today · 10:42 AM',
-    status: 'completed',
-    sentiment: 'positive',
-    tag: 'booking',
-    actionTaken: 'Appointment booked',
-    aiSummary:
-      'Customer requested fade appointment for Friday afternoon. Successfully booked with Ace at 3:30pm. Confirmation sent via SMS.',
-    conversation: [
-      {
-        sender: 'customer',
-        message:
-          "Hi, I'd like to book a fade for Friday afternoon if possible.",
-        time: '10:42:15',
-      },
-      {
-        sender: 'ai',
-        message:
-          "Hello! I'd be happy to help you book a fade appointment. What's your name and phone number?",
-        time: '10:42:18',
-      },
-      {
-        sender: 'customer',
-        message: "It's Jordan, 021-555-1024. Do you have anything after 3pm?",
-        time: '10:42:45',
-      },
-      {
-        sender: 'ai',
-        message:
-          'Perfect! I have Ace available at 3:30pm and 4:00pm on Friday. Which would you prefer? A fade is $45.',
-        time: '10:42:52',
-      },
-      {
-        sender: 'customer',
-        message: '3:30pm works great. Do I need to pay upfront?',
-        time: '10:43:12',
-      },
-      {
-        sender: 'ai',
-        message:
-          "No payment needed now! I've booked you with Ace for Friday at 3:30pm. You'll get a confirmation text shortly.",
-        time: '10:43:18',
-      },
-    ],
-  },
-  {
-    id: 'comm_102',
-    type: 'sms',
-    contactName: 'Emily Chen',
-    contactNumber: '+64 27 880 3344',
-    timestamp: 'Today · 9:15 AM',
-    status: 'completed',
-    sentiment: 'neutral',
-    tag: 'reschedule',
-    actionTaken: 'Appointment rescheduled',
-    aiSummary:
-      'Customer requested to move appointment from Friday to Saturday morning and change service from standard cut to line-up and taper.',
-    conversation: [
-      {
-        sender: 'customer',
-        message:
-          'Hi, I need to move my appointment from Friday to Saturday morning if possible',
-        time: '09:15:22',
-      },
-      {
-        sender: 'ai',
-        message:
-          'I can help you reschedule! What time works best on Saturday morning?',
-        time: '09:15:28',
-      },
-      {
-        sender: 'customer',
-        message:
-          'Any time between 9-11am. Also can I change from standard cut to line-up and taper?',
-        time: '09:15:45',
-      },
-      {
-        sender: 'ai',
-        message:
-          'Perfect! I have Jay available at 10am on Saturday. Line-up and taper is $40. Should I book that?',
-        time: '09:15:52',
-      },
-      {
-        sender: 'customer',
-        message: 'Yes please, that works great',
-        time: '09:16:08',
-      },
-      {
-        sender: 'ai',
-        message:
-          'Done! Your appointment is now Saturday 10am with Jay for line-up and taper. Confirmation sent.',
-        time: '09:16:12',
-      },
-    ],
-  },
-  {
-    id: 'comm_103',
-    type: 'call',
-    contactName: 'Unknown',
-    contactNumber: 'Private',
-    timestamp: 'Yesterday · 4:30 PM',
-    status: 'missed',
-    sentiment: 'neutral',
-    tag: 'missed',
-    actionTaken: 'SMS follow-up sent',
-    aiSummary:
-      'Missed call from private number. AI automatically sent SMS asking for preferred time and service.',
-    conversation: [
-      { sender: 'system', message: 'Missed call at 4:30 PM', time: '16:30:00' },
-      {
-        sender: 'ai',
-        message:
-          'Hi! We missed your call. What can I help you with today? You can reply with your preferred time and service.',
-        time: '16:30:15',
-      },
-    ],
-  },
-  {
-    id: 'comm_104',
-    type: 'sms',
-    contactName: 'Leo Martinez',
-    contactNumber: '+64 22 901 7777',
-    timestamp: 'Yesterday · 2:15 PM',
-    status: 'completed',
-    sentiment: 'negative',
-    tag: 'pricing',
-    actionTaken: 'Price clarification sent',
-    aiSummary:
-      'Customer questioned pricing from previous visit. AI provided detailed breakdown of full service pricing with beard and hot towel.',
-    conversation: [
-      {
-        sender: 'customer',
-        message:
-          'I think I was charged wrong last time. Can you confirm the price for full service with beard and hot towel?',
-        time: '14:15:30',
-      },
-      {
-        sender: 'ai',
-        message:
-          "I'd be happy to clarify our pricing! Full service (cut + beard + hot towel) is $65. Regular cut is $45, beard trim is $15, hot towel is $5.",
-        time: '14:15:45',
-      },
-      {
-        sender: 'customer',
-        message: 'That sounds right, thanks for clarifying',
-        time: '14:16:12',
-      },
-      {
-        sender: 'ai',
-        message:
-          "You're welcome! If you'd like to book another appointment, just let me know your preferred time.",
-        time: '14:16:18',
-      },
-    ],
-  },
-  {
-    id: 'rec_101',
-    type: 'recording',
-    contactName: 'Jordan Smith',
-    contactNumber: '+64 21 555 1024',
-    timestamp: 'Today · 10:42 AM',
-    status: 'completed',
-    sentiment: 'positive',
-    tag: 'booking',
-    actionTaken: 'Appointment booked',
-    aiSummary:
-      'Customer called requesting skin fade tomorrow after 3pm. Flexible on time. Asked about beard trim add-on pricing.',
-    duration: 132,
-    transcript:
-      "Hey, I was wondering if you have any availability for a skin fade tomorrow after 3pm? I'm flexible on the time. Also what's the price for beard trim add-on?",
-    audioUrl:
-      'https://cdn.pixabay.com/download/audio/2021/09/16/audio_8c4d3f2b7d.mp3?filename=click-124467.mp3',
-  },
-  {
-    id: 'rec_102',
-    type: 'recording',
-    contactName: 'Unknown',
-    contactNumber: 'Private',
-    timestamp: 'Today · 9:05 AM',
-    status: 'missed',
-    sentiment: 'neutral',
-    tag: 'missed',
-    actionTaken: 'Callback SMS sent',
-    aiSummary:
-      'Missed call. AI sent an SMS asking for preferred time and service.',
-    duration: 0,
-    transcript:
-      'Missed call. AI sent an SMS asking for preferred time and service.',
-    audioUrl: '',
-  },
-  {
-    id: 'rec_103',
-    type: 'recording',
-    contactName: 'Emily Chen',
-    contactNumber: '+64 27 880 3344',
-    timestamp: 'Yesterday · 4:18 PM',
-    status: 'completed',
-    sentiment: 'neutral',
-    tag: 'reschedule',
-    actionTaken: 'Appointment rescheduled',
-    aiSummary:
-      'Customer requested to move appointment from Friday to Saturday morning and change from standard cut to line-up and taper.',
-    duration: 245,
-    transcript:
-      'Hi, I need to move my appointment from Friday to Saturday morning if possible. Also, can I change from a standard cut to a line-up and taper?',
-    audioUrl:
-      'https://cdn.pixabay.com/download/audio/2022/03/15/audio_e6a3b.mp3?filename=notification-112557.mp3',
-  },
-];
-
-function formatDuration(seconds: number): string {
+function formatDuration(seconds?: number | null): string | undefined {
+  if (seconds === undefined || seconds === null) return undefined;
   if (seconds === 0) return '--';
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
   return `${mins}m ${secs}s`;
+}
+
+function formatTimestamp(ts?: string | null): string {
+  if (!ts) return '';
+  const date = new Date(ts);
+  return date.toLocaleString('en-US', {
+    weekday: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+function formatMessageTime(ts?: string | null): string {
+  if (!ts) return '';
+  const date = new Date(ts);
+  return date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 }
 
 export default function Communications(): JSX.Element {
@@ -261,8 +73,73 @@ export default function Communications(): JSX.Element {
       document.head.appendChild(meta);
   }, []);
 
-  // Sort by newest first
-  const rows = MOCK_DATA.sort((a, b) => b.id.localeCompare(a.id));
+  const [rows, setRows] = useState<Comm[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCommunications = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { data: communications, error: commError } = await supabase
+          .from('communications')
+          .select('*')
+          .order('timestamp', { ascending: false });
+
+        if (commError) throw commError;
+
+        const ids = (communications || []).map((c) => c.id);
+        let messagesMap: Record<string, DBCommunicationMessage[]> = {};
+
+        if (ids.length > 0) {
+          const { data: messages, error: msgError } = await supabase
+            .from('comm_messages')
+            .select('*')
+            .in('communication_id', ids)
+            .order('message_time', { ascending: true });
+
+          if (msgError) throw msgError;
+
+          (messages || []).forEach((msg) => {
+            if (!messagesMap[msg.communication_id]) {
+              messagesMap[msg.communication_id] = [];
+            }
+            messagesMap[msg.communication_id].push(msg);
+          });
+        }
+
+        const mapped: Comm[] = (communications || []).map((comm: DBCommunication) => ({
+          id: comm.id,
+          type: comm.comm_type,
+          contactName: comm.contact_name || 'Unknown',
+          contactNumber: comm.contact_number || 'Private',
+          timestamp: formatTimestamp(comm.timestamp),
+          status: comm.status,
+          sentiment: comm.sentiment || undefined,
+          tag: comm.tag || undefined,
+          actionTaken: comm.action_taken || undefined,
+          aiSummary: comm.ai_summary || undefined,
+          duration: comm.duration || undefined,
+          audioUrl: comm.audio_url || undefined,
+          conversation: (messagesMap[comm.id] || []).map((msg) => ({
+            sender: msg.sender,
+            message: msg.message,
+            time: formatMessageTime(msg.message_time),
+          })),
+        }));
+
+        setRows(mapped);
+      } catch (err) {
+        console.error('Error loading communications:', err);
+        setError('Failed to load communications from Supabase.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCommunications();
+  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
@@ -277,6 +154,21 @@ export default function Communications(): JSX.Element {
         </header>
 
         <main className="space-y-4">
+          {loading && (
+            <div className="text-white/70 text-center py-8">
+              Loading communications…
+            </div>
+          )}
+          {error && !loading && (
+            <div className="text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4">
+              {error}
+            </div>
+          )}
+          {!loading && rows.length === 0 && (
+            <div className="text-white/60 text-center py-12 border border-dashed border-white/20 rounded-2xl">
+              No communications found.
+            </div>
+          )}
           {rows.map((r) => (
             <section
               key={r.id}
@@ -310,7 +202,7 @@ export default function Communications(): JSX.Element {
                     </h3>
                     <p className="text-sm text-white/60">
                       {r.contactNumber} · {r.timestamp}
-                      {r.duration !== undefined && (
+                      {r.duration !== undefined && r.duration !== null && (
                         <span> · {formatDuration(r.duration)}</span>
                       )}
                     </p>
