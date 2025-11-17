@@ -13,6 +13,9 @@ type Barber = {
 type StoreSettings = {
   bannerUrl: string;
   introText: string;
+  phoneNumber: string;
+  address: string;
+  hours: string;
 };
 
 const DAYS_OF_WEEK = [
@@ -44,6 +47,9 @@ export default function Dashboard(): JSX.Element {
     bannerUrl:
       'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800',
     introText: 'Welcome to Fade Station. Premium Barbershop Experience.',
+    phoneNumber: '+64 1 234 56789',
+    address: '123 Barbershop Avenue\nAuckland, NZ 1010',
+    hours: 'Mon-Fri: 9:00 AM - 6:00 PM\nSat: 9:00 AM - 5:00 PM\nSun: Closed',
   });
 
   const [barbers, setBarbers] = useState<Barber[]>([
@@ -196,24 +202,23 @@ export default function Dashboard(): JSX.Element {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
-      {/* unified nav */}
       <NavBar />
 
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Store Banner</h2>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-            <div className="mb-4">
-              <img
-                src={settings.bannerUrl}
-                alt="Store Banner"
-                className="w-full h-64 object-cover rounded-lg mb-4"
-              />
-            </div>
+          <h2 className="text-2xl font-bold mb-6">Store Settings</h2>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6 space-y-6">
             <div>
               <label className="block text-sm font-medium text-white/70 mb-2">
-                Upload Banner Image
+                Store Banner Image
               </label>
+              <div className="mb-4">
+                <img
+                  src={settings.bannerUrl}
+                  alt="Store Banner"
+                  className="w-full h-64 object-cover rounded-lg mb-4"
+                />
+              </div>
               <input
                 type="file"
                 accept="image/*"
@@ -224,27 +229,74 @@ export default function Dashboard(): JSX.Element {
                 Recommended size: 1200x400px
               </p>
             </div>
-          </div>
-        </div>
 
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Store Introduction</h2>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-            <label className="block text-sm font-medium text-white/70 mb-2">
-              Store Description
-            </label>
-            <textarea
-              value={settings.introText}
-              onChange={(e) =>
-                setSettings((prev) => ({ ...prev, introText: e.target.value }))
-              }
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
-              rows={4}
-              placeholder="Enter your store introduction..."
-            />
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-2">
+                Store Introduction
+              </label>
+              <textarea
+                value={settings.introText}
+                onChange={(e) =>
+                  setSettings((prev) => ({ ...prev, introText: e.target.value }))
+                }
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
+                rows={3}
+                placeholder="Enter your store introduction..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-2">
+                Phone Number
+              </label>
+              <textarea
+                value={settings.phoneNumber}
+                onChange={(e) =>
+                  setSettings((prev) => ({ ...prev, phoneNumber: e.target.value }))
+                }
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
+                rows={1}
+                placeholder="+64 1 234 56789"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-2">
+                Address
+              </label>
+              <textarea
+                value={settings.address}
+                onChange={(e) =>
+                  setSettings((prev) => ({ ...prev, address: e.target.value }))
+                }
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
+                rows={2}
+                placeholder="123 Barbershop Avenue
+Auckland, NZ 1010"
+              />
+            </div>
+
+            {/* Hours */}
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-2">
+                Hours
+              </label>
+              <textarea
+                value={settings.hours}
+                onChange={(e) =>
+                  setSettings((prev) => ({ ...prev, hours: e.target.value }))
+                }
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
+                rows={3}
+                placeholder="Mon-Fri: 9:00 AM - 6:00 PM
+Sat: 9:00 AM - 5:00 PM
+Sun: Closed"
+              />
+            </div>
+
             <button
-              onClick={() => alert('Store intro saved!')}
-              className="mt-4 px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 transition font-medium"
+              onClick={() => alert('Store settings saved!')}
+              className="px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 transition font-medium"
             >
               Save Changes
             </button>

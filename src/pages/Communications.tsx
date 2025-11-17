@@ -24,9 +24,7 @@ type Comm = {
   audioUrl?: string;
 };
 
-// Combined mock data
 const MOCK_DATA: Comm[] = [
-  // SMS/Call communications
   {
     id: 'comm_101',
     type: 'call',
