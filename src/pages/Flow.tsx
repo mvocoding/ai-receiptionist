@@ -12,16 +12,12 @@ export default function Flow(): JSX.Element {
     <div className="min-h-screen bg-black text-white font-sans">
       <NavBar />
       <div className="mx-auto max-w-4xl px-4 py-24">
-        <h1 className="text-3xl font-bold mb-6">Flow Builder</h1>
-        <p className="text-sm text-white/60 mb-8">
-          Choose which channel flow you want to edit.
-        </p>
 
         <div className="grid sm:grid-cols-2 gap-6">
           <div className="p-6 rounded-xl bg-white/5 border border-white/10">
             <h2 className="text-xl font-semibold mb-2">Call Flow</h2>
             <p className="text-sm text-white/60 mb-4">
-              Design call handling flows (IVR, transfers, call actions).
+              Design call handling flows and auto-responses.
             </p>
             <button
               onClick={() => nav('/flow-call')}
