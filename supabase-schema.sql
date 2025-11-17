@@ -1,8 +1,24 @@
 -- Fade Station Database Schema
 -- Run this SQL in your Supabase SQL Editor to create the tables
+-- This script drops all existing objects and recreates them
+
+-- ============================================
+-- DROP EXISTING OBJECTS
+-- ============================================
+
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS barbers CASCADE;
+DROP TABLE IF EXISTS store_settings CASCADE;
+
+-- Drop functions (after tables are dropped)
+DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
+
+-- ============================================
+-- CREATE TABLES
+-- ============================================
 
 -- Store Settings Table
-CREATE TABLE IF NOT EXISTS store_settings (
+CREATE TABLE store_settings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   banner_url TEXT NOT NULL DEFAULT 'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800',
   intro_text TEXT NOT NULL DEFAULT 'Welcome to Fade Station. Premium Barbershop Experience.',
@@ -17,7 +33,7 @@ Sun: Closed',
 );
 
 -- Barbers Table
-CREATE TABLE IF NOT EXISTS barbers (
+CREATE TABLE barbers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   specialty TEXT NOT NULL,
@@ -27,6 +43,19 @@ CREATE TABLE IF NOT EXISTS barbers (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Users Table
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  last_login_at TIMESTAMP WITH TIME ZONE,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================
+-- INSERT SAMPLE DATA
+-- ============================================
 
 -- Insert default store settings (single row)
 INSERT INTO store_settings (id, banner_url, intro_text, phone_number, address, hours)
@@ -40,12 +69,11 @@ Auckland, NZ 1010',
   'Mon-Fri: 9:00 AM - 6:00 PM
 Sat: 9:00 AM - 5:00 PM
 Sun: Closed'
-)
-ON CONFLICT (id) DO NOTHING;
+);
 
--- Insert sample barbers (UUIDs will be auto-generated, only if they don't exist)
+-- Insert sample barbers
 INSERT INTO barbers (name, specialty, image, price, working_days)
-SELECT * FROM (VALUES 
+VALUES 
   (
     'Ace',
     'Fades · Beard · Kids',
@@ -66,18 +94,24 @@ SELECT * FROM (VALUES
     'https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&q=80&w=200&h=200',
     45.00,
     ARRAY['Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-  )
-) AS v(name, specialty, image, price, working_days)
-WHERE NOT EXISTS (SELECT 1 FROM barbers WHERE barbers.name = v.name);
+  );
+
+-- ============================================
+-- CREATE FUNCTIONS
+-- ============================================
 
 -- Create function to update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at_column()
+CREATE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ============================================
+-- CREATE TRIGGERS
+-- ============================================
 
 -- Create triggers to auto-update updated_at
 CREATE TRIGGER update_store_settings_updated_at
@@ -90,9 +124,22 @@ CREATE TRIGGER update_barbers_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
--- Enable Row Level Security (RLS)
+CREATE TRIGGER update_users_updated_at
+  BEFORE UPDATE ON users
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================
+-- ENABLE ROW LEVEL SECURITY
+-- ============================================
+
 ALTER TABLE store_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE barbers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+-- ============================================
+-- CREATE POLICIES
+-- ============================================
 
 -- Create policies to allow all operations (adjust based on your auth needs)
 CREATE POLICY "Allow all operations on store_settings"
@@ -103,6 +150,12 @@ CREATE POLICY "Allow all operations on store_settings"
 
 CREATE POLICY "Allow all operations on barbers"
   ON barbers
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on users"
+  ON users
   FOR ALL
   USING (true)
   WITH CHECK (true);

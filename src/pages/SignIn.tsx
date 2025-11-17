@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 
 export default function SignIn(): JSX.Element {
   useEffect(() => {
@@ -18,32 +19,86 @@ export default function SignIn(): JSX.Element {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
+  const DEFAULT_PASSWORD = '0123456789';
 
-  function generateCode() {
-    return String(Math.floor(1000 + Math.random() * 9000));
-  }
-
-  function handleSendCode(e: React.FormEvent) {
-    e.preventDefault();
+  async function startOtpFlow(trimmed: string) {
     setError(null);
     setInfo(null);
+    setNeedsEmailConfirmation(false);
+    setLoading(true);
+
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: trimmed,
+        options: {
+          shouldCreateUser: false,
+        },
+      });
+
+      if (otpError) {
+        const message = otpError.message?.toLowerCase() ?? '';
+
+        if (message.includes('user not found')) {
+          const { error: signUpError } = await supabase.auth.signUp({
+            email: trimmed,
+            password: DEFAULT_PASSWORD,
+          });
+
+          if (signUpError) throw signUpError;
+
+          setNeedsEmailConfirmation(true);
+          setInfo(
+            `We created an account for ${trimmed}. Please confirm your email from the Supabase message, then click "I confirmed my email" below.`
+          );
+          return;
+        }
+
+        if (message.includes('email not confirmed')) {
+          setNeedsEmailConfirmation(true);
+          setInfo(
+            `Please confirm ${trimmed} using the Supabase email, then click "I confirmed my email".`
+          );
+          return;
+        }
+
+        throw otpError;
+      }
+
+      sessionStorage.setItem('fs_signin_email', trimmed);
+
+      setInfo(
+        `A 6-digit verification code was sent to ${trimmed}. Please check your email.`
+      );
+
+      setTimeout(() => {
+        (window as any).__navigate?.('/confirm') ??
+          (window.location.pathname = '/confirm');
+      }, 1500);
+    } catch (err) {
+      console.error('Error sending verification code:', err);
+      setError('Failed to send verification code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSendCode(e: React.FormEvent) {
+    e.preventDefault();
     const trimmed = email.trim().toLowerCase();
     if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
       setError('Please enter a valid email address.');
       return;
     }
 
-    const code = generateCode();
-    const payload = {
-      email: trimmed,
-      code,
-      createdAt: Date.now(),
-    };
-    sessionStorage.setItem('fs_signin', JSON.stringify(payload));
+    await startOtpFlow(trimmed);
+  }
 
-    setInfo(`A 4-digit code was sent to ${trimmed}. (Check console in demo)`);
-    (window as any).__navigate?.('/confirm') ??
-      (window.location.pathname = '/confirm');
+  async function handleConfirmedEmail() {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed) return;
+    await startOtpFlow(trimmed);
   }
 
   return (
@@ -99,12 +154,29 @@ export default function SignIn(): JSX.Element {
                 </div>
               )}
 
+              {needsEmailConfirmation && (
+                <div className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 space-y-3">
+                  <p className="text-sm text-ios-textMuted">
+                    After confirming your email, click below to continue.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleConfirmedEmail}
+                    disabled={loading}
+                    className="w-full px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Checking...' : 'I confirmed my email'}
+                  </button>
+                </div>
+              )}
+
               <div className="flex items-center gap-4">
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 rounded-xl text-base font-medium bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 transition shadow-lg shadow-sky-500/25"
+                  disabled={loading}
+                  className="flex-1 px-6 py-3 rounded-xl text-base font-medium bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 transition shadow-lg shadow-sky-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Continue with Email
+                  {loading ? 'Sending...' : 'Continue with Email'}
                 </button>
                 <button
                   type="button"
