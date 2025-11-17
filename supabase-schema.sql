@@ -39,6 +39,7 @@ CREATE TABLE barbers (
   name TEXT NOT NULL,
   specialty TEXT NOT NULL,
   image TEXT NOT NULL,
+  phone TEXT,
   price DECIMAL(10, 2) NOT NULL,
   working_days TEXT[] NOT NULL DEFAULT '{}',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -89,12 +90,13 @@ Sun: Closed'
 );
 
 -- Insert sample barbers
-INSERT INTO barbers (name, specialty, image, price, working_days)
+INSERT INTO barbers (name, specialty, image, phone, price, working_days)
 VALUES 
   (
     'Ace',
     'Fades · Beard · Kids',
     'https://images.unsplash.com/photo-1585518419759-7fe2e0fbf8a6?auto=format&fit=crop&q=80&w=200&h=200',
+    '+64 1 234 5678',
     45.00,
     ARRAY['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   ),
@@ -102,6 +104,7 @@ VALUES
     'Jay',
     'Tapers · Line-ups',
     'https://images.unsplash.com/photo-1534308143481-c55f00be8bd7?auto=format&fit=crop&q=80&w=200&h=200',
+    '+64 1 234 5679',
     40.00,
     ARRAY['Monday', 'Wednesday', 'Friday', 'Saturday']
   ),
@@ -109,6 +112,7 @@ VALUES
     'Mia',
     'Skin Fades · Scissor',
     'https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&q=80&w=200&h=200',
+    '+64 1 234 5680',
     45.00,
     ARRAY['Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   );

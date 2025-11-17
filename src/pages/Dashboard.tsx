@@ -11,6 +11,7 @@ type Barber = {
   name: string;
   specialty: string;
   image: string;
+  phone?: string;
   price: number;
   workingDays: string[];
 };
@@ -100,6 +101,7 @@ export default function Dashboard(): JSX.Element {
               name: b.name,
               specialty: b.specialty,
               image: b.image,
+              phone: b.phone || '',
               price: Number(b.price),
               workingDays: b.working_days || [],
             }))
@@ -121,7 +123,11 @@ export default function Dashboard(): JSX.Element {
     name: '',
     specialty: '',
     price: '',
+    phone: '',
     workingDays: [] as string[],
+    avatarFile: null as File | null,
+    avatarPreview: '',
+    uploadingAvatar: false,
   });
   const [uploadingBanner, setUploadingBanner] = useState(false);
 
@@ -188,13 +194,38 @@ export default function Dashboard(): JSX.Element {
     }
 
     try {
+      let imageUrl =
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200';
+
+      if (newBarber.avatarFile) {
+        setNewBarber((prev) => ({ ...prev, uploadingAvatar: true }));
+        const ext = newBarber.avatarFile.name.split('.').pop() || 'jpg';
+        const fileName = `barbers/${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2)}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('store-assets')
+          .upload(fileName, newBarber.avatarFile, {
+            cacheControl: '3600',
+            upsert: true,
+          });
+
+        if (uploadError) throw uploadError;
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from('store-assets').getPublicUrl(fileName);
+        imageUrl = publicUrl;
+      }
+
       const { data, error } = await supabase
         .from('barbers')
         .insert({
           name: newBarber.name,
           specialty: newBarber.specialty,
-          image:
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200',
+          image: imageUrl,
+          phone: newBarber.phone.trim() || null,
           price: Number(newBarber.price),
           working_days: newBarber.workingDays,
         })
@@ -210,18 +241,30 @@ export default function Dashboard(): JSX.Element {
             name: data.name,
             specialty: data.specialty,
             image: data.image,
+            phone: data.phone || '',
             price: Number(data.price),
             workingDays: data.working_days || [],
           },
           ...barbers,
         ]);
-        setNewBarber({ name: '', specialty: '', price: '', workingDays: [] });
+        setNewBarber({
+          name: '',
+          specialty: '',
+          price: '',
+          phone: '',
+          workingDays: [],
+          avatarFile: null,
+          avatarPreview: '',
+          uploadingAvatar: false,
+        });
         setShowAddBarber(false);
         alert('Barber added successfully!');
       }
     } catch (error) {
       console.error('Error adding barber:', error);
       alert('Failed to add barber. Please try again.');
+    } finally {
+      setNewBarber((prev) => ({ ...prev, uploadingAvatar: false, avatarFile: null }));
     }
   };
 
@@ -231,7 +274,11 @@ export default function Dashboard(): JSX.Element {
       name: barber.name,
       specialty: barber.specialty,
       price: String(barber.price),
+      phone: barber.phone || '',
       workingDays: barber.workingDays,
+      avatarFile: null,
+      avatarPreview: barber.image,
+      uploadingAvatar: false,
     });
   };
 
@@ -249,11 +296,37 @@ export default function Dashboard(): JSX.Element {
     }
 
     try {
+      let imageUrl = editingBarber.image;
+
+      if (newBarber.avatarFile) {
+        setNewBarber((prev) => ({ ...prev, uploadingAvatar: true }));
+        const ext = newBarber.avatarFile.name.split('.').pop() || 'jpg';
+        const fileName = `barbers/${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2)}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('store-assets')
+          .upload(fileName, newBarber.avatarFile, {
+            cacheControl: '3600',
+            upsert: true,
+          });
+
+        if (uploadError) throw uploadError;
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from('store-assets').getPublicUrl(fileName);
+        imageUrl = publicUrl;
+      }
+
       const { data, error } = await supabase
         .from('barbers')
         .update({
           name: newBarber.name,
           specialty: newBarber.specialty,
+          image: imageUrl,
+          phone: newBarber.phone.trim() || null,
           price: Number(newBarber.price),
           working_days: newBarber.workingDays,
         })
@@ -271,6 +344,8 @@ export default function Dashboard(): JSX.Element {
                   ...b,
                   name: data.name,
                   specialty: data.specialty,
+                  image: data.image,
+                  phone: data.phone || '',
                   price: Number(data.price),
                   workingDays: data.working_days || [],
                 }
@@ -278,12 +353,23 @@ export default function Dashboard(): JSX.Element {
           )
         );
         setEditingBarber(null);
-        setNewBarber({ name: '', specialty: '', price: '', workingDays: [] });
+        setNewBarber({
+          name: '',
+          specialty: '',
+          price: '',
+          phone: '',
+          workingDays: [],
+          avatarFile: null,
+          avatarPreview: '',
+          uploadingAvatar: false,
+        });
         alert('Barber updated successfully!');
       }
     } catch (error) {
       console.error('Error updating barber:', error);
       alert('Failed to update barber. Please try again.');
+    } finally {
+      setNewBarber((prev) => ({ ...prev, uploadingAvatar: false, avatarFile: null }));
     }
   };
 
@@ -459,12 +545,16 @@ Sun: Closed"
               onClick={() => {
                 setShowAddBarber(!showAddBarber);
                 setEditingBarber(null);
-                setNewBarber({
-                  name: '',
-                  specialty: '',
-                  price: '',
-                  workingDays: [],
-                });
+                      setNewBarber({
+                        name: '',
+                        specialty: '',
+                        price: '',
+                        phone: '',
+                        workingDays: [],
+                        avatarFile: null,
+                        avatarPreview: '',
+                        uploadingAvatar: false,
+                      });
               }}
               className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 transition font-medium text-sm"
             >
@@ -473,7 +563,7 @@ Sun: Closed"
           </div>
 
           {(showAddBarber || editingBarber) && (
-            <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-8">
+              <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-8">
               <h3 className="text-lg font-semibold mb-4">
                 {editingBarber ? 'Edit Barber' : 'Add New Barber'}
               </h3>
@@ -481,6 +571,39 @@ Sun: Closed"
                 onSubmit={editingBarber ? handleUpdateBarber : handleAddBarber}
                 className="space-y-4"
               >
+                  <div className="flex flex-col gap-3">
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Avatar
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={
+                          newBarber.avatarPreview ||
+                          editingBarber?.image ||
+                          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200'
+                        }
+                        alt="Preview"
+                        className="w-16 h-16 rounded-xl object-cover border border-white/10 bg-white/5"
+                      />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          setNewBarber((prev) => ({
+                            ...prev,
+                            avatarFile: file,
+                            avatarPreview: file ? URL.createObjectURL(file) : '',
+                          }));
+                        }}
+                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-sky-500/90 file:text-white file:cursor-pointer"
+                      />
+                    </div>
+                    {newBarber.uploadingAvatar && (
+                      <p className="text-xs text-sky-400">Uploading image...</p>
+                    )}
+                  </div>
+
                 <div>
                   <label className="block text-sm font-medium text-white/70 mb-2">
                     Name
@@ -495,6 +618,21 @@ Sun: Closed"
                     placeholder="Barber name"
                   />
                 </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-white/70 mb-2">
+                        Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        value={newBarber.phone}
+                        onChange={(e) =>
+                          setNewBarber({ ...newBarber, phone: e.target.value })
+                        }
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                        placeholder="+64 21 123 4567"
+                      />
+                    </div>
                 <div>
                   <label className="block text-sm font-medium text-white/70 mb-2">
                     Specialty
@@ -562,7 +700,11 @@ Sun: Closed"
                         name: '',
                         specialty: '',
                         price: '',
+                            phone: '',
                         workingDays: [],
+                            avatarFile: null,
+                            avatarPreview: '',
+                            uploadingAvatar: false,
                       });
                     }}
                     className="flex-1 px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition font-medium"
@@ -584,13 +726,16 @@ Sun: Closed"
                   <img
                     src={barber.image}
                     alt={barber.name}
-                    className="w-16 h-16 rounded-lg object-cover"
+                          className="w-16 h-16 rounded-lg object-cover"
                   />
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">{barber.name}</h3>
                     <p className="text-sm text-ios-textMuted">
                       {barber.specialty}
                     </p>
+                            {barber.phone && (
+                              <p className="text-xs text-white/60">{barber.phone}</p>
+                            )}
                     <p className="text-sky-400 font-medium mt-1">
                       ${barber.price}
                     </p>

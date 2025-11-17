@@ -26,6 +26,7 @@ export type Barber = {
   name: string;
   specialty: string;
   image: string;
+  phone?: string;
   price: number;
   working_days: string[];
   created_at?: string;
