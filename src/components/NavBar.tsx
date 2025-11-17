@@ -1,9 +1,26 @@
 import React from 'react';
+import { supabase } from '../lib/supabase';
 
 export default function NavBar(): JSX.Element {
-  const raw =
-    typeof window !== 'undefined' ? localStorage.getItem('fs_user') : null;
-  const user = raw ? JSON.parse(raw) : null;
+  const isBrowser = typeof window !== 'undefined';
+  let user: { email?: string } | null = null;
+
+  if (isBrowser) {
+    const raw = localStorage.getItem('fs_user');
+    if (raw) {
+      try {
+        user = JSON.parse(raw);
+      } catch {
+        user = null;
+      }
+    }
+  }
+
+  const currentPath = isBrowser ? window.location.pathname : '';
+  const isLanding =
+    currentPath === '/' ||
+    currentPath === '/landing' ||
+    currentPath === '/home';
 
   function nav(to: string) {
     const fn = (window as any).__navigate;
@@ -11,10 +28,17 @@ export default function NavBar(): JSX.Element {
     else window.location.pathname = to;
   }
 
-  function signOut(e: React.MouseEvent) {
+  async function signOut(e: React.MouseEvent) {
     e.preventDefault();
-    localStorage.removeItem('fs_user');
-    nav('/landing');
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Failed to sign out from Supabase:', err);
+    } finally {
+      localStorage.removeItem('fs_user');
+      sessionStorage.clear();
+      nav('/landing');
+    }
   }
 
   return (
@@ -38,38 +62,40 @@ export default function NavBar(): JSX.Element {
             </button>
           </div>
 
-          <nav className="flex items-center gap-3">
-            <button
-              onClick={() => nav('/communications')}
-              className="text-sm text-ios-textMuted hover:text-white transition"
-            >
-              Communications
-            </button>
-            <button
-              onClick={() => nav('/barbers')}
-              className="text-sm text-ios-textMuted hover:text-white transition"
-            >
-              Barbers
-            </button>
-            <button
-              onClick={() => nav('/flow')}
-              className="text-sm text-ios-textMuted hover:text-white transition"
-            >
-              Flow
-            </button>
-            <button
-              onClick={() => nav('/book')}
-              className="text-sm text-ios-textMuted hover:text-white transition"
-            >
-              Book
-            </button>
-            <button
-              onClick={() => nav('/dashboard')}
-              className="text-sm text-ios-textMuted hover:text-white transition"
-            >
-              Dashboard
-            </button>
-          </nav>
+          {user && (
+            <nav className="flex items-center gap-3">
+              <button
+                onClick={() => nav('/communications')}
+                className="text-sm text-ios-textMuted hover:text-white transition"
+              >
+                Communications
+              </button>
+              <button
+                onClick={() => nav('/barbers')}
+                className="text-sm text-ios-textMuted hover:text-white transition"
+              >
+                Barbers
+              </button>
+              <button
+                onClick={() => nav('/flow')}
+                className="text-sm text-ios-textMuted hover:text-white transition"
+              >
+                Flow
+              </button>
+              <button
+                onClick={() => nav('/book')}
+                className="text-sm text-ios-textMuted hover:text-white transition"
+              >
+                Book
+              </button>
+              <button
+                onClick={() => nav('/dashboard')}
+                className="text-sm text-ios-textMuted hover:text-white transition"
+              >
+                Dashboard
+              </button>
+            </nav>
+          )}
 
           <div className="flex items-center gap-3">
             {user ? (
@@ -84,6 +110,13 @@ export default function NavBar(): JSX.Element {
                   Sign out
                 </button>
               </>
+            ) : isLanding ? (
+              <button
+                onClick={() => nav('/signin')}
+                className="px-3 py-1.5 rounded-xl text-xs bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 transition shadow-lg"
+              >
+                Get Started
+              </button>
             ) : (
               <button
                 onClick={() => nav('/signin')}
