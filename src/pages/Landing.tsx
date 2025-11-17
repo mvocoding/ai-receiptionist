@@ -68,7 +68,7 @@ export default function Landing(): JSX.Element {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-3 gap-6">
           <div className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl p-6 shadow-glow">
             <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-sky-500/20 to-cyan-500/20 border border-sky-500/30 flex items-center justify-center mb-4 text-2xl">
               🎯
@@ -88,6 +88,17 @@ export default function Landing(): JSX.Element {
             <p className="text-ios-textMuted leading-relaxed">
               Seamlessly checks availability, books appointments, sends
               confirmations.
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl p-6 shadow-glow">
+            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/20 border border-purple-500/30 flex items-center justify-center mb-4 text-2xl">
+              📁
+            </div>
+            <h3 className="text-xl font-semibold mb-3">Customer Records</h3>
+            <p className="text-ios-textMuted leading-relaxed">
+              Every caller is saved automatically, so you can track customer
+              details, history, and interactions in one place.
             </p>
           </div>
         </div>
