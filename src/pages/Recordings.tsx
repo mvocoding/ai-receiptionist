@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import NavBar from '../components/NavBar';
 
 type Rec = {
   id: string;
@@ -86,33 +87,36 @@ const Recordings: React.FC = () => {
   }, [filter, recordings]);
 
   return (
-    <div>
-      <h1>Recordings</h1>
-      <div>
-        <button onClick={() => setFilter('all')}>All</button>
-        <button onClick={() => setFilter('completed')}>Completed</button>
-        <button onClick={() => setFilter('missed')}>Missed</button>
-      </div>
-      <ul>
-        {filteredRecordings.map((rec) => (
-          <li key={rec.id}>
-            <h2>{rec.callerName}</h2>
-            <p>{rec.timestamp}</p>
-            <p>Duration: {rec.duration} seconds</p>
-            <p>Status: {rec.status}</p>
-            <p>Sentiment: {rec.sentiment}</p>
-            <p>Tags: {rec.tags.join(', ')}</p>
-            <p>Assignee: {rec.assignee}</p>
-            <p>Transcript: {rec.transcript}</p>
-            {rec.audioUrl && (
-              <audio controls>
-                <source src={rec.audioUrl} type="audio/mpeg" />
-                Your browser does not support the audio element.
-              </audio>
-            )}
-          </li>
-        ))}
-      </ul>
+    <div className="min-h-screen bg-black text-white font-sans">
+      <NavBar />
+      <main className="mx-auto max-w-6xl px-4 py-6">
+        <h1>Recordings</h1>
+        <div>
+          <button onClick={() => setFilter('all')}>All</button>
+          <button onClick={() => setFilter('completed')}>Completed</button>
+          <button onClick={() => setFilter('missed')}>Missed</button>
+        </div>
+        <ul>
+          {filteredRecordings.map((rec) => (
+            <li key={rec.id}>
+              <h2>{rec.callerName}</h2>
+              <p>{rec.timestamp}</p>
+              <p>Duration: {rec.duration} seconds</p>
+              <p>Status: {rec.status}</p>
+              <p>Sentiment: {rec.sentiment}</p>
+              <p>Tags: {rec.tags.join(', ')}</p>
+              <p>Assignee: {rec.assignee}</p>
+              <p>Transcript: {rec.transcript}</p>
+              {rec.audioUrl && (
+                <audio controls>
+                  <source src={rec.audioUrl} type="audio/mpeg" />
+                  Your browser does not support the audio element.
+                </audio>
+              )}
+            </li>
+          ))}
+        </ul>
+      </main>
     </div>
   );
 };

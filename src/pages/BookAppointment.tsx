@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import NavBar from '../components/NavBar';
 
 type Barber = {
   id: string;
@@ -130,6 +131,9 @@ export default function BookAppointment(): JSX.Element {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
+      {/* unified nav */}
+      <NavBar />
+
       <div className="border-b border-white/10 bg-gradient-to-b from-white/5 to-transparent">
         <div className="mx-auto max-w-7xl px-4 py-16">
           <div className="grid lg:grid-cols-2 gap-12 items-center">

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import NavBar from '../components/NavBar';
 
 type Barber = {
   id: string;
@@ -6,7 +7,7 @@ type Barber = {
   specialty: string;
   image: string;
   price: number;
-  workingDays: string[]; // e.g., ['Monday', 'Tuesday', ...]
+  workingDays: string[];
 };
 
 type StoreSettings = {
@@ -195,39 +196,8 @@ export default function Dashboard(): JSX.Element {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
-      {/* Header */}
-      <div className="border-b border-white/10 bg-gradient-to-b from-white/5 to-transparent">
-        <div className="mx-auto max-w-7xl px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center border border-white/10">
-                <span className="text-xs font-semibold">FS</span>
-              </div>
-              <h1 className="text-2xl font-bold">Dashboard</h1>
-            </div>
-            <div className="flex gap-2">
-              <a
-                href="/landing"
-                className="px-3 py-1.5 rounded-lg text-xs text-ios-textMuted hover:text-white transition"
-              >
-                Home
-              </a>
-              <a
-                href="/communications"
-                className="px-3 py-1.5 rounded-lg text-xs text-ios-textMuted hover:text-white transition"
-              >
-                Communications
-              </a>
-              <a
-                href="/barbers"
-                className="px-3 py-1.5 rounded-lg text-xs text-ios-textMuted hover:text-white transition"
-              >
-                Barbers
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* unified nav */}
+      <NavBar />
 
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="mb-12">

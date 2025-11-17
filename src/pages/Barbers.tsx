@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import NavBar from '../components/NavBar';
 
 const barbersStatic = [
   { id: 'ace', name: 'Ace', services: 'Fades · Beard · Kids' },
@@ -115,6 +116,9 @@ export default function Barbers(): JSX.Element {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
+      {/* unified nav */}
+      <NavBar />
+
       <div className="mx-auto max-w-6xl px-4 py-6">
         {/* header */}
         <header className="sticky top-0 z-40">

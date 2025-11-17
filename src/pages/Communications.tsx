@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import NavBar from '../components/NavBar';
 
 type Message = {
   sender: 'customer' | 'ai' | 'system';
@@ -326,138 +327,83 @@ export default function Communications(): JSX.Element {
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       <div className="mx-auto max-w-6xl px-4 py-6">
-        {/* Header */}
-        <header className="sticky top-0 z-40">
-          <div className="backdrop-blur-md bg-white/5 border border-ios-border rounded-2xl shadow-glow">
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3">
-                <a
-                  href="/landing"
-                  className="flex items-center gap-3 hover:opacity-80 transition"
-                >
-                  <div className="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/10">
-                    <span className="text-xs font-semibold">FS</span>
-                  </div>
-                  <div>
-                    <h1 className="text-lg font-semibold tracking-tight">
-                      Communications
-                    </h1>
-                    <p className="text-xs text-ios-textMuted">
-                      Calls, SMS & Recordings
-                    </p>
-                  </div>
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <a
-                  href="/landing"
-                  className="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition"
-                >
-                  Home
-                </a>
-                <a
-                  href="/barbers"
-                  className="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition"
-                >
-                  Barbers
-                </a>
-                <a
-                  href="/training.html"
-                  className="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition"
-                >
-                  Training
-                </a>
-                <a
-                  href="/flow"
-                  className="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted hover:text-white transition"
-                >
-                  Flow
-                </a>
-                <a
-                  href="/demo.html"
-                  className="px-3 py-1.5 rounded-xl text-xs bg-sky-500/90 hover:bg-sky-500 transition shadow"
-                >
-                  Demo
-                </a>
-              </div>
-            </div>
+        {/* unified nav */}
+        <NavBar />
 
-            {/* Search & filters */}
-            <div className="px-4 pb-4">
-              <div className="flex flex-col md:flex-row md:items-center gap-2">
-                <div className="relative flex-1">
-                  <input
-                    type="text"
-                    placeholder="Search name, number, message..."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className="w-full bg-white/5 border border-ios-border rounded-xl pl-10 pr-3 py-2.5 text-sm placeholder:text-ios-textMuted focus:outline-none focus:ring-2 focus:ring-sky-500/50"
-                  />
-                  <svg
-                    className="absolute left-3 top-2.5 h-5 w-5 text-ios-textMuted"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="M21 21l-4.3-4.3" />
-                  </svg>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="inline-flex bg-white/5 border border-ios-border rounded-xl p-1">
-                    <button
-                      onClick={() => setFilter('all')}
-                      className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
-                        filter === 'all' ? 'bg-white/10' : ''
-                      }`}
-                    >
-                      All
-                    </button>
-                    <button
-                      onClick={() => setFilter('call')}
-                      className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
-                        filter === 'call' ? 'bg-white/10' : ''
-                      }`}
-                    >
-                      Calls
-                    </button>
-                    <button
-                      onClick={() => setFilter('sms')}
-                      className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
-                        filter === 'sms' ? 'bg-white/10' : ''
-                      }`}
-                    >
-                      SMS
-                    </button>
-                    <button
-                      onClick={() => setFilter('recording')}
-                      className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
-                        filter === 'recording' ? 'bg-white/10' : ''
-                      }`}
-                    >
-                      Recordings
-                    </button>
-                    <button
-                      onClick={() => setFilter('completed')}
-                      className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
-                        filter === 'completed' ? 'bg-white/10' : ''
-                      }`}
-                    >
-                      Completed
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => setSortNewest((s) => !s)}
-                    className="px-3 py-1.5 text-xs rounded-xl bg-white/10 border border-ios-border"
-                  >
-                    Sort: {sortNewest ? 'Newest' : 'Oldest'}
-                  </button>
-                </div>
+        {/* Search & filters */}
+        <div className="px-4 pb-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Search name, number, message..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full bg-white/5 border border-ios-border rounded-xl pl-10 pr-3 py-2.5 text-sm placeholder:text-ios-textMuted focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+              />
+              <svg
+                className="absolute left-3 top-2.5 h-5 w-5 text-ios-textMuted"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.3-4.3" />
+              </svg>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="inline-flex bg-white/5 border border-ios-border rounded-xl p-1">
+                <button
+                  onClick={() => setFilter('all')}
+                  className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
+                    filter === 'all' ? 'bg-white/10' : ''
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setFilter('call')}
+                  className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
+                    filter === 'call' ? 'bg-white/10' : ''
+                  }`}
+                >
+                  Calls
+                </button>
+                <button
+                  onClick={() => setFilter('sms')}
+                  className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
+                    filter === 'sms' ? 'bg-white/10' : ''
+                  }`}
+                >
+                  SMS
+                </button>
+                <button
+                  onClick={() => setFilter('recording')}
+                  className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
+                    filter === 'recording' ? 'bg-white/10' : ''
+                  }`}
+                >
+                  Recordings
+                </button>
+                <button
+                  onClick={() => setFilter('completed')}
+                  className={`filter-btn px-3 py-1.5 text-xs rounded-lg ${
+                    filter === 'completed' ? 'bg-white/10' : ''
+                  }`}
+                >
+                  Completed
+                </button>
               </div>
+              <button
+                onClick={() => setSortNewest((s) => !s)}
+                className="px-3 py-1.5 text-xs rounded-xl bg-white/10 border border-ios-border"
+              >
+                Sort: {sortNewest ? 'Newest' : 'Oldest'}
+              </button>
             </div>
           </div>
-        </header>
+        </div>
 
         {/* Content */}
         <main className="mt-4 space-y-3">
