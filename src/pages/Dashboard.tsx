@@ -123,20 +123,46 @@ export default function Dashboard(): JSX.Element {
     price: '',
     workingDays: [] as string[],
   });
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
 
-  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setBannerFile(file);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setSettings((prev) => ({
-          ...prev,
-          bannerUrl: event.target?.result as string,
-        }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file');
+      return;
+    }
+
+    setUploadingBanner(true);
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const fileName = `${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}.${ext}`;
+      const filePath = `banners/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('store-assets')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('store-assets').getPublicUrl(filePath);
+
+      setSettings((prev) => ({
+        ...prev,
+        bannerUrl: publicUrl,
+      }));
+    } catch (error) {
+      console.error('Error uploading banner:', error);
+      alert('Failed to upload banner image. Please try again.');
+    } finally {
+      setUploadingBanner(false);
     }
   };
 
@@ -335,8 +361,12 @@ export default function Dashboard(): JSX.Element {
                 type="file"
                 accept="image/*"
                 onChange={handleBannerUpload}
+                disabled={uploadingBanner}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-sky-500/90 file:text-white file:cursor-pointer"
               />
+              {uploadingBanner && (
+                <p className="text-xs text-sky-400 mt-2">Uploading...</p>
+              )}
               <p className="text-xs text-ios-textMuted mt-2">
                 Recommended size: 1200x400px
               </p>

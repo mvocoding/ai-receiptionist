@@ -6,6 +6,7 @@
 -- DROP EXISTING OBJECTS
 -- ============================================
 
+DROP TABLE IF EXISTS appointments CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS barbers CASCADE;
 DROP TABLE IF EXISTS store_settings CASCADE;
@@ -42,6 +43,21 @@ CREATE TABLE barbers (
   working_days TEXT[] NOT NULL DEFAULT '{}',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Appointments Table
+CREATE TABLE appointments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  barber_id UUID NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+  customer_name TEXT,
+  customer_email TEXT,
+  appointment_date DATE NOT NULL,
+  slot_time TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'booked',
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  CONSTRAINT appointments_unique_slot UNIQUE (barber_id, appointment_date, slot_time)
 );
 
 -- Users Table
@@ -96,6 +112,37 @@ VALUES
     ARRAY['Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   );
 
+-- Insert sample appointments referencing the seeded barbers
+INSERT INTO appointments (barber_id, customer_name, customer_email, appointment_date, slot_time, status)
+SELECT id, 'Jordan Client', 'jordan@example.com', CURRENT_DATE, '09:00', 'booked'
+FROM barbers WHERE name = 'Ace'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO appointments (barber_id, customer_name, customer_email, appointment_date, slot_time, status)
+SELECT id, 'Casey Demo', 'casey@example.com', CURRENT_DATE, '10:30', 'booked'
+FROM barbers WHERE name = 'Ace'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO appointments (barber_id, customer_name, customer_email, appointment_date, slot_time, status)
+SELECT id, 'Morgan Test', 'morgan@example.com', CURRENT_DATE + INTERVAL '1 day', '11:00', 'booked'
+FROM barbers WHERE name = 'Jay'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO appointments (barber_id, customer_name, customer_email, appointment_date, slot_time, status)
+SELECT id, 'Taylor Sample', 'taylor@example.com', CURRENT_DATE + INTERVAL '1 day', '15:30', 'booked'
+FROM barbers WHERE name = 'Mia'
+ON CONFLICT DO NOTHING;
+
+-- ============================================
+-- CREATE INDEXES
+-- ============================================
+
+CREATE INDEX idx_appointments_barber_date
+  ON appointments (barber_id, appointment_date);
+
+CREATE INDEX idx_appointments_date
+  ON appointments (appointment_date);
+
 -- ============================================
 -- CREATE FUNCTIONS
 -- ============================================
@@ -129,6 +176,11 @@ CREATE TRIGGER update_users_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_appointments_updated_at
+  BEFORE UPDATE ON appointments
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
 -- ============================================
 -- ENABLE ROW LEVEL SECURITY
 -- ============================================
@@ -136,6 +188,7 @@ CREATE TRIGGER update_users_updated_at
 ALTER TABLE store_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE barbers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
 -- CREATE POLICIES
@@ -156,6 +209,12 @@ CREATE POLICY "Allow all operations on barbers"
 
 CREATE POLICY "Allow all operations on users"
   ON users
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on appointments"
+  ON appointments
   FOR ALL
   USING (true)
   WITH CHECK (true);

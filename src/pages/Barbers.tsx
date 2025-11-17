@@ -1,10 +1,48 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import NavBar from '../components/NavBar';
+import {
+  supabase,
+  type Barber as DBBarber,
+  type Appointment as DBAppointment,
+} from '../lib/supabase';
 
-const barbersStatic = [
-  { id: 'ace', name: 'Ace', services: 'Fades · Beard · Kids' },
-  { id: 'jay', name: 'Jay', services: 'Tapers · Line-ups' },
-  { id: 'mia', name: 'Mia', services: 'Skin Fades · Scissor' },
+type BarberCard = {
+  id: string;
+  name: string;
+  services: string;
+  image: string;
+  price: number;
+  workingDays: string[];
+};
+
+const fallbackBarbers: BarberCard[] = [
+  {
+    id: 'fallback-ace',
+    name: 'Ace',
+    services: 'Fades · Beard · Kids',
+    image:
+      'https://images.unsplash.com/photo-1585518419759-7fe2e0fbf8a6?auto=format&fit=crop&q=80&w=200&h=200',
+    price: 45,
+    workingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  },
+  {
+    id: 'fallback-jay',
+    name: 'Jay',
+    services: 'Tapers · Line-ups',
+    image:
+      'https://images.unsplash.com/photo-1534308143481-c55f00be8bd7?auto=format&fit=crop&q=80&w=200&h=200',
+    price: 40,
+    workingDays: ['Monday', 'Wednesday', 'Friday', 'Saturday'],
+  },
+  {
+    id: 'fallback-mia',
+    name: 'Mia',
+    services: 'Skin Fades · Scissor',
+    image:
+      'https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&q=80&w=200&h=200',
+    price: 45,
+    workingDays: ['Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+  },
 ];
 
 function pad(n: number) {
@@ -46,10 +84,12 @@ export default function Barbers(): JSX.Element {
   }, []);
 
   const [date, setDate] = useState<Date>(new Date());
-  const [barber, setBarber] = useState<string>('all');
-  const [bookedByDate, setBookedByDate] = useState<
-    Record<string, Record<string, string[]>>
-  >({});
+  const [selectedBarber, setSelectedBarber] = useState<string>('all');
+  const [barbers, setBarbers] = useState<BarberCard[]>([]);
+  const [loadingBarbers, setLoadingBarbers] = useState(true);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [bookedSlots, setBookedSlots] = useState<Record<string, string[]>>({});
+  const [error, setError] = useState<string | null>(null);
   const [selectedSlots, setSelectedSlots] = useState<
     Record<string, Set<string>>
   >({}); // ui-only selections
@@ -59,22 +99,41 @@ export default function Barbers(): JSX.Element {
     []
   );
 
-  // seed demo bookings on mount
   useEffect(() => {
-    const today = fmtDate(new Date());
-    const tomorrow = fmtDate(new Date(Date.now() + 86400000));
-    setBookedByDate({
-      [today]: {
-        ace: ['09:00', '10:00', '14:30'],
-        jay: ['11:30', '15:00'],
-        mia: ['09:30', '13:00', '16:00'],
-      },
-      [tomorrow]: {
-        ace: ['12:00', '12:30', '13:00'],
-        jay: ['09:00', '09:30', '10:00', '10:30'],
-        mia: [],
-      },
-    });
+    const fetchBarbers = async () => {
+      try {
+        const { data, error: barbersError } = await supabase
+          .from('barbers')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (barbersError) throw barbersError;
+
+        if (!data || data.length === 0) {
+          setBarbers(fallbackBarbers);
+          return;
+        }
+
+        setBarbers(
+          data.map((b: DBBarber) => ({
+            id: b.id,
+            name: b.name,
+            services: b.specialty,
+            image: b.image,
+            price: Number(b.price),
+            workingDays: b.working_days || [],
+          }))
+        );
+      } catch (err) {
+        console.error('Error loading barbers:', err);
+        setBarbers(fallbackBarbers);
+        setError('Unable to load barbers from Supabase. Showing demo data.');
+      } finally {
+        setLoadingBarbers(false);
+      }
+    };
+
+    fetchBarbers();
   }, []);
 
   const dateStr = fmtDate(date);
@@ -83,9 +142,40 @@ export default function Barbers(): JSX.Element {
     [state]
   );
 
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      setSlotsLoading(true);
+      setError(null);
+      try {
+        const { data, error: appointmentsError } = await supabase
+          .from('appointments')
+          .select('barber_id, slot_time, status')
+          .eq('appointment_date', dateStr)
+          .not('status', 'eq', 'cancelled');
+
+        if (appointmentsError) throw appointmentsError;
+
+        const grouped: Record<string, string[]> = {};
+        (data as DBAppointment[] | null)?.forEach((appt) => {
+          if (!grouped[appt.barber_id]) grouped[appt.barber_id] = [];
+          grouped[appt.barber_id].push(appt.slot_time);
+        });
+
+        setBookedSlots(grouped);
+      } catch (err) {
+        console.error('Error loading appointments:', err);
+        setError('Unable to load appointments for this date.');
+        setBookedSlots({});
+      } finally {
+        setSlotsLoading(false);
+      }
+    };
+
+    fetchAppointments();
+  }, [dateStr]);
+
   function getAvailableSlotsFor(barberId: string) {
-    const booked =
-      (bookedByDate[dateStr] && bookedByDate[dateStr][barberId]) || [];
+    const booked = bookedSlots[barberId] || [];
     const set = new Set(booked);
     return allSlots.filter((s) => !set.has(s));
   }
@@ -111,8 +201,10 @@ export default function Barbers(): JSX.Element {
     if (!isNaN(d.getTime())) setDate(d);
   }
 
-  const barberIds =
-    barber === 'all' ? barbersStatic.map((b) => b.id) : [barber];
+  const visibleBarbers =
+    selectedBarber === 'all'
+      ? barbers
+      : barbers.filter((b) => b.id === selectedBarber);
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
@@ -120,8 +212,57 @@ export default function Barbers(): JSX.Element {
       <NavBar />
 
       <div className="mx-auto max-w-6xl px-4 py-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handlePrevDay}
+              className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-sm"
+            >
+              Prev
+            </button>
+            <input
+              type="date"
+              value={dateStr}
+              onChange={(e) => handleDateChange(e.target.value)}
+              className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+            />
+            <button
+              onClick={handleNextDay}
+              className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-sm"
+            >
+              Next
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-ios-textMuted uppercase tracking-wide">
+              Barber
+            </label>
+            <select
+              value={selectedBarber}
+              onChange={(e) => setSelectedBarber(e.target.value)}
+              className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+            >
+              <option value="all">All barbers</option>
+              {barbers.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mt-4 bg-rose-500/10 border border-rose-500/30 rounded-xl px-4 py-3 text-sm text-rose-300">
+            {error}
+          </div>
+        )}
+
+        {loadingBarbers ? (
+          <div className="mt-10 text-center text-ios-textMuted">Loading barbers…</div>
+        ) : (
         <main className="mt-4 space-y-4" id="gridRoot">
-          {barberIds.length === 0 && (
+          {visibleBarbers.length === 0 && (
             <div className="text-center py-20 bg-white/5 border border-ios-border rounded-2xl">
               <div className="mx-auto h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center mb-4">
                 <svg
@@ -141,27 +282,25 @@ export default function Barbers(): JSX.Element {
             </div>
           )}
 
-          {barberIds.map((barberId) => {
-            const b = barbersStatic.find((x) => x.id === barberId);
-            if (!b) return null;
-            const slots = getAvailableSlotsFor(barberId);
-            const selected = selectedSlots[barberId] || new Set<string>();
+          {visibleBarbers.map((barberInfo) => {
+            const slots = getAvailableSlotsFor(barberInfo.id);
+            const selected = selectedSlots[barberInfo.id] || new Set<string>();
             return (
               <section
-                key={barberId}
+                key={barberInfo.id}
                 className="bg-gradient-to-b from-[#111111] to-[#0d0d0d] border border-ios-border rounded-2xl shadow-glow overflow-hidden"
               >
                 <div className="p-4 flex items-start gap-3">
                   <div className="h-12 w-12 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center">
                     <span className="avatar text-sm font-semibold">
-                      {b.name[0]}
+                      {barberInfo.name[0]}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="font-semibold text-sm barber-name">
-                          {b.name}
+                          {barberInfo.name}
                         </h3>
                         <p className="text-xs text-ios-textMuted">
                           Available slots ·{' '}
@@ -170,13 +309,17 @@ export default function Barbers(): JSX.Element {
                       </div>
                       <div className="inline-flex items-center gap-2 text-[10px]">
                         <span className="px-2 py-1 rounded-full border border-white/10 bg-white/5 text-white/80 service">
-                          {b.services}
+                          {barberInfo.services}
                         </span>
                       </div>
                     </div>
 
                     <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                      {slots.length === 0 ? (
+                      {slotsLoading ? (
+                        <div className="col-span-full text-xs text-ios-textMuted">
+                          Loading availability…
+                        </div>
+                      ) : slots.length === 0 ? (
                         <div className="text-xs text-ios-textMuted">
                           No slots today
                         </div>
@@ -186,7 +329,7 @@ export default function Barbers(): JSX.Element {
                           return (
                             <button
                               key={s}
-                              onClick={() => toggleSelect(barberId, s)}
+                              onClick={() => toggleSelect(barberInfo.id, s)}
                               className={
                                 'slot-btn px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs transition ' +
                                 (isSelected
@@ -206,6 +349,7 @@ export default function Barbers(): JSX.Element {
             );
           })}
         </main>
+        )}
 
         <footer className="py-8 text-center text-xs text-ios-textMuted">
           Fade Station · Barbers & Availability

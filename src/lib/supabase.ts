@@ -32,6 +32,19 @@ export type Barber = {
   updated_at?: string;
 };
 
+export type Appointment = {
+  id: string;
+  barber_id: string;
+  customer_name?: string;
+  customer_email?: string;
+  appointment_date: string;
+  slot_time: string;
+  status: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
 export type User = {
   id: string;
   email: string;
