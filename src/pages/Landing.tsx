@@ -17,9 +17,7 @@ export default function Landing(): JSX.Element {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
-      {/* Hero Section */}
       <div className="relative overflow-hidden">
-        {/* Animated gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-sky-900/20 via-black to-cyan-900/20"></div>
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMxMTExMTEiIGZpbGwtb3BhY2l0eT0iMC40Ij48cGF0aCBkPSJNMzYgMzR2MjBoMlYzNGgtMnpNMjQgMjR2MmgxMnYtMmgtMTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
 
@@ -33,7 +31,6 @@ export default function Landing(): JSX.Element {
               <span className="text-xl font-semibold">Fade Station</span>
             </div>
             <div className="flex items-center gap-4">
-              {/* Internal navigation uses client-side helper to avoid full reloads */}
               <a
                 href="/recordings"
                 onClick={(e) => {
@@ -87,7 +84,6 @@ export default function Landing(): JSX.Element {
                 Try Demo
               </a>
 
-              {/* Live Gemini now routes to an in-app page */}
               <a
                 href="/live-gemini"
                 onClick={(e) => {
@@ -101,7 +97,6 @@ export default function Landing(): JSX.Element {
             </div>
           </nav>
 
-          {/* Hero content */}
           <div className="text-center mb-20">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
               Never Miss a Call
@@ -135,16 +130,13 @@ export default function Landing(): JSX.Element {
             </div>
           </div>
 
-          {/* Phone mockup */}
           <div className="relative max-w-md mx-auto">
             <div className="relative bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-[3rem] p-6 shadow-glow backdrop-blur-2xl">
-              {/* Phone screen */}
               <div className="bg-black rounded-[2rem] overflow-hidden shadow-2xl">
                 <div className="h-12 flex items-center justify-center bg-white/5 border-b border-white/10">
                   <div className="w-32 h-6 rounded-full bg-white/10"></div>
                 </div>
                 <div className="p-6 space-y-4">
-                  {/* Incoming call */}
                   <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                     <div className="h-12 w-12 rounded-full bg-gradient-to-br from-sky-400 to-cyan-500 flex items-center justify-center text-xl">
                       📞
@@ -159,7 +151,6 @@ export default function Landing(): JSX.Element {
                       </span>
                     </div>
                   </div>
-                  {/* Chat bubbles */}
                   <div className="space-y-3">
                     <div className="flex gap-2">
                       <div className="h-8 w-8 rounded-full bg-white/10"></div>
@@ -187,7 +178,6 @@ export default function Landing(): JSX.Element {
         </div>
       </div>
 
-      {/* Features Section */}
       <div className="mx-auto max-w-6xl px-4 py-20">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">How It Works</h2>
@@ -197,7 +187,6 @@ export default function Landing(): JSX.Element {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {/* Feature 1 */}
           <div className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl p-6 shadow-glow">
             <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-sky-500/20 to-cyan-500/20 border border-sky-500/30 flex items-center justify-center mb-4 text-2xl">
               🎯
@@ -209,7 +198,6 @@ export default function Landing(): JSX.Element {
             </p>
           </div>
 
-          {/* Feature 2 */}
           <div className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl p-6 shadow-glow">
             <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/20 border border-emerald-500/30 flex items-center justify-center mb-4 text-2xl">
               📅
@@ -221,7 +209,6 @@ export default function Landing(): JSX.Element {
             </p>
           </div>
 
-          {/* Feature 3 */}
           <div className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl p-6 shadow-glow">
             <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center mb-4 text-2xl">
               📊
@@ -235,7 +222,6 @@ export default function Landing(): JSX.Element {
         </div>
       </div>
 
-      {/* Benefits Section */}
       <div className="mx-auto max-w-6xl px-4 py-20">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
@@ -312,7 +298,6 @@ export default function Landing(): JSX.Element {
 
           <div className="relative">
             <div className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl p-6 shadow-glow">
-              {/* Stats grid */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
                   <div className="text-3xl font-bold bg-gradient-to-r from-sky-400 to-cyan-400 bg-clip-text text-transparent">

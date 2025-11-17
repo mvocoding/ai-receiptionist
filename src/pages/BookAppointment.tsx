@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 type Barber = {
   id: string;
@@ -13,7 +13,6 @@ type BookingForm = {
   date: string;
   time: string;
   name: string;
-  email: string;
   phone: string;
   notes: string;
 };
@@ -61,6 +60,19 @@ const TIME_SLOTS = [
   '17:00',
 ];
 
+function formatDateToISO(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+
+function formatDateDisplay(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00');
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
 export default function BookAppointment(): JSX.Element {
   const [selectedBarber, setSelectedBarber] = useState<string | null>(null);
   const [form, setForm] = useState<BookingForm>({
@@ -68,20 +80,37 @@ export default function BookAppointment(): JSX.Element {
     date: '',
     time: '',
     name: '',
-    email: '',
     phone: '',
     notes: '',
   });
+
+  const today = useMemo(() => new Date(), []);
+  const tomorrow = useMemo(() => {
+    const d = new Date(today);
+    d.setDate(d.getDate() + 1);
+    return d;
+  }, [today]);
+
+  const todayISO = formatDateToISO(today);
+  const tomorrowISO = formatDateToISO(tomorrow);
 
   const handleSelectBarber = (barberId: string) => {
     setSelectedBarber(barberId);
     setForm((prev) => ({ ...prev, barberId }));
   };
 
+  const handleSelectDate = (dateStr: string) => {
+    setForm((prev) => ({ ...prev, date: dateStr, time: '' }));
+  };
+
+  const handleSelectTime = (timeStr: string) => {
+    setForm((prev) => ({ ...prev, time: timeStr }));
+  };
+
   const handleBook = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.date || !form.time) {
-      alert('Please select a date and time');
+    if (!form.name.trim() || !form.phone.trim()) {
+      alert('Please fill in all required fields');
       return;
     }
     const barber = BARBERS.find((b) => b.id === form.barberId);
@@ -94,7 +123,6 @@ export default function BookAppointment(): JSX.Element {
       date: '',
       time: '',
       name: '',
-      email: '',
       phone: '',
       notes: '',
     });
@@ -272,39 +300,60 @@ export default function BookAppointment(): JSX.Element {
 
         {selectedBarber && (
           <div className="mb-12">
-            <h3 className="text-lg font-semibold mb-6 text-white/90">
-              Select Date & Time
-            </h3>
-            <div className="grid lg:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
-                  Date
-                </label>
-                <input
-                  type="date"
-                  value={form.date}
-                  onChange={(e) => setForm({ ...form, date: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
-                  Time
-                </label>
-                <select
-                  value={form.time}
-                  onChange={(e) => setForm({ ...form, time: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition"
+            <div className="mb-12">
+              <h3 className="text-lg font-semibold mb-6 text-white/90">
+                Select Date
+              </h3>
+              <div className="flex gap-4 mb-8">
+                <button
+                  onClick={() => handleSelectDate(todayISO)}
+                  className={`flex-1 px-6 py-4 rounded-lg font-semibold transition-all ${
+                    form.date === todayISO
+                      ? 'bg-sky-500 text-white shadow-lg'
+                      : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
+                  }`}
                 >
-                  <option value="">Select a time...</option>
-                  {TIME_SLOTS.map((slot) => (
-                    <option key={slot} value={slot}>
-                      {slot}
-                    </option>
-                  ))}
-                </select>
+                  <div className="text-sm text-white/70">Today</div>
+                  <div className="text-lg">{formatDateDisplay(todayISO)}</div>
+                </button>
+                <button
+                  onClick={() => handleSelectDate(tomorrowISO)}
+                  className={`flex-1 px-6 py-4 rounded-lg font-semibold transition-all ${
+                    form.date === tomorrowISO
+                      ? 'bg-sky-500 text-white shadow-lg'
+                      : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
+                  }`}
+                >
+                  <div className="text-sm text-white/70">Tomorrow</div>
+                  <div className="text-lg">
+                    {formatDateDisplay(tomorrowISO)}
+                  </div>
+                </button>
               </div>
             </div>
+
+            {form.date && (
+              <div className="mb-12">
+                <h3 className="text-lg font-semibold mb-6 text-white/90">
+                  Select Time
+                </h3>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                  {TIME_SLOTS.map((slot) => (
+                    <button
+                      key={slot}
+                      onClick={() => handleSelectTime(slot)}
+                      className={`px-3 py-3 rounded-lg font-medium transition-all ${
+                        form.time === slot
+                          ? 'bg-emerald-500 text-white shadow-lg'
+                          : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
+                      }`}
+                    >
+                      {slot}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {form.date && form.time && (
               <button
@@ -312,12 +361,11 @@ export default function BookAppointment(): JSX.Element {
                   setForm((prev) => ({
                     ...prev,
                     name: '',
-                    email: '',
                     phone: '',
                     notes: '',
                   }))
                 }
-                className="mt-8 w-full bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white font-semibold py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="w-full bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white font-semibold py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 Continue to Details →
               </button>
@@ -344,7 +392,7 @@ export default function BookAppointment(): JSX.Element {
             <form onSubmit={handleBook} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-white/70 mb-2">
-                  Full Name
+                  Full Name *
                 </label>
                 <input
                   type="text"
@@ -352,25 +400,13 @@ export default function BookAppointment(): JSX.Element {
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                  placeholder="John Doe"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-white/70 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-white/70 mb-2">
-                  Phone
+                  Phone Number *
                 </label>
                 <input
                   type="tel"
@@ -378,6 +414,7 @@ export default function BookAppointment(): JSX.Element {
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                  placeholder="+64 21 123 4567"
                 />
               </div>
 
@@ -390,6 +427,7 @@ export default function BookAppointment(): JSX.Element {
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
                   rows={2}
+                  placeholder="Any special requests?"
                 />
               </div>
 
@@ -401,7 +439,7 @@ export default function BookAppointment(): JSX.Element {
                   {BARBERS.find((b) => b.id === form.barberId)?.name}
                 </p>
                 <p className="text-white/70 text-sm">
-                  {form.date} at {form.time}
+                  {formatDateDisplay(form.date)} at {form.time}
                 </p>
               </div>
 
