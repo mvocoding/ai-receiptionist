@@ -25,10 +25,10 @@ type BookingForm = {
 
 const defaultBanner =
   'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800';
-const defaultAddress = '123 Barbershop Avenue\nAuckland, NZ 1010';
+const defaultAddress = '1 Fern Court, Parafield Gardens, SA 5107';
 const defaultHours =
   'Mon-Fri: 9:00 AM - 6:00 PM\nSat: 9:00 AM - 5:00 PM\nSun: Closed';
-const defaultPhone = '0483234567';
+const defaultPhone = '0483 804 500';
 const defaultIntro = 'Premium Barbershop Experience';
 const barberAvatarFallback =
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200';

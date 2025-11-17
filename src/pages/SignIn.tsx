@@ -69,7 +69,7 @@ export default function SignIn(): JSX.Element {
       sessionStorage.setItem('fs_signin_email', trimmed);
 
       setInfo(
-        `A 6-digit verification code was sent to ${trimmed}. Please check your email.`
+        `A 8-digit verification code was sent to ${trimmed}. Please check your email.`
       );
 
       setTimeout(() => {
