@@ -57,52 +57,6 @@ export default function Landing(): JSX.Element {
               </button>
             </div>
           </div>
-
-          <div className="relative max-w-md mx-auto">
-            <div className="relative bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-[3rem] p-6 shadow-glow backdrop-blur-2xl">
-              <div className="bg-black rounded-[2rem] overflow-hidden shadow-2xl">
-                <div className="h-12 flex items-center justify-center bg-white/5 border-b border-white/10">
-                  <div className="w-32 h-6 rounded-full bg-white/10"></div>
-                </div>
-                <div className="p-6 space-y-4">
-                  <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl p-4">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-sky-400 to-cyan-500 flex items-center justify-center text-xl">
-                      📞
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-sm">Jordan Smith</h3>
-                      <p className="text-xs text-ios-textMuted">
-                        +64 21 555 1024
-                      </p>
-                      <span className="text-[10px] text-emerald-400">
-                        AI Assistant Active
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <div className="h-8 w-8 rounded-full bg-white/10"></div>
-                      <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-3">
-                        <p className="text-xs">
-                          Hi, can I book a fade for this Friday?
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <div className="flex-1 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-3">
-                        <p className="text-xs">
-                          Hello! I'd be happy to help. What time works for you?
-                        </p>
-                      </div>
-                      <div className="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">
-                        🤖
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -114,7 +68,7 @@ export default function Landing(): JSX.Element {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl p-6 shadow-glow">
             <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-sky-500/20 to-cyan-500/20 border border-sky-500/30 flex items-center justify-center mb-4 text-2xl">
               🎯
@@ -122,7 +76,7 @@ export default function Landing(): JSX.Element {
             <h3 className="text-xl font-semibold mb-3">Smart Call Handling</h3>
             <p className="text-ios-textMuted leading-relaxed">
               Automatically answers every call, understands customer intent, and
-              provides helpful responses in natural conversation.
+              provides helpful responses.
             </p>
           </div>
 
@@ -133,139 +87,12 @@ export default function Landing(): JSX.Element {
             <h3 className="text-xl font-semibold mb-3">Automatic Bookings</h3>
             <p className="text-ios-textMuted leading-relaxed">
               Seamlessly checks availability, books appointments, sends
-              confirmations—all without human intervention.
-            </p>
-          </div>
-
-          <div className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl p-6 shadow-glow">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center mb-4 text-2xl">
-              📊
-            </div>
-            <h3 className="text-xl font-semibold mb-3">Complete Dashboard</h3>
-            <p className="text-ios-textMuted leading-relaxed">
-              View all calls, transcripts, sentiments, and insights in one
-              beautiful, organized dashboard.
+              confirmations.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 py-20">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-medium mb-6">
-              24/7 Availability
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Always Available for Your Customers
-            </h2>
-            <p className="text-lg text-ios-textMuted mb-8 leading-relaxed">
-              Never miss a booking opportunity. Our AI handles calls while
-              you're busy, after hours, or on days off.
-            </p>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="h-6 w-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg
-                    className="w-4 h-4 text-emerald-400"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M5 13l4 4L19 7"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-1">Instant Responses</h4>
-                  <p className="text-sm text-ios-textMuted">
-                    Zero wait time for your customers
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="h-6 w-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg
-                    className="w-4 h-4 text-emerald-400"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M5 13l4 4L19 7"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-1">Missed Call Recovery</h4>
-                  <p className="text-sm text-ios-textMuted">
-                    Every call gets a callback or SMS
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="h-6 w-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg
-                    className="w-4 h-4 text-emerald-400"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M5 13l4 4L19 7"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-1">Smart Escalation</h4>
-                  <p className="text-sm text-ios-textMuted">
-                    Complex queries routed to humans
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl p-6 shadow-glow">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                  <div className="text-3xl font-bold bg-gradient-to-r from-sky-400 to-cyan-400 bg-clip-text text-transparent">
-                    24/7
-                  </div>
-                  <div className="text-xs text-ios-textMuted mt-1">
-                    Availability
-                  </div>
-                </div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                  <div className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-                    98%
-                  </div>
-                  <div className="text-xs text-ios-textMuted mt-1">
-                    Accuracy
-                  </div>
-                </div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                  <div className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                    &lt;3s
-                  </div>
-                  <div className="text-xs text-ios-textMuted mt-1">
-                    Response Time
-                  </div>
-                </div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                  <div className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
-                    100+
-                  </div>
-                  <div className="text-xs text-ios-textMuted mt-1">
-                    Happy Barbershops
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* CTA Section */}
       <div className="mx-auto max-w-6xl px-4 py-20">
         <div className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-3xl p-12 shadow-glow text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-8">

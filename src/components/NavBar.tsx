@@ -51,7 +51,7 @@ export default function NavBar(): JSX.Element {
               className="flex items-center gap-3 hover:opacity-80 transition"
             >
               <div>
-                <h1 className="text-lg font-semibold tracking-tight">
+                <h1 className="uppercase text-lg font-semibold tracking-tight">
                   Fade Station
                 </h1>
               </div>

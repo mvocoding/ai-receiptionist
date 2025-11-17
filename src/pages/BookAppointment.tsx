@@ -367,7 +367,7 @@ export default function BookAppointment(): JSX.Element {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-20">
-        <div className="mb-16">
+        <div className="mb-4">
           <h2 className="text-4xl font-bold tracking-tight mb-3">
             Book Your Appointment
           </h2>
@@ -377,9 +377,6 @@ export default function BookAppointment(): JSX.Element {
         </div>
 
         <div className="mb-16">
-          <h3 className="text-lg font-semibold mb-6 text-white/90">
-            Choose Your Barber
-          </h3>
           <div className="grid md:grid-cols-3 gap-4">
             {loadingBarbers && (
               <div className="col-span-full text-center text-white/60">
