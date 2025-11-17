@@ -92,7 +92,7 @@ export default function NavBar(): JSX.Element {
                 onClick={() => nav('/book')}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
-                Book
+                Book Appointment
               </button>
               
             </nav>

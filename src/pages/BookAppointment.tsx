@@ -329,16 +329,7 @@ export default function BookAppointment(): JSX.Element {
                         {line}
                       </p>
                     ))}
-                    <a
-                      href={`https://maps.google.com/?q=${encodeURIComponent(
-                        storeDetails.address.replace(/\n/g, ' ')
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sky-400 hover:text-sky-300 text-sm font-medium"
-                    >
-                      View on Google Maps →
-                    </a>
+                    
                   </div>
                 </div>
 
