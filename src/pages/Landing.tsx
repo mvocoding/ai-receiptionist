@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import NavBar from '../components/NavBar';
 
 export default function Landing(): JSX.Element {
   useEffect(() => {
@@ -17,86 +18,14 @@ export default function Landing(): JSX.Element {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
+      {/* unified nav */}
+      <NavBar />
+
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-sky-900/20 via-black to-cyan-900/20"></div>
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMxMTExMTEiIGZpbGwtb3BhY2l0eT0iMC40Ij48cGF0aCBkPSJNMzYgMzR2MjBoMlYzNGgtMnpNMjQgMjR2MmgxMnYtMmgtMTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
 
         <div className="relative mx-auto max-w-6xl px-4 py-20 md:py-32">
-          {/* Logo and nav */}
-          <nav className="flex items-center justify-between mb-16">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/10">
-                <span className="text-lg font-bold">FS</span>
-              </div>
-              <span className="text-xl font-semibold">Fade Station</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <a
-                href="/recordings"
-                onClick={(e) => {
-                  e.preventDefault();
-                  (window as any).__navigate?.('/recordings');
-                }}
-                className="text-sm text-ios-textMuted hover:text-white transition"
-              >
-                Recordings
-              </a>
-              <a
-                href="/communications"
-                onClick={(e) => {
-                  e.preventDefault();
-                  (window as any).__navigate?.('/communications');
-                }}
-                className="text-sm text-ios-textMuted hover:text-white transition"
-              >
-                Messages
-              </a>
-              <a
-                href="/barbers"
-                onClick={(e) => {
-                  e.preventDefault();
-                  (window as any).__navigate?.('/barbers');
-                }}
-                className="text-sm text-ios-textMuted hover:text-white transition"
-              >
-                Barbers
-              </a>
-              <a
-                href="/training.html"
-                className="text-sm text-ios-textMuted hover:text-white transition"
-              >
-                Training
-              </a>
-              <a
-                href="/flow"
-                onClick={(e) => {
-                  e.preventDefault();
-                  (window as any).__navigate?.('/flow');
-                }}
-                className="text-sm text-ios-textMuted hover:text-white transition"
-              >
-                Flow
-              </a>
-              <a
-                href="/demo.html"
-                className="px-4 py-2 rounded-xl text-sm bg-emerald-500/90 hover:bg-emerald-500 transition shadow-lg"
-              >
-                Try Demo
-              </a>
-
-              <a
-                href="/live-gemini"
-                onClick={(e) => {
-                  e.preventDefault();
-                  (window as any).__navigate?.('/live-gemini');
-                }}
-                className="text-sm text-ios-textMuted hover:text-white transition px-3 py-1.5 border border-white/10 rounded-lg"
-              >
-                Live Gemini
-              </a>
-            </div>
-          </nav>
-
           <div className="text-center mb-20">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
               Never Miss a Call

@@ -52,12 +52,6 @@ export default function NavBar(): JSX.Element {
               Barbers
             </button>
             <button
-              onClick={() => nav('/recordings')}
-              className="text-sm text-ios-textMuted hover:text-white transition"
-            >
-              Recordings
-            </button>
-            <button
               onClick={() => nav('/flow')}
               className="text-sm text-ios-textMuted hover:text-white transition"
             >
@@ -68,12 +62,6 @@ export default function NavBar(): JSX.Element {
               className="text-sm text-ios-textMuted hover:text-white transition"
             >
               Training
-            </a>
-            <a
-              href="/demo.html"
-              className="text-sm px-3 py-1.5 rounded-xl bg-sky-500/90 hover:bg-sky-500 transition shadow"
-            >
-              Demo
             </a>
             <button
               onClick={() => nav('/dashboard')}

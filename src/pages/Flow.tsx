@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import NavBar from '../components/NavBar';
 
 type NodeType = 'start' | 'message' | 'condition' | 'action' | 'end';
 type Node = {
@@ -341,62 +342,10 @@ export default function Flow(): JSX.Element {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
-      <div className="h-screen flex flex-col">
-        <header className="border-b border-ios-border bg-black/80 backdrop-blur-md z-50">
-          <div className="px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <a
-                href="/landing"
-                className="flex items-center gap-3 hover:opacity-80 transition"
-              >
-                <div className="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center border border-white/10">
-                  <span className="text-xs font-semibold">FS</span>
-                </div>
-                <div>
-                  <h1 className="text-lg font-semibold tracking-tight">
-                    Flow Builder
-                  </h1>
-                  <p className="text-xs text-ios-textMuted">
-                    AI Conversation Design
-                  </p>
-                </div>
-              </a>
-            </div>
-            <div className="flex items-center gap-2">
-              <a
-                href="/index.html"
-                className="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted"
-              >
-                Recordings
-              </a>
-              <a
-                href="/communications"
-                className="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted"
-              >
-                Messages
-              </a>
-              <a
-                href="/barbers"
-                className="px-3 py-1.5 rounded-xl text-xs text-ios-textMuted"
-              >
-                Barbers
-              </a>
-              <button
-                onClick={exportFlow}
-                className="px-3 py-1.5 rounded-xl text-xs bg-emerald-500/90 hover:bg-emerald-500"
-              >
-                Export Flow
-              </button>
-              <button
-                onClick={saveFlow}
-                className="px-3 py-1.5 rounded-xl text-xs bg-sky-500/90 hover:bg-sky-500"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </header>
+      {/* unified nav */}
+      <NavBar />
 
+      <div className="h-screen flex flex-col">
         <div className="flex-1 flex overflow-hidden">
           <div className="w-64 border-r border-ios-border bg-ios-card overflow-y-auto p-4">
             <h2 className="text-sm font-semibold mb-3 text-ios-textMuted uppercase">
