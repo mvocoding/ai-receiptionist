@@ -28,50 +28,6 @@ function formatDateDisplay(dateStr: string): string {
 const defaultAvatar =
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200';
 
-const fallbackBarbers: BarberCard[] = [
-  {
-    id: 'fallback-ace',
-    name: 'Ace',
-    services: 'Fades · Beard · Kids',
-    image:
-      'https://images.unsplash.com/photo-1585518419759-7fe2e0fbf8a6?auto=format&fit=crop&q=80&w=200&h=200',
-    price: 45,
-    workingDays: [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-    ],
-  },
-  {
-    id: 'fallback-jay',
-    name: 'Jay',
-    services: 'Tapers · Line-ups',
-    image:
-      'https://images.unsplash.com/photo-1534308143481-c55f00be8bd7?auto=format&fit=crop&q=80&w=200&h=200',
-    price: 40,
-    workingDays: ['Monday', 'Wednesday', 'Friday', 'Saturday'],
-  },
-  {
-    id: 'fallback-mia',
-    name: 'Mia',
-    services: 'Skin Fades · Scissor',
-    image:
-      'https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&q=80&w=200&h=200',
-    price: 45,
-    workingDays: [
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ],
-  },
-];
-
 function pad(n: number) {
   return n.toString().padStart(2, '0');
 }
@@ -144,7 +100,6 @@ export default function Barbers(): JSX.Element {
         if (barbersError) throw barbersError;
 
         if (!data || data.length === 0) {
-          setBarbers(fallbackBarbers);
           return;
         }
 
@@ -160,7 +115,6 @@ export default function Barbers(): JSX.Element {
         );
       } catch (err) {
         console.error('Error loading barbers:', err);
-        setBarbers(fallbackBarbers);
         setError('Unable to load barbers from Supabase. Showing demo data.');
       } finally {
         setLoadingBarbers(false);
