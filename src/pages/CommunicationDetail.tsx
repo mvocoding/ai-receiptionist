@@ -6,7 +6,6 @@ import {
   type CommunicationMessage as DBCommunicationMessage,
 } from '../lib/supabase';
 import {
-  mockSmsData,
   type Comm,
   formatTimestamp,
   formatMessageTime,
@@ -90,12 +89,6 @@ export default function CommunicationDetail({
           return;
         }
 
-        const mock = mockSmsData.find((entry) => entry.id === commId) ?? null;
-        if (mock) {
-          setCommunication(mock);
-          return;
-        }
-
         setError('Communication not found.');
       } catch (err) {
         console.error('Error loading communication detail:', err);
@@ -128,9 +121,6 @@ export default function CommunicationDetail({
         </button>
 
         <header>
-          <p className="text-sm uppercase tracking-wide text-white/50">
-            Communication Detail
-          </p>
           <h1 className="text-3xl font-semibold mt-1">
             {communication?.contactName ?? 'Conversation'}
           </h1>
@@ -202,12 +192,10 @@ export default function CommunicationDetail({
                     {communication.type === 'sms' ? 'SMS Thread' : 'Call Notes'}
                   </h2>
                 </div>
-                <p className="text-sm text-white/60">
-                  {communication.conversation?.length ?? 0} messages
-                </p>
               </div>
               <div className="space-y-4">
-                {communication.conversation && communication.conversation.length > 0 ? (
+                {communication.conversation &&
+                communication.conversation.length > 0 ? (
                   communication.conversation.map((msg, idx) => (
                     <div
                       key={`${msg.sender}-${idx}`}
@@ -219,7 +207,9 @@ export default function CommunicationDetail({
                         </span>
                         <span>{msg.time}</span>
                       </div>
-                      <p className="text-white/90 leading-relaxed">{msg.message}</p>
+                      <p className="text-white/90 leading-relaxed">
+                        {msg.message}
+                      </p>
                     </div>
                   ))
                 ) : (
@@ -241,4 +231,3 @@ type Message = {
   message: string;
   time: string;
 };
-
