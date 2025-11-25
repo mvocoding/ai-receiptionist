@@ -107,7 +107,7 @@ export default function Customers(): JSX.Element {
       <div className="mx-auto max-w-6xl px-4 py-10">
         <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight">Client list</h1>
+            <h1 className="text-4xl font-bold tracking-tight">Customers</h1>
           </div>
         </header>
 
@@ -140,11 +140,6 @@ export default function Customers(): JSX.Element {
                     {customer.phone || 'No phone'}
                   </p>
                 </div>
-                {customer.lastAppointment && (
-                  <div className="text-sm text-white/70">
-                    Last visit · {customer.lastAppointment}
-                  </div>
-                )}
               </div>
             </section>
           ))}
