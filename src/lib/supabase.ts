@@ -80,8 +80,8 @@ export type User = {
 
 export type AIKnowledge = {
   id: string;
-  nodes: any[]; // JSONB array of nodes
-  connections: any[]; // JSONB array of connections
+  nodes: any[]; 
+  connections: any[]; 
   next_id: number;
   created_at?: string;
   updated_at?: string;
