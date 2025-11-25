@@ -132,7 +132,8 @@ export const mockSmsData: Comm[] = [
     conversation: [
       {
         sender: 'customer',
-        message: 'Got a beard trim yesterday. What oil should I use to maintain it?',
+        message:
+          'Got a beard trim yesterday. What oil should I use to maintain it?',
         time: formatMessageTime(new Date().toISOString()),
       },
       {
@@ -231,7 +232,8 @@ export const mockSmsData: Comm[] = [
       },
       {
         sender: 'ai',
-        message: 'Checking availability now — I’ll text you the open times shortly.',
+        message:
+          'Checking availability now — I’ll text you the open times shortly.',
         time: formatMessageTime(new Date().toISOString()),
       },
     ],
@@ -327,26 +329,28 @@ export default function Communications(): JSX.Element {
           });
         }
 
-        const mapped: Comm[] = (communications || []).map((comm: DBCommunication) => ({
-          id: comm.id,
-          type: comm.comm_type,
-          contactName: comm.contact_name || 'Unknown',
-          contactNumber: comm.contact_number || 'Private',
-          timestamp: formatTimestamp(comm.timestamp),
-          status: comm.status,
-          sentiment: comm.sentiment || undefined,
-          tag: comm.tag || undefined,
-          actionTaken: comm.action_taken || undefined,
-          aiSummary: comm.ai_summary || undefined,
-          meaning: comm.ai_summary || comm.tag || undefined,
-          duration: comm.duration || undefined,
-          audioUrl: comm.audio_url || undefined,
-          conversation: (messagesMap[comm.id] || []).map((msg) => ({
-            sender: msg.sender,
-            message: msg.message,
-            time: formatMessageTime(msg.message_time),
-          })),
-        }));
+        const mapped: Comm[] = (communications || []).map(
+          (comm: DBCommunication) => ({
+            id: comm.id,
+            type: comm.comm_type,
+            contactName: comm.contact_name || 'Unknown',
+            contactNumber: comm.contact_number || 'Private',
+            timestamp: formatTimestamp(comm.timestamp),
+            status: comm.status,
+            sentiment: comm.sentiment || undefined,
+            tag: comm.tag || undefined,
+            actionTaken: comm.action_taken || undefined,
+            aiSummary: comm.ai_summary || undefined,
+            meaning: comm.ai_summary || comm.tag || undefined,
+            duration: comm.duration || undefined,
+            audioUrl: comm.audio_url || undefined,
+            conversation: (messagesMap[comm.id] || []).map((msg) => ({
+              sender: msg.sender,
+              message: msg.message,
+              time: formatMessageTime(msg.message_time),
+            })),
+          })
+        );
 
         const combined =
           mapped.length > 0 ? [...mapped, ...mockSmsData] : mockSmsData;
@@ -412,7 +416,6 @@ export default function Communications(): JSX.Element {
                       Communications
                     </h2>
                   </div>
-                  <span className="text-white/60 text-sm">{rows.length} total</span>
                 </div>
 
                 <div className="space-y-3">
@@ -460,9 +463,6 @@ export default function Communications(): JSX.Element {
                       {selectedType === 'sms' ? 'SMS' : 'Call'} Table
                     </h2>
                   </div>
-                  <p className="text-sm text-white/60">
-                    {filteredRows.length} entries
-                  </p>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm text-left">
