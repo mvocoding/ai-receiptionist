@@ -3,9 +3,7 @@ import Landing from './pages/Landing';
 import Barbers from './pages/Barbers';
 import Communications from './pages/Communications';
 import CommunicationDetail from './pages/CommunicationDetail';
-import Flow from './pages/Flow';
-import FlowCall from './pages/FlowCall';
-import FlowSMS from './pages/FlowSMS';
+import AIKnowledge from './pages/AIKnowledge';
 import SignIn from './pages/SignIn';
 import ConfirmCode from './pages/ConfirmCode';
 import AdminSignIn from './pages/AdminSignIn';
@@ -59,12 +57,12 @@ export default function App(): JSX.Element {
   )
     return <Communications />;
 
-  if (p === '/flow' || p.toLowerCase().includes('flow.html')) return <Flow />;
-
-  if (p === '/flow-call' || p.toLowerCase().includes('flow-call'))
-    return <FlowCall />;
-  if (p === '/flow-sms' || p.toLowerCase().includes('flow-sms'))
-    return <FlowSMS />;
+  if (
+    p === '/ai-knowledge' ||
+    p === '/ai-knowledge.html' ||
+    p.toLowerCase().includes('ai-knowledge')
+  )
+    return <AIKnowledge />;
 
   if (p === '/signin' || p.toLowerCase().includes('signin')) return <SignIn />;
   if (p === '/confirm' || p.toLowerCase().includes('confirm'))

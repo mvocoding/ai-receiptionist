@@ -8,14 +8,14 @@ import {
   computePath,
 } from '../utils/flowUtils';
 
-export default function FlowSMS(): JSX.Element {
+export default function AIKnowledge(): JSX.Element {
   useEffect(() => {
-    document.title = 'Fade Station · SMS Flow Builder';
+    document.title = 'Fade Station · AI Knowledge';
     const meta =
       document.querySelector('meta[name="description"]') ??
       document.createElement('meta');
     meta.setAttribute('name', 'description');
-    meta.setAttribute('content', 'Build SMS Conversation Flows');
+    meta.setAttribute('content', 'Configure AI Knowledge Messages');
     if (!document.querySelector('meta[name="description"]'))
       document.head.appendChild(meta);
   }, []);
@@ -30,9 +30,9 @@ export default function FlowSMS(): JSX.Element {
   const nodesContainerRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  // load saved or demo
+  // Load saved or initialize with predefined message nodes
   useEffect(() => {
-    const saved = localStorage.getItem('fadeStationFlow_sms');
+    const saved = localStorage.getItem('fadeStationAIKnowledge');
     if (saved) {
       try {
         const f = JSON.parse(saved);
@@ -42,162 +42,103 @@ export default function FlowSMS(): JSX.Element {
         return;
       } catch {}
     }
-    // demo sms flow
-    const start = {
-      id: 'node_1',
-      type: 'start' as NodeType,
-      x: 50,
-      y: 50,
-      width: 180,
-      height: 120,
-      text: 'Incoming SMS',
-    };
-    const welcome = {
-      id: 'node_2',
-      type: 'message' as NodeType,
-      x: 300,
-      y: 50,
-      width: 180,
-      height: 120,
-      text: 'Thanks for messaging Fade Station! How can we help?',
-    };
-    const condition = {
-      id: 'node_3',
-      type: 'condition' as NodeType,
-      x: 550,
-      y: 50,
-      width: 180,
-      height: 120,
-      text: 'Detect intent',
-    };
-    const booking = {
-      id: 'node_4',
-      type: 'action' as NodeType,
-      x: 800,
-      y: 20,
-      width: 180,
-      height: 120,
-      text: 'Offer booking links',
-    };
-    const end1 = {
-      id: 'node_5',
-      type: 'end' as NodeType,
-      x: 1050,
-      y: 20,
-      width: 180,
-      height: 120,
-      text: 'Booked / Confirmed',
-    };
-    const info = {
-      id: 'node_6',
-      type: 'action' as NodeType,
-      x: 800,
-      y: 140,
-      width: 180,
-      height: 120,
-      text: 'Send info/FAQ',
-    };
-    const end2 = {
-      id: 'node_7',
-      type: 'end' as NodeType,
-      x: 1050,
-      y: 140,
-      width: 180,
-      height: 120,
-      text: 'Conversation ends',
-    };
-    setNodes([start, welcome, condition, booking, end1, info, end2]);
-    setConns([
+
+    // Initialize with predefined message nodes
+    const predefinedNodes: Node[] = [
       {
-        id: 'conn_1',
-        fromNode: 'node_1',
-        toNode: 'node_2',
-        fromPort: 0,
-        toPort: 0,
+        id: 'node_welcome',
+        type: 'message' as NodeType,
+        x: 50,
+        y: 50,
+        width: 200,
+        height: 120,
+        text: 'Welcome! How can I help you today?',
       },
       {
-        id: 'conn_2',
-        fromNode: 'node_2',
-        toNode: 'node_3',
-        fromPort: 0,
-        toPort: 0,
+        id: 'node_end',
+        type: 'message' as NodeType,
+        x: 300,
+        y: 50,
+        width: 200,
+        height: 120,
+        text: 'Thank you for contacting us. Have a great day!',
       },
       {
-        id: 'conn_3',
-        fromNode: 'node_3',
-        toNode: 'node_4',
-        fromPort: 0,
-        toPort: 0,
+        id: 'node_sorry',
+        type: 'message' as NodeType,
+        x: 550,
+        y: 50,
+        width: 200,
+        height: 120,
+        text: "I apologize, but I didn't understand that. Could you please rephrase?",
       },
       {
-        id: 'conn_4',
-        fromNode: 'node_4',
-        toNode: 'node_5',
-        fromPort: 0,
-        toPort: 0,
+        id: 'node_booking',
+        type: 'message' as NodeType,
+        x: 50,
+        y: 200,
+        width: 200,
+        height: 120,
+        text: 'I can help you book an appointment. What date and time works for you?',
       },
       {
-        id: 'conn_5',
-        fromNode: 'node_3',
-        toNode: 'node_6',
-        fromPort: 1,
-        toPort: 0,
+        id: 'node_pricing',
+        type: 'message' as NodeType,
+        x: 300,
+        y: 200,
+        width: 200,
+        height: 120,
+        text: 'Our services range from $40 to $45. Would you like to know more about our barbers?',
       },
       {
-        id: 'conn_6',
-        fromNode: 'node_6',
-        toNode: 'node_7',
-        fromPort: 0,
-        toPort: 0,
+        id: 'node_hours',
+        type: 'message' as NodeType,
+        x: 550,
+        y: 200,
+        width: 200,
+        height: 120,
+        text: 'We are open Mon-Fri: 9:00 AM - 6:00 PM, Sat: 9:00 AM - 5:00 PM, Sun: Closed.',
       },
-    ]);
-    nextIdRef.current = 8;
+      {
+        id: 'node_location',
+        type: 'message' as NodeType,
+        x: 50,
+        y: 350,
+        width: 200,
+        height: 120,
+        text: 'We are located at 1 Fern Court, Parafield Gardens, SA 5107.',
+      },
+      {
+        id: 'node_contact',
+        type: 'message' as NodeType,
+        x: 300,
+        y: 350,
+        width: 200,
+        height: 120,
+        text: "You can reach us at 0483 804 522. We're here to help!",
+      },
+      {
+        id: 'node_confirmation',
+        type: 'message' as NodeType,
+        x: 550,
+        y: 350,
+        width: 200,
+        height: 120,
+        text: 'Your appointment has been confirmed. You will receive a confirmation message shortly.',
+      },
+    ];
+
+    setNodes(predefinedNodes);
+    nextIdRef.current = 10;
   }, []);
 
-  // the rest of code mirrors FlowCall: createNode, dragging, connections, delete/update/save/export, computePath
-  // ...existing code (reuse the same handlers as FlowCall but saving under 'fadeStationFlow_sms')...
-
-  // For brevity reuse same implementations as FlowCall by duplicating functions here:
-  function createNode(type: NodeType, x: number, y: number) {
-    const id = makeId('node');
-    const n: Node = {
-      id,
-      type,
-      x,
-      y,
-      width: 180,
-      height: 120,
-      text:
-        type === 'message'
-          ? 'Enter message...'
-          : type === 'condition'
-          ? 'If condition...'
-          : '',
-    };
-    setNodes((prev) => [...prev, n]);
-    setSelectedId(id);
-  }
-
-  function onPaletteDragStart(e: React.DragEvent, type: NodeType) {
-    e.dataTransfer.setData('nodeType', type);
-  }
-  function onCanvasDrop(e: React.DragEvent) {
-    e.preventDefault();
-    const t = e.dataTransfer.getData('nodeType') as NodeType;
-    const rect = nodesContainerRef.current!.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    createNode(t, x, y);
-  }
-  function onCanvasDragOver(e: React.DragEvent) {
-    e.preventDefault();
-  }
-
+  // Node dragging
   const dragState = useRef<{
     nodeId: string;
     offsetX: number;
     offsetY: number;
   } | null>(null);
+
   function onNodeMouseDown(e: React.MouseEvent, node: Node) {
     if ((e.target as HTMLElement).closest('.port')) return;
     dragState.current = {
@@ -228,32 +169,6 @@ export default function FlowSMS(): JSX.Element {
     document.addEventListener('mouseup', onUp);
   }
 
-  function startConnection(
-    e: React.MouseEvent,
-    nodeId: string,
-    portIndex: number
-  ) {
-    e.stopPropagation();
-    if (connectingFrom.current) {
-      const from = connectingFrom.current;
-      setConns((prev) => [
-        ...prev,
-        {
-          id: makeId('conn'),
-          fromNode: from.nodeId,
-          toNode: nodeId,
-          fromPort: from.portIndex,
-          toPort: portIndex,
-        },
-      ]);
-      connectingFrom.current = null;
-      document.body.style.cursor = '';
-    } else {
-      connectingFrom.current = { nodeId, portIndex };
-      document.body.style.cursor = 'crosshair';
-    }
-  }
-
   function deleteNode(nodeId: string) {
     setNodes((prev) => prev.filter((n) => n.id !== nodeId));
     setConns((prev) =>
@@ -261,26 +176,22 @@ export default function FlowSMS(): JSX.Element {
     );
     if (selectedId === nodeId) setSelectedId(null);
   }
+
   function updateNodeText(nodeId: string, text: string) {
     setNodes((prev) => prev.map((n) => (n.id === nodeId ? { ...n, text } : n)));
   }
 
   function saveFlow() {
     localStorage.setItem(
-      'fadeStationFlow_sms',
+      'fadeStationAIKnowledge',
       JSON.stringify({ nodes, connections: conns, nextId: nextIdRef.current })
     );
-    alert('Flow saved to localStorage');
-  }
-  function exportFlow() {
-    console.log({ nodes, connections: conns });
-    alert('Flow exported to console');
+    alert('AI Knowledge saved successfully!');
   }
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       <div className="h-screen flex flex-col">
-        {/* simplified header: Back to Flow + Save */}
         <header className="border-b border-ios-border bg-black/80 backdrop-blur-md z-50">
           <div className="px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -289,9 +200,11 @@ export default function FlowSMS(): JSX.Element {
               </div>
               <div>
                 <h1 className="text-lg font-semibold tracking-tight">
-                  Flow Builder
+                  AI Knowledge
                 </h1>
-                <p className="text-xs text-ios-textMuted">SMS Flow Designer</p>
+                <p className="text-xs text-ios-textMuted">
+                  Configure AI Messages
+                </p>
               </div>
             </div>
 
@@ -299,12 +212,12 @@ export default function FlowSMS(): JSX.Element {
               <button
                 onClick={() => {
                   const fn = (window as any).__navigate;
-                  if (fn) fn('/flow');
-                  else window.location.pathname = '/flow';
+                  if (fn) fn('/admin');
+                  else window.location.pathname = '/admin';
                 }}
                 className="px-3 py-1.5 rounded-xl text-xs bg-white/5 border border-white/10 hover:bg-white/10"
               >
-                Back to Flow
+                Back to Admin
               </button>
 
               <button
@@ -318,38 +231,6 @@ export default function FlowSMS(): JSX.Element {
         </header>
 
         <div className="flex-1 flex overflow-hidden">
-          <div className="w-64 border-r border-ios-border bg-ios-card overflow-y-auto p-4">
-            <h2 className="text-sm font-semibold mb-3 text-ios-textMuted uppercase">
-              Node Types
-            </h2>
-            {(
-              ['start', 'message', 'condition', 'action', 'end'] as NodeType[]
-            ).map((t) => (
-              <div
-                key={t}
-                draggable
-                onDragStart={(e) => onPaletteDragStart(e, t)}
-                className="node-template bg-white/2 border border-white/10 rounded-xl p-3 mb-2 cursor-grab"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-5">{nodeConfigs[t].icon}</div>
-                  <span className="text-sm font-medium capitalize">{t}</span>
-                </div>
-                <p className="text-xs text-ios-textMuted">
-                  {t === 'message'
-                    ? 'AI or user message'
-                    : t === 'start'
-                    ? 'Conversation begins'
-                    : t === 'condition'
-                    ? 'If/then decision'
-                    : t === 'action'
-                    ? 'Execute function'
-                    : 'Conversation ends'}
-                </p>
-              </div>
-            ))}
-          </div>
-
           <div className="flex-1 relative overflow-hidden">
             <svg
               ref={svgRef}
@@ -390,9 +271,8 @@ export default function FlowSMS(): JSX.Element {
             <div
               ref={nodesContainerRef}
               id="nodesContainer"
-              className="absolute inset-0"
-              onDrop={onCanvasDrop}
-              onDragOver={onCanvasDragOver}
+              className="absolute inset-0 overflow-auto"
+              style={{ padding: '20px' }}
             >
               {nodes.map((n) => {
                 const cfg = nodeConfigs[n.type];
@@ -405,7 +285,7 @@ export default function FlowSMS(): JSX.Element {
                     className={`node absolute bg-gradient-to-br ${
                       cfg.color
                     } border-2 border-white/20 rounded-xl p-4 shadow-glow ${
-                      isSelected ? 'selected' : ''
+                      isSelected ? 'selected ring-2 ring-sky-400' : ''
                     }`}
                     style={{ left: n.x, top: n.y, width: n.width }}
                     onClick={(e) => {
@@ -416,38 +296,27 @@ export default function FlowSMS(): JSX.Element {
                     <div className="flex items-center gap-2 mb-2">
                       <div className="text-sm">{cfg.icon}</div>
                       <span className="text-xs font-semibold uppercase">
-                        {n.type}
+                        {n.id.replace('node_', '').replace('_', ' ')}
                       </span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteNode(n.id);
                         }}
-                        className="ml-auto h-6 w-6 rounded bg-black/20 hover:bg-red-500"
+                        className="ml-auto h-6 w-6 rounded bg-black/20 hover:bg-red-500 flex items-center justify-center"
                       >
                         ✕
                       </button>
                     </div>
 
-                    <input
-                      className="w-full bg-black/30 border border-white/20 rounded px-2 py-1 text-sm"
+                    <textarea
+                      className="w-full bg-black/30 border border-white/20 rounded px-2 py-1 text-sm resize-none"
                       value={n.text}
                       onChange={(e) => updateNodeText(n.id, e.target.value)}
                       onClick={(e) => e.stopPropagation()}
+                      rows={3}
+                      placeholder="Enter message..."
                     />
-
-                    <div className="mt-2 flex gap-2 items-center">
-                      <div className="flex-1 text-xs text-ios-textMuted"> </div>
-                      <div className="flex gap-2 ml-auto">
-                        {Array.from({ length: cfg.outputs }).map((_, i) => (
-                          <div
-                            key={i}
-                            onMouseDown={(e) => startConnection(e, n.id, i)}
-                            className="port w-4 h-4 rounded-full bg-sky-400 border border-white/60 cursor-pointer"
-                          />
-                        ))}
-                      </div>
-                    </div>
                   </div>
                 );
               })}
@@ -463,7 +332,7 @@ export default function FlowSMS(): JSX.Element {
             <div className="p-4 space-y-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-semibold uppercase tracking-wide">
-                  Properties
+                  Message Configuration
                 </h2>
                 <button
                   onClick={() => setSelectedId(null)}
@@ -490,47 +359,15 @@ export default function FlowSMS(): JSX.Element {
                       </div>
                       <div className="mb-3">
                         <label className="block text-xs text-ios-textMuted mb-2">
-                          Label/Text
+                          Message Content
                         </label>
                         <textarea
                           className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm resize-none"
-                          rows={3}
+                          rows={6}
                           value={s.text}
                           onChange={(e) => updateNodeText(s.id, e.target.value)}
+                          placeholder="Enter the message that the AI will use..."
                         />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-ios-textMuted mb-2">
-                          Position
-                        </label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <input
-                            className="bg-white/5 border border-white/10 rounded-xl p-2 text-sm"
-                            value={Math.round(s.x)}
-                            onChange={(e) =>
-                              setNodes((prev) =>
-                                prev.map((n) =>
-                                  n.id === s.id
-                                    ? { ...n, x: Number(e.target.value) }
-                                    : n
-                                )
-                              )
-                            }
-                          />
-                          <input
-                            className="bg-white/5 border border-white/10 rounded-xl p-2 text-sm"
-                            value={Math.round(s.y)}
-                            onChange={(e) =>
-                              setNodes((prev) =>
-                                prev.map((n) =>
-                                  n.id === s.id
-                                    ? { ...n, y: Number(e.target.value) }
-                                    : n
-                                )
-                              )
-                            }
-                          />
-                        </div>
                       </div>
                     </div>
                   );

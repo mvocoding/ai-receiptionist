@@ -85,10 +85,10 @@ export default function NavBar(): JSX.Element {
                 Customers
               </button>
               <button
-                onClick={() => nav('/flow')}
+                onClick={() => nav('/ai-knowledge')}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
-                Flow
+                AI Knowledge
               </button>
               <button
                 onClick={() => nav('/book')}
