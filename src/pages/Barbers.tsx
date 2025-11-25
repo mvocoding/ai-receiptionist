@@ -327,11 +327,6 @@ export default function Barbers(): JSX.Element {
                             {barberInfo.name}
                           </h3>
                         </div>
-                        <div className="inline-flex items-center gap-2 text-[10px]">
-                          <span className="px-2 py-1 rounded-full border border-white/10 bg-white/5 text-white/80 service">
-                            {barberInfo.services}
-                          </span>
-                        </div>
                       </div>
 
                       <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
