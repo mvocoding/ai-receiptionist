@@ -77,3 +77,12 @@ export type User = {
   last_login_at?: string;
   updated_at?: string;
 };
+
+export type AIKnowledge = {
+  id: string;
+  nodes: any[]; // JSONB array of nodes
+  connections: any[]; // JSONB array of connections
+  next_id: number;
+  created_at?: string;
+  updated_at?: string;
+};

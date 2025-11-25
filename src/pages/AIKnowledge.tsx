@@ -7,6 +7,7 @@ import {
   makeId,
   computePath,
 } from '../utils/flowUtils';
+import { supabase } from '../lib/supabase';
 
 export default function AIKnowledge(): JSX.Element {
   useEffect(() => {
@@ -30,106 +31,132 @@ export default function AIKnowledge(): JSX.Element {
   const nodesContainerRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [knowledgeId, setKnowledgeId] = useState<string | null>(null);
 
-  // Load saved or initialize nodes
+  // Load from Supabase or initialize with default nodes
   useEffect(() => {
-    const saved = localStorage.getItem('fadeStationAIKnowledge');
-    if (saved) {
+    async function loadKnowledge() {
       try {
-        const f = JSON.parse(saved);
-        setNodes(f.nodes || []);
-        setConns(f.connections || []);
-        nextIdRef.current = (f.nextId || 1000) + 1;
-        return;
-      } catch {}
+        setLoading(true);
+        
+        // Try to fetch from Supabase
+        const { data, error } = await supabase
+          .from('ai_knowledge')
+          .select('*')
+          .eq('id', '00000000-0000-0000-0000-000000000001')
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          // PGRST116 is "not found", which is expected on first run
+          console.error('Error loading AI knowledge:', error);
+        }
+
+        if (data) {
+          setKnowledgeId(data.id);
+          setNodes((data.nodes as Node[]) || []);
+          setConns((data.connections as Conn[]) || []);
+          nextIdRef.current = data.next_id || 1;
+          setLoading(false);
+          return;
+        }
+
+        // If no data found, initialize with default nodes
+        const predefinedNodes: Node[] = [
+          {
+            id: 'node_welcome',
+            type: 'message' as NodeType,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            text: 'Welcome! How can I help you today?',
+          },
+          {
+            id: 'node_end',
+            type: 'message' as NodeType,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            text: 'Thank you for contacting us. Have a great day!',
+          },
+          {
+            id: 'node_sorry',
+            type: 'message' as NodeType,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            text: "I apologize, but I didn't understand that. Could you please rephrase?",
+          },
+          {
+            id: 'node_booking',
+            type: 'message' as NodeType,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            text: 'I can help you book an appointment. What date and time works for you?',
+          },
+          {
+            id: 'node_pricing',
+            type: 'message' as NodeType,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            text: 'Our services range from $40 to $45. Would you like to know more about our barbers?',
+          },
+          {
+            id: 'node_hours',
+            type: 'message' as NodeType,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            text: 'We are open Mon-Fri: 9:00 AM - 6:00 PM, Sat: 9:00 AM - 5:00 PM, Sun: Closed.',
+          },
+          {
+            id: 'node_location',
+            type: 'message' as NodeType,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            text: 'We are located at 1 Fern Court, Parafield Gardens, SA 5107.',
+          },
+          {
+            id: 'node_contact',
+            type: 'message' as NodeType,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            text: "You can reach us at 0483 804 522. We're here to help!",
+          },
+          {
+            id: 'node_confirmation',
+            type: 'message' as NodeType,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            text: 'Your appointment has been confirmed. You will receive a confirmation message shortly.',
+          },
+        ];
+
+        setNodes(predefinedNodes);
+        nextIdRef.current = 10;
+      } catch (err) {
+        console.error('Error loading AI knowledge:', err);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    const predefinedNodes: Node[] = [
-      {
-        id: 'node_welcome',
-        type: 'message' as NodeType,
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-        text: 'Welcome! How can I help you today?',
-      },
-      {
-        id: 'node_end',
-        type: 'message' as NodeType,
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-        text: 'Thank you for contacting us. Have a great day!',
-      },
-      {
-        id: 'node_sorry',
-        type: 'message' as NodeType,
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-        text: "I apologize, but I didn't understand that. Could you please rephrase?",
-      },
-      {
-        id: 'node_booking',
-        type: 'message' as NodeType,
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-        text: 'I can help you book an appointment. What date and time works for you?',
-      },
-      {
-        id: 'node_pricing',
-        type: 'message' as NodeType,
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-        text: 'Our services range from $40 to $45. Would you like to know more about our barbers?',
-      },
-      {
-        id: 'node_hours',
-        type: 'message' as NodeType,
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-        text: 'We are open Mon-Fri: 9:00 AM - 6:00 PM, Sat: 9:00 AM - 5:00 PM, Sun: Closed.',
-      },
-      {
-        id: 'node_location',
-        type: 'message' as NodeType,
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-        text: 'We are located at 1 Fern Court, Parafield Gardens, SA 5107.',
-      },
-      {
-        id: 'node_contact',
-        type: 'message' as NodeType,
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-        text: "You can reach us at 0483 804 522. We're here to help!",
-      },
-      {
-        id: 'node_confirmation',
-        type: 'message' as NodeType,
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-        text: 'Your appointment has been confirmed. You will receive a confirmation message shortly.',
-      },
-    ];
-
-    setNodes(predefinedNodes);
-    nextIdRef.current = 10;
+    loadKnowledge();
   }, []);
 
   useEffect(() => {
@@ -194,12 +221,47 @@ export default function AIKnowledge(): JSX.Element {
     setNodes((prev) => prev.map((n) => (n.id === nodeId ? { ...n, text } : n)));
   }
 
-  function saveFlow() {
-    localStorage.setItem(
-      'fadeStationAIKnowledge',
-      JSON.stringify({ nodes, connections: conns, nextId: nextIdRef.current })
-    );
-    alert('AI Knowledge saved successfully!');
+  async function saveFlow() {
+    if (saving) return;
+    
+    setSaving(true);
+    try {
+      const updateData = {
+        nodes: nodes,
+        connections: conns,
+        next_id: nextIdRef.current,
+      };
+
+      if (knowledgeId) {
+        // Update existing record
+        const { error } = await supabase
+          .from('ai_knowledge')
+          .update(updateData)
+          .eq('id', knowledgeId);
+
+        if (error) throw error;
+      } else {
+        // Insert new record
+        const { data, error } = await supabase
+          .from('ai_knowledge')
+          .insert({
+            id: '00000000-0000-0000-0000-000000000001',
+            ...updateData,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data) setKnowledgeId(data.id);
+      }
+
+      alert('AI Knowledge saved successfully!');
+    } catch (error) {
+      console.error('Error saving AI knowledge:', error);
+      alert('Failed to save AI Knowledge. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -232,9 +294,10 @@ export default function AIKnowledge(): JSX.Element {
 
               <button
                 onClick={saveFlow}
-                className="px-3 py-1.5 rounded-xl text-xs bg-sky-500/90 hover:bg-sky-500"
+                disabled={saving || loading}
+                className="px-3 py-1.5 rounded-xl text-xs bg-sky-500/90 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Save
+                {saving ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>
