@@ -43,7 +43,7 @@ export default function NavBar(): JSX.Element {
 
   return (
     <header className="sticky top-0 z-50">
-      <div className="backdrop-blur-md bg-white/5 border border-ios-border rounded-2xl shadow-glow px-4 py-3">
+      <div className="backdrop-blur-md bg-white/5 border border-ios-border shadow-glow px-4 py-3">
         <div className="flex items-center justify-between max-w-6xl mx-auto">
           <div className="flex items-center gap-3">
             <button
