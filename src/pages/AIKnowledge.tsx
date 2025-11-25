@@ -30,7 +30,6 @@ export default function AIKnowledge(): JSX.Element {
   const nodesContainerRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  // Load saved or initialize with predefined message nodes
   useEffect(() => {
     const saved = localStorage.getItem('fadeStationAIKnowledge');
     if (saved) {
@@ -43,7 +42,6 @@ export default function AIKnowledge(): JSX.Element {
       } catch {}
     }
 
-    // Initialize with predefined message nodes
     const predefinedNodes: Node[] = [
       {
         id: 'node_welcome',
@@ -132,51 +130,6 @@ export default function AIKnowledge(): JSX.Element {
     nextIdRef.current = 10;
   }, []);
 
-  // Node dragging
-  const dragState = useRef<{
-    nodeId: string;
-    offsetX: number;
-    offsetY: number;
-  } | null>(null);
-
-  function onNodeMouseDown(e: React.MouseEvent, node: Node) {
-    if ((e.target as HTMLElement).closest('.port')) return;
-    dragState.current = {
-      nodeId: node.id,
-      offsetX: e.clientX - node.x,
-      offsetY: e.clientY - node.y,
-    };
-    setSelectedId(node.id);
-    const onMove = (ev: MouseEvent) => {
-      setNodes((prev) =>
-        prev.map((n) =>
-          n.id === node.id
-            ? {
-                ...n,
-                x: ev.clientX - dragState.current!.offsetX,
-                y: ev.clientY - dragState.current!.offsetY,
-              }
-            : n
-        )
-      );
-    };
-    const onUp = () => {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-      dragState.current = null;
-    };
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-  }
-
-  function deleteNode(nodeId: string) {
-    setNodes((prev) => prev.filter((n) => n.id !== nodeId));
-    setConns((prev) =>
-      prev.filter((c) => c.fromNode !== nodeId && c.toNode !== nodeId)
-    );
-    if (selectedId === nodeId) setSelectedId(null);
-  }
-
   function updateNodeText(nodeId: string, text: string) {
     setNodes((prev) => prev.map((n) => (n.id === nodeId ? { ...n, text } : n)));
   }
@@ -202,9 +155,6 @@ export default function AIKnowledge(): JSX.Element {
                 <h1 className="text-lg font-semibold tracking-tight">
                   AI Knowledge
                 </h1>
-                <p className="text-xs text-ios-textMuted">
-                  Configure AI Messages
-                </p>
               </div>
             </div>
 
@@ -281,7 +231,6 @@ export default function AIKnowledge(): JSX.Element {
                   <div
                     key={n.id}
                     data-node-id={n.id}
-                    onMouseDown={(e) => onNodeMouseDown(e, n)}
                     className={`node absolute bg-gradient-to-br ${
                       cfg.color
                     } border-2 border-white/20 rounded-xl p-4 shadow-glow ${
@@ -298,15 +247,6 @@ export default function AIKnowledge(): JSX.Element {
                       <span className="text-xs font-semibold uppercase">
                         {n.id.replace('node_', '').replace('_', ' ')}
                       </span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteNode(n.id);
-                        }}
-                        className="ml-auto h-6 w-6 rounded bg-black/20 hover:bg-red-500 flex items-center justify-center"
-                      >
-                        ✕
-                      </button>
                     </div>
 
                     <textarea
