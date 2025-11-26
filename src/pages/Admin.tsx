@@ -61,10 +61,8 @@ export default function Admin(): JSX.Element | null {
   });
   const [uploadingBanner, setUploadingBanner] = useState(false);
 
-  // Check authentication on mount
   useEffect(() => {
     const checkAuth = async () => {
-      // Check localStorage first
       const userStr = localStorage.getItem('fs_user');
       if (!userStr) {
         setIsAuthenticated(false);
@@ -81,9 +79,10 @@ export default function Admin(): JSX.Element | null {
             (window.location.pathname = '/admin/signin');
           return;
         }
-
-        // Verify session with Supabase
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
         if (error || !session) {
           // Session invalid, clear and redirect
           localStorage.removeItem('fs_user');
@@ -110,10 +109,7 @@ export default function Admin(): JSX.Element | null {
       document.querySelector('meta[name="description"]') ??
       document.createElement('meta');
     meta.setAttribute('name', 'description');
-    meta.setAttribute(
-      'content',
-      'Fade Station Admin · Manage your barbershop'
-    );
+    meta.setAttribute('content', 'Fade Station Admin · Manage your barbershop');
     if (!document.querySelector('meta[name="description"]'))
       document.head.appendChild(meta);
   }, []);
@@ -314,7 +310,11 @@ export default function Admin(): JSX.Element | null {
       console.error('Error adding barber:', error);
       alert('Failed to add barber. Please try again.');
     } finally {
-      setNewBarber((prev) => ({ ...prev, uploadingAvatar: false, avatarFile: null }));
+      setNewBarber((prev) => ({
+        ...prev,
+        uploadingAvatar: false,
+        avatarFile: null,
+      }));
     }
   };
 
@@ -419,7 +419,11 @@ export default function Admin(): JSX.Element | null {
       console.error('Error updating barber:', error);
       alert('Failed to update barber. Please try again.');
     } finally {
-      setNewBarber((prev) => ({ ...prev, uploadingAvatar: false, avatarFile: null }));
+      setNewBarber((prev) => ({
+        ...prev,
+        uploadingAvatar: false,
+        avatarFile: null,
+      }));
     }
   };
 
@@ -481,7 +485,9 @@ export default function Admin(): JSX.Element | null {
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Admin Panel</h1>
-          <p className="text-white/60">Manage your store settings and barbers</p>
+          <p className="text-white/60">
+            Manage your store settings and barbers
+          </p>
         </div>
 
         <div className="mb-12">
@@ -835,4 +841,3 @@ Sun: Closed"
     </div>
   );
 }
-

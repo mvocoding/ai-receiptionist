@@ -82,7 +82,7 @@ export default function Barbers(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [selectedSlots, setSelectedSlots] = useState<
     Record<string, Set<string>>
-  >({}); // ui-only selections
+  >({});
 
   const state = useMemo(
     () => ({ open: '09:00', close: '18:00', stepMin: 30 }),

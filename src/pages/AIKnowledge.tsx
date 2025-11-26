@@ -30,7 +30,6 @@ export default function AIKnowledge(): JSX.Element {
   const nodesContainerRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  // Load saved or initialize with predefined message nodes
   useEffect(() => {
     const saved = localStorage.getItem('fadeStationAIKnowledge');
     if (saved) {
@@ -43,7 +42,6 @@ export default function AIKnowledge(): JSX.Element {
       } catch {}
     }
 
-    // Initialize with predefined message nodes
     const predefinedNodes: Node[] = [
       {
         id: 'node_welcome',
