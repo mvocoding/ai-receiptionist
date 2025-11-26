@@ -84,7 +84,6 @@ export default function Admin(): JSX.Element | null {
           error,
         } = await supabase.auth.getSession();
         if (error || !session) {
-          // Session invalid, clear and redirect
           localStorage.removeItem('fs_user');
           setIsAuthenticated(false);
           (window as any).__navigate?.('/admin/signin') ??
@@ -115,7 +114,6 @@ export default function Admin(): JSX.Element | null {
   }, []);
 
   useEffect(() => {
-    // Only fetch data if authenticated
     if (isAuthenticated !== true) return;
 
     const fetchData = async () => {
@@ -172,7 +170,6 @@ export default function Admin(): JSX.Element | null {
     fetchData();
   }, [isAuthenticated]);
 
-  // Don't render if not authenticated (after all hooks are declared)
   if (isAuthenticated === false || isAuthenticated === null) {
     return null;
   }
