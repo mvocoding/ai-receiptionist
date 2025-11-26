@@ -200,9 +200,6 @@ export default function Communications(): JSX.Element {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white/60">Inbox</p>
-                    <h2 className="text-xl font-semibold mt-1">
-                      Communications
-                    </h2>
                   </div>
                 </div>
 
@@ -258,7 +255,7 @@ export default function Communications(): JSX.Element {
                       <tr>
                         <th className="py-3 pr-4 font-medium">Contact</th>
                         <th className="py-3 pr-4 font-medium">Number</th>
-                        <th className="py-3 pr-4 font-medium">Timestamp</th>
+                        <th className="py-3 pr-4 font-medium">Time</th>
                       </tr>
                     </thead>
                     <tbody>
