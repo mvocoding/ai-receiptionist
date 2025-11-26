@@ -110,8 +110,7 @@ export default function SignIn(): JSX.Element {
               Welcome to Fade Station
             </h1>
             <p className="text-lg text-ios-textMuted mb-8">
-              Enter your email to get started with AI-powered barbershop
-              management.
+              Enter your email to get started
             </p>
 
             <form onSubmit={handleSendCode} className="space-y-6">
