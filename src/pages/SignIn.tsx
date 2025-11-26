@@ -1,6 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
+function CheckboxIcon(): JSX.Element {
+  return (
+    <svg
+      className="w-5 h-5 text-emerald-400"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
+
 export default function SignIn(): JSX.Element {
   useEffect(() => {
     document.title = 'Sign in · Fade Station';
@@ -184,39 +198,15 @@ export default function SignIn(): JSX.Element {
             <div className="mt-12 pt-8 border-t border-white/10">
               <div className="flex gap-8 text-sm text-ios-textMuted">
                 <div className="flex items-center gap-2">
-                  <svg
-                    className="w-5 h-5 text-emerald-400"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M5 13l4 4L19 7" />
-                  </svg>
+                  <CheckboxIcon />
                   <span>24/7 AI Support</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <svg
-                    className="w-5 h-5 text-emerald-400"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M5 13l4 4L19 7" />
-                  </svg>
+                  <CheckboxIcon />
                   <span>Smart Booking</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <svg
-                    className="w-5 h-5 text-emerald-400"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M5 13l4 4L19 7" />
-                  </svg>
+                  <CheckboxIcon />
                   <span>Free Trial</span>
                 </div>
               </div>
