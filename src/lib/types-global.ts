@@ -51,3 +51,12 @@ export type BookingForm = {
   phone: string;
   notes: string;
 };
+
+export type BarberCard = {
+  id: string;
+  name: string;
+  services: string;
+  image: string;
+  price: number;
+  workingDays: string[];
+};

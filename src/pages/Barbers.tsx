@@ -6,14 +6,7 @@ import {
   type Appointment as DBAppointment,
 } from '../lib/supabase';
 
-type BarberCard = {
-  id: string;
-  name: string;
-  services: string;
-  image: string;
-  price: number;
-  workingDays: string[];
-};
+import type { BarberCard } from '../lib/types-global';
 
 function formatDateDisplay(dateStr: string): string {
   const date = new Date(`${dateStr}T00:00:00`);
@@ -230,17 +223,7 @@ export default function Barbers(): JSX.Element {
           <main className="mt-4 space-y-4" id="gridRoot">
             {visibleBarbers.length === 0 && (
               <div className="text-center py-20 bg-white/5 border border-ios-border rounded-2xl">
-                <div className="mx-auto h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center mb-4">
-                  <svg
-                    className="h-7 w-7 text-white/70"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M3 12h3m12 0h3M8 12h8M12 8v8" />
-                  </svg>
-                </div>
+                <div className="mx-auto h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center mb-4"></div>
                 <h3 className="font-semibold">No availability</h3>
                 <p className="text-sm text-ios-textMuted">
                   Try a different day or barber.
