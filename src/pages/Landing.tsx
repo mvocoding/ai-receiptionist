@@ -1,6 +1,27 @@
 import React, { useEffect } from 'react';
 import NavBar from '../components/NavBar';
 
+const features = [
+  {
+    emoji: '🎯',
+    title: 'Smart Call Handling',
+    description:
+      'Automatically answers every call, understands customer intent, and provides helpful responses.',
+  },
+  {
+    emoji: '📅',
+    title: 'Automatic Bookings',
+    description:
+      'Seamlessly checks availability, books appointments, sends confirmations.',
+  },
+  {
+    emoji: '📁',
+    title: 'Customer Records',
+    description:
+      'Every caller is saved automatically, so you can track customer details, history, and interactions in one place.',
+  },
+];
+
 export default function Landing(): JSX.Element {
   useEffect(() => {
     document.title = 'Fade Station · AI Receptionist';
@@ -67,38 +88,16 @@ export default function Landing(): JSX.Element {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl p-6 shadow-glow">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-sky-500/20 to-cyan-500/20 border border-sky-500/30 flex items-center justify-center mb-4 text-2xl">
-              🎯
+          {features.map((feature) => (
+            <div
+              key={feature.title}
+              className="bg-gradient-to-b from-[#0b0b0b]/95 to-[#0d0d0d]/95 backdrop-blur-xl border border-ios-border rounded-3xl p-8 shadow-glow text-center"
+            >
+              <div className="text-5xl mb-4">{feature.emoji}</div>
+              <h3 className="text-2xl font-semibold mb-2">{feature.title}</h3>
+              <p className="text-ios-textMuted">{feature.description}</p>
             </div>
-            <h3 className="text-xl font-semibold mb-3">Smart Call Handling</h3>
-            <p className="text-ios-textMuted leading-relaxed">
-              Automatically answers every call, understands customer intent, and
-              provides helpful responses.
-            </p>
-          </div>
-
-          <div className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl p-6 shadow-glow">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/20 border border-emerald-500/30 flex items-center justify-center mb-4 text-2xl">
-              📅
-            </div>
-            <h3 className="text-xl font-semibold mb-3">Automatic Bookings</h3>
-            <p className="text-ios-textMuted leading-relaxed">
-              Seamlessly checks availability, books appointments, sends
-              confirmations.
-            </p>
-          </div>
-
-          <div className="bg-gradient-to-b from-ios-card to-ios-card2 border border-ios-border rounded-2xl p-6 shadow-glow">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/20 border border-purple-500/30 flex items-center justify-center mb-4 text-2xl">
-              📁
-            </div>
-            <h3 className="text-xl font-semibold mb-3">Customer Records</h3>
-            <p className="text-ios-textMuted leading-relaxed">
-              Every caller is saved automatically, so you can track customer
-              details, history, and interactions in one place.
-            </p>
-          </div>
+          ))}
         </div>
       </div>
 
