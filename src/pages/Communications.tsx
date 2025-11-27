@@ -6,28 +6,7 @@ import {
   type CommunicationMessage as DBCommunicationMessage,
 } from '../lib/supabase';
 
-type Message = {
-  sender: 'customer' | 'ai' | 'system';
-  message: string;
-  time: string;
-};
-
-export type Comm = {
-  id: string;
-  type: 'call' | 'sms' | 'recording';
-  contactName: string;
-  contactNumber: string;
-  timestamp: string;
-  status: string;
-  sentiment?: string;
-  tag?: string;
-  actionTaken?: string;
-  aiSummary?: string;
-  meaning?: string;
-  conversation?: Message[];
-  duration?: number;
-  audioUrl?: string;
-};
+import type { Message, Comm } from '../lib/types-global';
 
 export function formatDuration(seconds?: number | null): string | undefined {
   if (seconds === undefined || seconds === null) return undefined;

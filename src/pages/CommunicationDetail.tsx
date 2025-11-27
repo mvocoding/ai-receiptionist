@@ -6,11 +6,12 @@ import {
   type CommunicationMessage as DBCommunicationMessage,
 } from '../lib/supabase';
 import {
-  type Comm,
   formatTimestamp,
   formatMessageTime,
   formatDuration,
 } from './Communications';
+
+import type { Message, Comm } from '../lib/types-global';
 
 type CommunicationDetailProps = {
   id?: string;
@@ -225,9 +226,3 @@ export default function CommunicationDetail({
     </div>
   );
 }
-
-type Message = {
-  sender: 'customer' | 'ai' | 'system';
-  message: string;
-  time: string;
-};
