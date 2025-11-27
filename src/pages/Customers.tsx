@@ -2,18 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import NavBar from '../components/NavBar';
 import { supabase, type Appointment as DBAppointment } from '../lib/supabase';
 
-type Customer = {
-  id: string;
-  name: string;
-  phone?: string;
-  appointments: {
-    date: string;
-    time: string;
-    barberName?: string;
-    status: string;
-  }[];
-  lastAppointment?: string;
-};
+import { Customer } from '../lib/types-global';
 
 const dateFormatter = new Intl.DateTimeFormat('en-NZ', {
   weekday: 'short',
