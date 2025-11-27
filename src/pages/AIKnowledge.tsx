@@ -8,6 +8,90 @@ import {
   computePath,
 } from '../utils/flowUtils';
 
+const predefinedNodes: Node[] = [
+  {
+    id: 'node_welcome',
+    type: 'message' as NodeType,
+    x: 50,
+    y: 50,
+    width: 200,
+    height: 120,
+    text: 'Welcome! How can I help you today?',
+  },
+  {
+    id: 'node_end',
+    type: 'message' as NodeType,
+    x: 300,
+    y: 50,
+    width: 200,
+    height: 120,
+    text: 'Thank you for contacting us. Have a great day!',
+  },
+  {
+    id: 'node_sorry',
+    type: 'message' as NodeType,
+    x: 550,
+    y: 50,
+    width: 200,
+    height: 120,
+    text: "I apologize, but I didn't understand that. Could you please rephrase?",
+  },
+  {
+    id: 'node_booking',
+    type: 'message' as NodeType,
+    x: 50,
+    y: 200,
+    width: 200,
+    height: 120,
+    text: 'I can help you book an appointment. What date and time works for you?',
+  },
+  {
+    id: 'node_pricing',
+    type: 'message' as NodeType,
+    x: 300,
+    y: 200,
+    width: 200,
+    height: 120,
+    text: 'Our services range from $40 to $45. Would you like to know more about our barbers?',
+  },
+  {
+    id: 'node_hours',
+    type: 'message' as NodeType,
+    x: 550,
+    y: 200,
+    width: 200,
+    height: 120,
+    text: 'We are open Mon-Fri: 9:00 AM - 6:00 PM, Sat: 9:00 AM - 5:00 PM, Sun: Closed.',
+  },
+  {
+    id: 'node_location',
+    type: 'message' as NodeType,
+    x: 50,
+    y: 350,
+    width: 200,
+    height: 120,
+    text: 'We are located at 1 Fern Court, Parafield Gardens, SA 5107.',
+  },
+  {
+    id: 'node_contact',
+    type: 'message' as NodeType,
+    x: 300,
+    y: 350,
+    width: 200,
+    height: 120,
+    text: "You can reach us at 0483 804 522. We're here to help!",
+  },
+  {
+    id: 'node_confirmation',
+    type: 'message' as NodeType,
+    x: 550,
+    y: 350,
+    width: 200,
+    height: 120,
+    text: 'Your appointment has been confirmed. You will receive a confirmation message shortly.',
+  },
+];
+
 export default function AIKnowledge(): JSX.Element {
   useEffect(() => {
     document.title = 'Fade Station · AI Knowledge';
@@ -41,90 +125,6 @@ export default function AIKnowledge(): JSX.Element {
         return;
       } catch {}
     }
-
-    const predefinedNodes: Node[] = [
-      {
-        id: 'node_welcome',
-        type: 'message' as NodeType,
-        x: 50,
-        y: 50,
-        width: 200,
-        height: 120,
-        text: 'Welcome! How can I help you today?',
-      },
-      {
-        id: 'node_end',
-        type: 'message' as NodeType,
-        x: 300,
-        y: 50,
-        width: 200,
-        height: 120,
-        text: 'Thank you for contacting us. Have a great day!',
-      },
-      {
-        id: 'node_sorry',
-        type: 'message' as NodeType,
-        x: 550,
-        y: 50,
-        width: 200,
-        height: 120,
-        text: "I apologize, but I didn't understand that. Could you please rephrase?",
-      },
-      {
-        id: 'node_booking',
-        type: 'message' as NodeType,
-        x: 50,
-        y: 200,
-        width: 200,
-        height: 120,
-        text: 'I can help you book an appointment. What date and time works for you?',
-      },
-      {
-        id: 'node_pricing',
-        type: 'message' as NodeType,
-        x: 300,
-        y: 200,
-        width: 200,
-        height: 120,
-        text: 'Our services range from $40 to $45. Would you like to know more about our barbers?',
-      },
-      {
-        id: 'node_hours',
-        type: 'message' as NodeType,
-        x: 550,
-        y: 200,
-        width: 200,
-        height: 120,
-        text: 'We are open Mon-Fri: 9:00 AM - 6:00 PM, Sat: 9:00 AM - 5:00 PM, Sun: Closed.',
-      },
-      {
-        id: 'node_location',
-        type: 'message' as NodeType,
-        x: 50,
-        y: 350,
-        width: 200,
-        height: 120,
-        text: 'We are located at 1 Fern Court, Parafield Gardens, SA 5107.',
-      },
-      {
-        id: 'node_contact',
-        type: 'message' as NodeType,
-        x: 300,
-        y: 350,
-        width: 200,
-        height: 120,
-        text: "You can reach us at 0483 804 522. We're here to help!",
-      },
-      {
-        id: 'node_confirmation',
-        type: 'message' as NodeType,
-        x: 550,
-        y: 350,
-        width: 200,
-        height: 120,
-        text: 'Your appointment has been confirmed. You will receive a confirmation message shortly.',
-      },
-    ];
 
     setNodes(predefinedNodes);
     nextIdRef.current = 10;
@@ -190,34 +190,7 @@ export default function AIKnowledge(): JSX.Element {
                 document.body.style.cursor = '';
                 setSelectedId(null);
               }}
-            >
-              <defs>
-                <marker
-                  id="arrowhead"
-                  markerWidth="10"
-                  markerHeight="10"
-                  refX="9"
-                  refY="3"
-                  orient="auto"
-                >
-                  <polygon points="0 0, 10 3, 0 6" fill="#0ea5e9" />
-                </marker>
-              </defs>
-              <g>
-                {conns.map((c) => (
-                  <path
-                    key={c.id}
-                    d={computePath(c, nodes)}
-                    className="connection-line"
-                    markerEnd="url(#arrowhead)"
-                    stroke="#0ea5e9"
-                    strokeWidth={2}
-                    fill="none"
-                  />
-                ))}
-              </g>
-            </svg>
-
+            ></svg>
             <div
               ref={nodesContainerRef}
               id="nodesContainer"
