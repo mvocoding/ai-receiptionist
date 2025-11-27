@@ -6,22 +6,7 @@ import {
   type Appointment as DBAppointment,
 } from '../lib/supabase';
 
-type Barber = {
-  id: string;
-  name: string;
-  specialty: string;
-  image: string;
-  price: number;
-};
-
-type BookingForm = {
-  barberId: string;
-  date: string;
-  time: string;
-  name: string;
-  phone: string;
-  notes: string;
-};
+import type { Barber, BookingForm } from '../lib/types-global';
 
 const defaultBanner =
   'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800';

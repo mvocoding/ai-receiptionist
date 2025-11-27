@@ -33,3 +33,21 @@ export type Comm = {
   duration?: number;
   audioUrl?: string;
 };
+
+
+export type Barber = {
+  id: string;
+  name: string;
+  specialty: string;
+  image: string;
+  price: number;
+};
+
+export type BookingForm = {
+  barberId: string;
+  date: string;
+  time: string;
+  name: string;
+  phone: string;
+  notes: string;
+};
