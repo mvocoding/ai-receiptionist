@@ -53,10 +53,6 @@ export function makeId(prefix = 'node') {
   return `${prefix}_${Date.now().toString(36)}_${Math.floor(Math.random() * 1000)}`;
 }
 
-/**
- * Compute a smooth cubic path for a connection c using the nodes array.
- * Returns an SVG path string (M ... C ...).
- */
 export function computePath(c: Conn, nodes: Node[]): string {
   const from = nodes.find((n) => n.id === c.fromNode);
   const to = nodes.find((n) => n.id === c.toNode);
