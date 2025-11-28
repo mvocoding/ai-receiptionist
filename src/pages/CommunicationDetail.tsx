@@ -135,16 +135,6 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
                 </h2>
                 <p className="text-white/50 text-sm">{detail.contactNumber}</p>
               </div>
-              <dl className="space-y-3 text-sm">
-                <div className="flex justify-between gap-4">
-                  <dt className="text-white/50">Last Updated</dt>
-                  <dd>{detail.timestamp}</dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-white/50">Messages</dt>
-                  <dd>{detail.conversation?.length ?? 0}</dd>
-                </div>
-              </dl>
             </section>
 
             <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
