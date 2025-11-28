@@ -300,7 +300,6 @@ export default function BookAppointment(): JSX.Element {
     }
   }
 
-  const barberSelected = barberList.find((b) => b.id === form.barberId);
   const slotAllowed = createSlotAllowMap(dayException);
 
   return (

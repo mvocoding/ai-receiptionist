@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
 import {
   supabase,
-  type StoreSettings as DBStoreSettings,
   type Barber as DBBarber,
   type BarberException as DBBarberException,
 } from '../lib/supabase';

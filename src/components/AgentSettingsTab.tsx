@@ -116,20 +116,3 @@ export default function AgentSettingsTab({
   );
 }
 
-function InfoBox({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}): JSX.Element {
-  return (
-    <div className="bg-black/30 border border-white/10 rounded-xl p-4">
-      <p className="text-xs uppercase text-white/50 tracking-wide mb-1">{label}</p>
-      <p className={mono ? 'font-mono text-sm break-all' : 'text-sm'}>{value}</p>
-    </div>
-  );
-}
-
