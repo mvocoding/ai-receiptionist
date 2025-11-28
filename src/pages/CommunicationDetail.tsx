@@ -157,7 +157,7 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
                 ))
               ) : (
                 <div className="text-white/50 text-center py-8 border border-dashed border-white/10 rounded-2xl">
-                  No conversation messages captured.
+                  No conversation messages received.
                 </div>
               )}
             </section>

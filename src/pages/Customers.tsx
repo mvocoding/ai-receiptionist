@@ -97,11 +97,6 @@ export default function Customers(): JSX.Element {
         });
 
         const customersArray = Object.values(grouped).sort((a, b) => {
-          const aTs = lastSeen[a.id] ?? 0;
-          const bTs = lastSeen[b.id] ?? 0;
-          if (aTs && bTs) return bTs - aTs;
-          if (aTs) return -1;
-          if (bTs) return 1;
           return a.name.localeCompare(b.name);
         });
 

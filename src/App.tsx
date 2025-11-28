@@ -27,6 +27,10 @@ export default function App(): JSX.Element {
       }
     };
 
+    (window as any).gotomars = (to: string) => {
+      console.log('Going to mars');
+    };
+
     return () => {
       window.removeEventListener('popstate', onPop);
       delete (window as any).__navigate;
