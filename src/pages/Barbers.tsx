@@ -25,6 +25,58 @@ type ExceptionMap = Record<
   { isDayOff: boolean; start?: string; end?: string } | undefined
 >;
 
+function formatDate(date: Date) {
+  return date.toISOString().split('T')[0];
+}
+
+function formatPretty(dateStr: string) {
+  const date = new Date(dateStr + 'T00:00:00');
+  if (Number.isNaN(date.getTime())) return dateStr;
+  return date.toDateString();
+}
+
+function cutTime(value?: string | null) {
+  if (!value) return '';
+  return value.slice(0, 5);
+}
+
+function makeSlotList(open: string, close: string, step: number) {
+  const result: string[] = [];
+  let current = parseTime(open);
+  const end = parseTime(close);
+  while (current < end) {
+    const hour = String(Math.floor(current / 60)).padStart(2, '0');
+    const minute = String(current % 60).padStart(2, '0');
+    result.push(`${hour}:${minute}`);
+    current += step;
+  }
+  return result;
+}
+
+function parseTime(time: string) {
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function buildAllowedSet(
+  info: { isDayOff: boolean; start?: string; end?: string } | undefined,
+  slots: string[]
+) {
+  if (!info) return new Set(slots);
+  if (info.isDayOff) return new Set<string>();
+  const set = new Set<string>();
+  slots.forEach((slot: string) => {
+    if (
+      !info.start ||
+      !info.end ||
+      (slot >= (info.start || '00:00') && slot <= (info.end || '23:59'))
+    ) {
+      set.add(slot);
+    }
+  });
+  return set;
+}
+
 export default function Barbers(): JSX.Element {
   const [day, setDay] = useState(() => new Date());
   const [barberList, setBarberList] = useState<BarberView[]>([]);
@@ -290,56 +342,4 @@ export default function Barbers(): JSX.Element {
       )}
     </div>
   );
-}
-
-function formatDate(date: Date) {
-  return date.toISOString().split('T')[0];
-}
-
-function formatPretty(dateStr: string) {
-  const date = new Date(dateStr + 'T00:00:00');
-  if (Number.isNaN(date.getTime())) return dateStr;
-  return date.toDateString();
-}
-
-function cutTime(value?: string | null) {
-  if (!value) return '';
-  return value.slice(0, 5);
-}
-
-function makeSlotList(open: string, close: string, step: number) {
-  const result: string[] = [];
-  let current = parseTime(open);
-  const end = parseTime(close);
-  while (current < end) {
-    const hour = String(Math.floor(current / 60)).padStart(2, '0');
-    const minute = String(current % 60).padStart(2, '0');
-    result.push(`${hour}:${minute}`);
-    current += step;
-  }
-  return result;
-}
-
-function parseTime(time: string) {
-  const [h, m] = time.split(':').map(Number);
-  return h * 60 + m;
-}
-
-function buildAllowedSet(
-  info: { isDayOff: boolean; start?: string; end?: string } | undefined,
-  slots: string[]
-) {
-  if (!info) return new Set(slots);
-  if (info.isDayOff) return new Set<string>();
-  const set = new Set<string>();
-  slots.forEach((slot: string) => {
-    if (
-      !info.start ||
-      !info.end ||
-      (slot >= (info.start || '00:00') && slot <= (info.end || '23:59'))
-    ) {
-      set.add(slot);
-    }
-  });
-  return set;
 }

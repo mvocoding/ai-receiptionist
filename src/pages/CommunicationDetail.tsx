@@ -111,7 +111,7 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
           onClick={goBack}
           className="text-sm text-white/70 hover:text-white transition"
         >
-          ← Back to Communications
+          ← Back
         </button>
 
         {loading && (
