@@ -2,11 +2,13 @@ export type Customer = {
   id: string;
   name: string;
   phone?: string;
+  email?: string;
   appointments: {
     date: string;
     time: string;
     barberName?: string;
     status: string;
+    note?: string;
   }[];
   lastAppointment?: string;
 };
@@ -35,14 +37,6 @@ export type Comm = {
 };
 
 
-export type Barber = {
-  id: string;
-  name: string;
-  specialty: string;
-  image: string;
-  price: number;
-};
-
 export type BookingForm = {
   barberId: string;
   date: string;
@@ -55,8 +49,39 @@ export type BookingForm = {
 export type BarberCard = {
   id: string;
   name: string;
-  services: string;
-  image: string;
-  price: number;
-  workingDays: string[];
+  status: 'active' | 'inactive';
+  description?: string;
+  createdAt?: string;
+};
+
+
+export type PromptSection = {
+  title: string;
+  content: string;
+};
+
+
+export type Barber = {
+  id: string;
+  name: string;
+  status: 'active' | 'inactive';
+  description?: string;
+  createdAt?: string;
+};
+
+export type BarberException = {
+  id: string;
+  barberId: string;
+  date: string;
+  isDayOff: boolean;
+  startTime?: string;
+  endTime?: string;
+};
+
+export type StoreSettings = {
+  bannerUrl: string;
+  introText: string;
+  phoneNumber: string;
+  address: string;
+  hours: string;
 };

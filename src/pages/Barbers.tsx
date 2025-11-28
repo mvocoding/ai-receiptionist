@@ -4,397 +4,270 @@ import {
   supabase,
   type Barber as DBBarber,
   type Appointment as DBAppointment,
+  type BarberException as DBBarberException,
 } from '../lib/supabase';
 
-import type { BarberCard } from '../lib/types-global';
+const slotConfig = { open: '09:00', close: '18:00', step: 30 };
 
-function formatDateDisplay(dateStr: string): string {
-  const date = new Date(`${dateStr}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return dateStr;
-  return date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'short',
-    day: 'numeric',
-  });
-}
+type BarberView = {
+  id: string;
+  name: string;
+  desc: string;
+  status: 'active' | 'inactive';
+};
 
-const defaultAvatar =
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200';
+type AppointmentView = DBAppointment & {
+  users?: { name?: string; phone_number?: string } | null;
+};
 
-function pad(n: number) {
-  return n.toString().padStart(2, '0');
-}
-function fmtDate(d: Date) {
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-function parseTime(t: string) {
-  const [h, m] = t.split(':').map(Number);
-  return h * 60 + m;
-}
-function toTimeString(mins: number) {
-  const h = Math.floor(mins / 60),
-    m = mins % 60;
-  return `${pad(h)}:${pad(m)}`;
-}
-function generateSlots(open: string, close: string, stepMin: number) {
-  const start = parseTime(open),
-    end = parseTime(close);
-  const slots: string[] = [];
-  for (let m = start; m < end; m += stepMin) slots.push(toTimeString(m));
-  return slots;
-}
+type ExceptionMap = Record<
+  string,
+  { isDayOff: boolean; start?: string; end?: string } | undefined
+>;
 
 export default function Barbers(): JSX.Element {
   useEffect(() => {
     document.title = 'Fade Station · Barbers';
-    const meta =
-      document.querySelector('meta[name="description"]') ||
-      document.createElement('meta');
-    meta.setAttribute('name', 'description');
-    meta.setAttribute(
-      'content',
-      'Fade Station AI Receptionist · Barbers availability and booking slots'
-    );
-    if (!document.querySelector('meta[name="description"]'))
-      document.head.appendChild(meta);
   }, []);
 
-  const [date, setDate] = useState<Date>(new Date());
-  const [selectedBarber, setSelectedBarber] = useState<string>('all');
-  const [barbers, setBarbers] = useState<BarberCard[]>([]);
-  const [loadingBarbers, setLoadingBarbers] = useState(true);
-  const [slotsLoading, setSlotsLoading] = useState(false);
-  const [appointmentsByBarber, setAppointmentsByBarber] = useState<
-    Record<string, DBAppointment[]>
-  >({});
-  const [activeAppointment, setActiveAppointment] = useState<{
-    data: DBAppointment;
-    barberName: string;
-    barberServices: string;
-  } | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedSlots, setSelectedSlots] = useState<
-    Record<string, Set<string>>
-  >({});
+  const [day, setDay] = useState(() => new Date());
+  const [barberList, setBarberList] = useState<BarberView[]>([]);
+  const [busyBarber, setBusyBarber] = useState(true);
+  const [slotBusy, setSlotBusy] = useState(false);
+  const [slotByBarber, setSlotByBarber] = useState<Record<string, AppointmentView[]>>({});
+  const [excByBarber, setExcByBarber] = useState<ExceptionMap>({});
+  const [modalInfo, setModalInfo] = useState<AppointmentView | null>(null);
+  const [errText, setErrText] = useState<string | null>(null);
 
-  const state = useMemo(
-    () => ({ open: '09:00', close: '18:00', stepMin: 30 }),
-    []
-  );
+  const dayText = useMemo(() => formatDate(day), [day]);
+  const slotList = useMemo(() => makeSlotList(slotConfig.open, slotConfig.close, slotConfig.step), []);
 
   useEffect(() => {
-    const fetchBarbers = async () => {
+    async function loadBarber() {
+      setBusyBarber(true);
       try {
-        const { data, error: barbersError } = await supabase
-          .from('barbers')
-          .select('*')
-          .order('created_at', { ascending: true });
-
-        if (barbersError) throw barbersError;
-
-        if (!data || data.length === 0) {
-          return;
-        }
-
-        setBarbers(
-          data.map((b: DBBarber) => ({
-            id: b.id,
-            name: b.name,
-            services: b.specialty,
-            image: b.image,
-            price: Number(b.price),
-            workingDays: b.working_days || [],
-          }))
+        const { data, error } = await supabase.from('barbers').select('*').order('created_at', { ascending: true });
+        if (error) throw error;
+        setBarberList(
+          (data as DBBarber[] | null)?.map((item) => ({
+            id: item.id,
+            name: item.name,
+            desc: item.description || '',
+            status: (item.status as 'active' | 'inactive') || 'inactive',
+          })) || []
         );
       } catch (err) {
-        console.error('Error loading barbers:', err);
-        setError('Unable to load barbers from Supabase. Showing demo data.');
+        console.error('load barber fail', err);
+        setBarberList([]);
       } finally {
-        setLoadingBarbers(false);
+        setBusyBarber(false);
       }
-    };
+    }
 
-    fetchBarbers();
+    void loadBarber();
   }, []);
 
-  const dateStr = fmtDate(date);
-  const allSlots = useMemo(
-    () => generateSlots(state.open, state.close, state.stepMin),
-    [state]
-  );
-
   useEffect(() => {
-    const fetchAppointments = async () => {
-      setSlotsLoading(true);
-      setError(null);
+    async function loadSlots() {
+      setSlotBusy(true);
+      setErrText(null);
       try {
-        const { data, error: appointmentsError } = await supabase
+        const { data, error } = await supabase
           .from('appointments')
-          .select('*')
-          .eq('appointment_date', dateStr)
+          .select('*, users(name, phone_number)')
+          .eq('appointment_date', dayText)
           .not('status', 'eq', 'cancelled');
+        if (error) throw error;
 
-        if (appointmentsError) throw appointmentsError;
-
-        const grouped: Record<string, DBAppointment[]> = {};
-        (data as DBAppointment[] | null)?.forEach((appt) => {
-          if (!grouped[appt.barber_id]) grouped[appt.barber_id] = [];
-          grouped[appt.barber_id].push(appt);
+        const bucket: Record<string, AppointmentView[]> = {};
+        (data as AppointmentView[] | null)?.forEach((item) => {
+          if (!bucket[item.barber_id]) bucket[item.barber_id] = [];
+          bucket[item.barber_id].push(item);
         });
-
-        setAppointmentsByBarber(grouped);
+        setSlotByBarber(bucket);
       } catch (err) {
-        console.error('Error loading appointments:', err);
-        setError('Unable to load appointments for this date.');
-        setAppointmentsByBarber({});
+        console.error('load appointments fail', err);
+        setSlotByBarber({});
+        setErrText('Unable to load appointments for this day.');
       } finally {
-        setSlotsLoading(false);
+        setSlotBusy(false);
       }
-    };
+    }
 
-    fetchAppointments();
-  }, [dateStr]);
+    async function loadException() {
+      try {
+        const { data, error } = await supabase
+          .from('barber_exceptions')
+          .select('*')
+          .eq('exception_date', dayText);
+        if (error) throw error;
+        const obj: ExceptionMap = {};
+        (data as DBBarberException[] | null)?.forEach((item) => {
+          obj[item.barber_id] = {
+            isDayOff: item.is_day_off,
+            start: cutTime(item.start_time),
+            end: cutTime(item.end_time),
+          };
+        });
+        setExcByBarber(obj);
+      } catch (err) {
+        console.error('load exceptions fail', err);
+        setExcByBarber({});
+      }
+    }
 
-  function toggleSelect(barberId: string, slot: string) {
-    setSelectedSlots((prev) => {
-      const next = { ...prev };
-      if (!next[barberId]) next[barberId] = new Set();
-      if (next[barberId].has(slot)) next[barberId].delete(slot);
-      else next[barberId].add(slot);
+    void loadSlots();
+    void loadException();
+  }, [dayText]);
+
+  function moveDay(delta: number) {
+    setDay((prev) => {
+      const next = new Date(prev);
+      next.setDate(next.getDate() + delta);
       return next;
     });
   }
 
-  function handlePrevDay() {
-    setDate((d) => new Date(d.getTime() - 86400000));
-  }
-  function handleNextDay() {
-    setDate((d) => new Date(d.getTime() + 86400000));
-  }
-  function handleDateChange(v: string) {
-    const d = new Date(v + 'T00:00:00');
-    if (!isNaN(d.getTime())) setDate(d);
-  }
-
-  const visibleBarbers =
-    selectedBarber === 'all'
-      ? barbers
-      : barbers.filter((b) => b.id === selectedBarber);
-
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       <NavBar />
-
-      <div className="mx-auto max-w-6xl px-4 py-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center gap-3">
+      <div className="mx-auto max-w-6xl px-4 py-8 space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-semibold">Barbers Availability</h1>
+            
+          </div>
+          <div className="flex items-center gap-2">
             <button
-              onClick={handlePrevDay}
-              className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-sm"
+              onClick={() => moveDay(-1)}
+              className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-sm"
             >
               Prev
             </button>
             <input
               type="date"
-              value={dateStr}
-              onChange={(e) => handleDateChange(e.target.value)}
+              value={dayText}
+              onChange={(e) => setDay(new Date(e.target.value + 'T00:00:00'))}
               className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/40"
             />
             <button
-              onClick={handleNextDay}
-              className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-sm"
+              onClick={() => moveDay(1)}
+              className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-sm"
             >
               Next
             </button>
           </div>
         </div>
 
-        {error && (
-          <div className="mt-4 bg-rose-500/10 border border-rose-500/30 rounded-xl px-4 py-3 text-sm text-rose-300">
-            {error}
+        {errText && (
+          <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl px-4 py-3 text-sm text-rose-200">
+            {errText}
           </div>
         )}
 
-        {loadingBarbers ? (
-          <div className="mt-10 text-center text-ios-textMuted">
-            Loading barbers…
-          </div>
+        {busyBarber ? (
+          <p className="text-white/60 mt-4">Loading barbers…</p>
+        ) : barberList.length === 0 ? (
+          <p className="text-white/60 mt-4">No barbers configured.</p>
         ) : (
-          <main className="mt-4 space-y-4" id="gridRoot">
-            {visibleBarbers.length === 0 && (
-              <div className="text-center py-20 bg-white/5 border border-ios-border rounded-2xl">
-                <div className="mx-auto h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center mb-4"></div>
-                <h3 className="font-semibold">No availability</h3>
-                <p className="text-sm text-ios-textMuted">
-                  Try a different day or barber.
-                </p>
-              </div>
-            )}
-
-            {visibleBarbers.map((barberInfo) => {
-              const currentAppointments =
-                appointmentsByBarber[barberInfo.id] || [];
-              const appointmentBySlot = new Map(
-                currentAppointments.map((appt) => [appt.slot_time, appt])
+          <div className="space-y-4">
+            {barberList.map((barber) => {
+              const apptList = slotByBarber[barber.id] || [];
+              const apptBySlot = new Map(
+                apptList.map((item) => [cutTime(item.start_time), item])
               );
-              const selected =
-                selectedSlots[barberInfo.id] || new Set<string>();
-              const availableCount = allSlots.filter(
-                (slot) => !appointmentBySlot.has(slot)
-              ).length;
+              const excInfo = excByBarber[barber.id];
+              const allowSet = buildAllowedSet(excInfo, slotList);
+
               return (
                 <section
-                  key={barberInfo.id}
-                  className="bg-gradient-to-b from-[#111111] to-[#0d0d0d] border border-ios-border rounded-2xl shadow-glow overflow-hidden"
+                  key={barber.id}
+                  className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3"
                 >
-                  <div className="p-4 flex items-start gap-3">
-                    <img
-                      src={barberInfo.image || defaultAvatar}
-                      alt={barberInfo.name}
-                      className="h-12 w-12 rounded-2xl object-cover border border-white/10 bg-white/5"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src =
-                          defaultAvatar;
-                      }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-sm barber-name">
-                            {barberInfo.name}
-                          </h3>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                        {slotsLoading ? (
-                          <div className="col-span-full text-xs text-ios-textMuted">
-                            Loading availability…
-                          </div>
-                        ) : (
-                          allSlots.map((s) => {
-                            const appointment = appointmentBySlot.get(s);
-                            const isBooked = Boolean(appointment);
-                            const isSelected = selected.has(s);
-                            return (
-                              <button
-                                key={s}
-                                onClick={() => {
-                                  if (appointment) {
-                                    setActiveAppointment({
-                                      data: appointment,
-                                      barberName: barberInfo.name,
-                                      barberServices: barberInfo.services,
-                                    });
-                                  } else {
-                                    toggleSelect(barberInfo.id, s);
-                                  }
-                                }}
-                                className={
-                                  'slot-btn px-3 py-2 rounded-xl text-xs transition border ' +
-                                  (isBooked
-                                    ? 'bg-rose-500/20 border-rose-500/40 text-rose-200 hover:bg-rose-500/30'
-                                    : isSelected
-                                    ? 'bg-emerald-500/20 border-emerald-400/40'
-                                    : 'bg-white/5 border-white/10 hover:bg-white/10')
-                                }
-                              >
-                                {s}
-                              </button>
-                            );
-                          })
-                        )}
-                      </div>
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                      <p className="text-sm text-white/60">{barber.status === 'active' ? 'Active' : 'Inactive'} barber</p>
+                      <h2 className="text-xl font-semibold">{barber.name}</h2>
+                      {excInfo && (
+                        <p className="text-xs mt-1 text-amber-200">
+                          {excInfo.isDayOff
+                            ? 'Marked as day off'
+                            : `Custom hours ${excInfo.start ?? '--:--'} – ${excInfo.end ?? '--:--'}`}
+                        </p>
+                      )}
                     </div>
+                    
                   </div>
+
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                    {slotList.map((slot) => {
+                      const appt = apptBySlot.get(slot);
+                      const allowed = allowSet.has(slot);
+                      const disabled = barber.status !== 'active' || !allowed;
+                      return (
+                        <button
+                          key={slot}
+                          onClick={() => appt && setModalInfo(appt)}
+                          disabled={disabled && !appt}
+                          className={`px-3 py-2 rounded-xl text-xs border ${
+                            appt
+                              ? 'bg-rose-500/20 border-rose-500/40 text-rose-200 hover:bg-rose-500/30'
+                              : disabled
+                              ? 'bg-white/5 border-white/10 text-white/30 opacity-50'
+                              : 'bg-white/5 border-white/10 hover:bg-white/10 text-white/80'
+                          }`}
+                        >
+                          {slot}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {slotBusy && <p className="text-xs text-white/40">Refreshing slots…</p>}
                 </section>
               );
             })}
-          </main>
+          </div>
         )}
       </div>
 
-      {activeAppointment && (
+      {modalInfo && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#101010] border border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-[#101010] border border-white/10 rounded-2xl p-6 w-full max-w-lg space-y-4">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-ios-textMuted uppercase tracking-wide">
-                  Appointment
-                </p>
+                <p className="text-xs text-white/60 uppercase">Appointment</p>
                 <h3 className="text-2xl font-semibold">Booking details</h3>
               </div>
               <button
-                onClick={() => setActiveAppointment(null)}
+                onClick={() => setModalInfo(null)}
                 className="text-white/70 hover:text-white text-2xl leading-none"
               >
                 ✕
               </button>
             </div>
-
-            <div className="space-y-4 text-sm">
+            <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                <p className="text-xs text-white/50 uppercase">Barber</p>
-                <p className="text-lg font-medium">
-                  {activeAppointment.barberName}
+                <p className="text-white/50 text-xs mb-1">Date</p>
+                <p className="font-medium">{formatPretty(modalInfo.appointment_date)}</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                <p className="text-white/50 text-xs mb-1">Time</p>
+                <p className="font-medium">
+                  {cutTime(modalInfo.start_time)} – {cutTime(modalInfo.end_time)}
                 </p>
-                <p className="text-white/60">
-                  {activeAppointment.barberServices}
-                </p>
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                  <p className="text-xs text-white/50 uppercase mb-1">Date</p>
-                  <p className="font-medium">
-                    {formatDateDisplay(activeAppointment.data.appointment_date)}
-                  </p>
-                </div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                  <p className="text-xs text-white/50 uppercase mb-1">Time</p>
-                  <p className="font-medium">
-                    {activeAppointment.data.slot_time}
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
-                <div>
-                  <p className="text-xs text-white/50 uppercase mb-1">
-                    Customer
-                  </p>
-                  <p className="font-medium">
-                    {activeAppointment.data.customer_name || '—'}
-                  </p>
-                  <p className="text-white/60">
-                    {activeAppointment.data.customer_phone ||
-                      'No phone on file'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-white/50 uppercase mb-1">Status</p>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-200 text-xs">
-                    {activeAppointment.data.status}
-                  </span>
-                </div>
-                {activeAppointment.data.notes && (
-                  <div>
-                    <p className="text-xs text-white/50 uppercase mb-1">
-                      Notes
-                    </p>
-                    <p className="text-white/70">
-                      {activeAppointment.data.notes}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={() => setActiveAppointment(null)}
-                className="w-full mt-4 px-4 py-2 rounded-xl bg-white/10 border border-white/20 hover:bg-white/15 transition text-sm font-medium"
-              >
-                Close
-              </button>
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2 text-sm">
+              <p className="text-white/50 text-xs">Customer</p>
+              <p className="font-medium">{modalInfo.users?.name || '-'}</p>
+              <p className="text-white/60">{modalInfo.users?.phone_number || 'No phone'}</p>
+              {modalInfo.note && <p className="text-white/70">{modalInfo.note}</p>}
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-sm">
+              <p className="text-white/50 text-xs mb-1">Status</p>
+              <span className="inline-flex px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-200 text-xs">
+                {modalInfo.status}
+              </span>
             </div>
           </div>
         </div>
@@ -402,3 +275,52 @@ export default function Barbers(): JSX.Element {
     </div>
   );
 }
+
+function formatDate(date: Date) {
+  return date.toISOString().split('T')[0];
+}
+
+function formatPretty(dateStr: string) {
+  const date = new Date(dateStr + 'T00:00:00');
+  if (Number.isNaN(date.getTime())) return dateStr;
+  return date.toDateString();
+}
+
+function cutTime(value?: string | null) {
+  if (!value) return '';
+  return value.slice(0, 5);
+}
+
+function makeSlotList(open: string, close: string, step: number) {
+  const result: string[] = [];
+  let current = parseTime(open);
+  const end = parseTime(close);
+  while (current < end) {
+    const hour = String(Math.floor(current / 60)).padStart(2, '0');
+    const minute = String(current % 60).padStart(2, '0');
+    result.push(`${hour}:${minute}`);
+    current += step;
+  }
+  return result;
+}
+
+function parseTime(time: string) {
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function buildAllowedSet(
+  info: { isDayOff: boolean; start?: string; end?: string } | undefined,
+  slots: string[]
+) {
+  if (!info) return new Set(slots);
+  if (info.isDayOff) return new Set<string>();
+  const set = new Set<string>();
+  slots.forEach((slot: string) => {
+    if (!info.start || !info.end || (slot >= (info.start || '00:00') && slot <= (info.end || '23:59'))) {
+      set.add(slot);
+    }
+  });
+  return set;
+}
+

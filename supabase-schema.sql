@@ -4,6 +4,7 @@ DROP TABLE IF EXISTS appointments CASCADE;
 DROP TABLE IF EXISTS communications CASCADE;
 DROP TABLE IF EXISTS comm_messages CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS barber_exceptions CASCADE;
 DROP TABLE IF EXISTS barbers CASCADE;
 DROP TABLE IF EXISTS store_settings CASCADE;
 DROP TABLE IF EXISTS ai_knowledge CASCADE;
@@ -18,7 +19,7 @@ CREATE TABLE store_settings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   banner_url TEXT NOT NULL DEFAULT 'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800',
   intro_text TEXT NOT NULL DEFAULT 'Welcome to Fade Station. Premium Barbershop Experience.',
-  phone_number TEXT NOT NULL DEFAULT '0483 804 522',
+  phone_number TEXT NOT NULL DEFAULT '0483 804 500',
   address TEXT NOT NULL DEFAULT '1 Fern Court, Parafield Gardens, SA 5107',
   hours TEXT NOT NULL DEFAULT 'Mon-Fri: 9:00 AM - 6:00 PM
 Sat: 9:00 AM - 5:00 PM
@@ -27,32 +28,45 @@ Sun: Closed',
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Barbers Table
+-- Barbers Table (simplified structure)
 CREATE TABLE barbers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
-  specialty TEXT NOT NULL,
-  image TEXT NOT NULL,
-  phone TEXT,
-  price DECIMAL(10, 2) NOT NULL,
-  working_days TEXT[] NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+  description TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Barber Exceptions Table
+CREATE TABLE barber_exceptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  barber_id UUID NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+  exception_date DATE NOT NULL,
+  is_day_off BOOLEAN NOT NULL DEFAULT FALSE,
+  start_time TIME,
+  end_time TIME,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  CONSTRAINT barber_exception_time_check CHECK (
+    is_day_off = TRUE OR (start_time IS NOT NULL AND end_time IS NOT NULL AND start_time < end_time)
+  )
 );
 
 -- Appointments Table
 CREATE TABLE appointments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id),
   barber_id UUID NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
-  customer_name TEXT,
-  customer_phone TEXT,
   appointment_date DATE NOT NULL,
-  slot_time TEXT NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
   status TEXT NOT NULL DEFAULT 'booked',
-  notes TEXT,
+  note JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_by TEXT NOT NULL DEFAULT 'self-service',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  CONSTRAINT appointments_unique_slot UNIQUE (barber_id, appointment_date, slot_time)
+  CONSTRAINT appointments_unique_slot UNIQUE (barber_id, appointment_date, start_time)
 );
 
 -- Communications Table
@@ -84,7 +98,9 @@ CREATE TABLE comm_messages (
 -- Users Table
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email TEXT NOT NULL UNIQUE,
+  email TEXT UNIQUE,
+  phone_number TEXT,
+  name TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   last_login_at TIMESTAMP WITH TIME ZONE,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -112,53 +128,72 @@ Sat: 9:00 AM - 5:00 PM
 Sun: Closed'
 );
 
+-- Insert sample users (customers)
+INSERT INTO users (id, phone_number, name)
+VALUES
+  ('22d1f8f3-60cf-4ec3-8ed2-d5e76f66d326', '61467483638', 'James'),
+  ('6f8eff3c-dc80-4c9d-adff-d605cb6d3c94', '468044179', 'Sean'),
+  ('ad1c4d50-8f42-480e-92be-063c1d8e5f87', '0483804501', 'Jordan Client'),
+  ('ffb4ce65-bab1-4d0e-9a9f-2fe299db4c77', '0483804602', 'Casey Demo')
+ON CONFLICT (id) DO NOTHING;
+
 -- Insert sample barbers
-INSERT INTO barbers (name, specialty, image, phone, price, working_days)
+INSERT INTO barbers (name, status, description)
 VALUES 
   (
-    'Ace',
-    'Fades · Beard · Kids',
-    'https://images.unsplash.com/photo-1585518419759-7fe2e0fbf8a6?auto=format&fit=crop&q=80&w=200&h=200',
-    '0483 804 522',
-    45.00,
-    ARRAY['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    'Joe',
+    'active',
+    'Hair cut specialist · Modern men styles'
   ),
   (
-    'Jay',
-    'Tapers · Line-ups',
-    'https://images.unsplash.com/photo-1534308143481-c55f00be8bd7?auto=format&fit=crop&q=80&w=200&h=200',
-    '0483 804 533',
-    40.00,
-    ARRAY['Monday', 'Wednesday', 'Friday', 'Saturday']
+    'Lara',
+    'active',
+    'Classic cuts · Kids trims'
   ),
   (
-    'Mia',
-    'Skin Fades · Scissor',
-    'https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&q=80&w=200&h=200',
-    '0483 804 544',
-    45.00,
-    ARRAY['Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    'Mason',
+    'inactive',
+    'Currently on leave'
   );
 
+-- Insert sample barber exceptions
+INSERT INTO barber_exceptions (barber_id, exception_date, is_day_off, start_time, end_time)
+SELECT id, DATE '2025-11-29', FALSE, TIME '13:00', TIME '17:00'
+FROM barbers WHERE name = 'Joe'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO barber_exceptions (barber_id, exception_date, is_day_off)
+SELECT id, DATE '2025-12-01', TRUE
+FROM barbers WHERE name = 'Lara'
+ON CONFLICT DO NOTHING;
+
 -- Insert sample appointments referencing the seeded barbers
-INSERT INTO appointments (barber_id, customer_name, customer_phone, appointment_date, slot_time, status)
-SELECT id, 'Jordan Client', '0483 804 600', CURRENT_DATE, '09:00', 'booked'
-FROM barbers WHERE name = 'Ace'
+INSERT INTO appointments (barber_id, user_id, appointment_date, start_time, end_time, status, note, created_by)
+SELECT id, 'ad1c4d50-8f42-480e-92be-063c1d8e5f87', CURRENT_DATE, TIME '09:00', TIME '09:30', 'booked',
+       jsonb_build_object('message', 'Prefers fade with hard part'),
+       'seed'
+FROM barbers WHERE name = 'Joe'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO appointments (barber_id, customer_name, customer_phone, appointment_date, slot_time, status)
-SELECT id, 'Casey Demo', '0483 804 601', CURRENT_DATE, '10:30', 'booked'
-FROM barbers WHERE name = 'Ace'
+INSERT INTO appointments (barber_id, user_id, appointment_date, start_time, end_time, status, note, created_by)
+SELECT id, 'ffb4ce65-bab1-4d0e-9a9f-2fe299db4c77', CURRENT_DATE, TIME '10:30', TIME '11:00', 'booked',
+       jsonb_build_object('message', 'Ask about beard trim add-on'),
+       'seed'
+FROM barbers WHERE name = 'Joe'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO appointments (barber_id, customer_name, customer_phone, appointment_date, slot_time, status)
-SELECT id, 'Morgan Test', '0483 804 602', CURRENT_DATE + INTERVAL '1 day', '11:00', 'booked'
-FROM barbers WHERE name = 'Jay'
+INSERT INTO appointments (barber_id, user_id, appointment_date, start_time, end_time, status, note, created_by)
+SELECT id, '22d1f8f3-60cf-4ec3-8ed2-d5e76f66d326', CURRENT_DATE + INTERVAL '1 day', TIME '11:00', TIME '11:30', 'booked',
+       jsonb_build_object('message', 'Wants classic taper'),
+       'seed'
+FROM barbers WHERE name = 'Lara'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO appointments (barber_id, customer_name, customer_phone, appointment_date, slot_time, status)
-SELECT id, 'Taylor Sample', '0483 804 603', CURRENT_DATE + INTERVAL '1 day', '15:30', 'booked'
-FROM barbers WHERE name = 'Mia'
+INSERT INTO appointments (barber_id, user_id, appointment_date, start_time, end_time, status, note, created_by)
+SELECT id, '6f8eff3c-dc80-4c9d-adff-d605cb6d3c94', CURRENT_DATE + INTERVAL '1 day', TIME '15:30', TIME '16:00', 'booked',
+       jsonb_build_object('message', 'Kid''s cut, extra patience'),
+       'seed'
+FROM barbers WHERE name = 'Lara'
 ON CONFLICT DO NOTHING;
 
 -- Insert sample communications
@@ -243,10 +278,13 @@ LATERAL (VALUES
 
 
 CREATE INDEX idx_appointments_barber_date
-  ON appointments (barber_id, appointment_date);
+  ON appointments (barber_id, appointment_date, start_time);
 
 CREATE INDEX idx_appointments_date
-  ON appointments (appointment_date);
+  ON appointments (appointment_date, start_time);
+
+CREATE INDEX idx_barber_exceptions_barber_date
+  ON barber_exceptions (barber_id, exception_date);
 
 
 CREATE FUNCTION update_updated_at_column()
@@ -263,21 +301,28 @@ RETURNS TABLE (
   customer_key TEXT,
   customer_name TEXT,
   customer_phone TEXT,
+  user_email TEXT,
   last_appointment TIMESTAMP WITH TIME ZONE
 ) AS $$
   SELECT
-    COALESCE(customer_phone, customer_name, id::text) AS customer_key,
-    customer_name,
-    customer_phone,
+    COALESCE(
+      user_id::text,
+      note ->> 'customerPhone',
+      id::text
+    ) AS customer_key,
+    COALESCE(u.name, note ->> 'customerName', 'Unknown') AS customer_name,
+    COALESCE(u.phone_number, note ->> 'customerPhone') AS customer_phone,
     MAX(
       appointment_date::timestamp
       + make_interval(
-          hours := split_part(slot_time, ':', 1)::int,
-          mins := split_part(slot_time, ':', 2)::int
+          hours := EXTRACT(HOUR FROM start_time)::int,
+          mins := EXTRACT(MINUTE FROM start_time)::int
         )
-    ) AS last_appointment
-  FROM appointments
-  GROUP BY customer_key, customer_name, customer_phone;
+    ) AS last_appointment,
+    MAX(u.email) AS user_email
+  FROM appointments a
+  LEFT JOIN users u ON a.user_id = u.id
+  GROUP BY 1, 2, 3;
 $$ LANGUAGE SQL STABLE;
 
 CREATE TRIGGER update_store_settings_updated_at
@@ -287,6 +332,11 @@ CREATE TRIGGER update_store_settings_updated_at
 
 CREATE TRIGGER update_barbers_updated_at
   BEFORE UPDATE ON barbers
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_barber_exceptions_updated_at
+  BEFORE UPDATE ON barber_exceptions
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
@@ -317,6 +367,7 @@ ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE communications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comm_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_knowledge ENABLE ROW LEVEL SECURITY;
+ALTER TABLE barber_exceptions ENABLE ROW LEVEL SECURITY;
 
 
 CREATE POLICY "Allow all operations on store_settings"
@@ -361,6 +412,12 @@ CREATE POLICY "Allow all operations on ai_knowledge"
   USING (true)
   WITH CHECK (true);
 
+CREATE POLICY "Allow all operations on barber_exceptions"
+  ON barber_exceptions
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
 -- Insert default AI knowledge configuration
 INSERT INTO ai_knowledge (id, nodes, connections, next_id)
 VALUES (
@@ -373,7 +430,7 @@ VALUES (
     {"id": "node_pricing", "type": "message", "x": 0, "y": 0, "width": 0, "height": 0, "text": "Our services range from $40 to $45. Would you like to know more about our barbers?"},
     {"id": "node_hours", "type": "message", "x": 0, "y": 0, "width": 0, "height": 0, "text": "We are open Mon-Fri: 9:00 AM - 6:00 PM, Sat: 9:00 AM - 5:00 PM, Sun: Closed."},
     {"id": "node_location", "type": "message", "x": 0, "y": 0, "width": 0, "height": 0, "text": "We are located at 1 Fern Court, Parafield Gardens, SA 5107."},
-    {"id": "node_contact", "type": "message", "x": 0, "y": 0, "width": 0, "height": 0, "text": "You can reach us at 0483 804 522. We're here to help!"},
+    {"id": "node_contact", "type": "message", "x": 0, "y": 0, "width": 0, "height": 0, "text": "You can reach us at 0483 804 500. We're here to help!"},
     {"id": "node_confirmation", "type": "message", "x": 0, "y": 0, "width": 0, "height": 0, "text": "Your appointment has been confirmed. You will receive a confirmation message shortly."}
   ]$json$::jsonb,
   '[]'::jsonb,

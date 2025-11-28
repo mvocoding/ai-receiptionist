@@ -4,35 +4,10 @@ import {
   supabase,
   type StoreSettings as DBStoreSettings,
   type Barber as DBBarber,
+  type BarberException as DBBarberException,
 } from '../lib/supabase';
 
-type Barber = {
-  id: string;
-  name: string;
-  specialty: string;
-  image: string;
-  phone?: string;
-  price: number;
-  workingDays: string[];
-};
-
-type StoreSettings = {
-  bannerUrl: string;
-  introText: string;
-  phoneNumber: string;
-  address: string;
-  hours: string;
-};
-
-const DAYS_OF_WEEK = [
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-  'Sunday',
-];
+import type { Barber, BarberException, StoreSettings } from '../lib/types-global';
 
 export default function Admin(): JSX.Element | null {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -40,26 +15,30 @@ export default function Admin(): JSX.Element | null {
     bannerUrl:
       'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800',
     introText: 'Welcome to Fade Station. Premium Barbershop Experience.',
-    phoneNumber: '+64 1 234 56789',
-    address: '123 Barbershop Avenue\nAuckland, NZ 1010',
+    phoneNumber: '0483 804 500',
+    address: '1 Fern Court,\nParafield Gardens, SA 5107',
     hours: 'Mon-Fri: 9:00 AM - 6:00 PM\nSat: 9:00 AM - 5:00 PM\nSun: Closed',
   });
   const [barbers, setBarbers] = useState<Barber[]>([]);
+  const [exceptions, setExceptions] = useState<BarberException[]>([]);
   const [loading, setLoading] = useState(true);
   const [settingsId, setSettingsId] = useState<string | null>(null);
   const [showAddBarber, setShowAddBarber] = useState(false);
   const [editingBarber, setEditingBarber] = useState<Barber | null>(null);
   const [newBarber, setNewBarber] = useState({
     name: '',
-    specialty: '',
-    price: '',
-    phone: '',
-    workingDays: [] as string[],
-    avatarFile: null as File | null,
-    avatarPreview: '',
-    uploadingAvatar: false,
+    description: '',
+    status: 'active' as 'active' | 'inactive',
   });
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [exceptionForm, setExceptionForm] = useState({
+    barberId: '',
+    date: '',
+    isDayOff: true,
+    startTime: '',
+    endTime: '',
+  });
+  const [savingException, setSavingException] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -143,7 +122,7 @@ export default function Admin(): JSX.Element | null {
         const { data: barbersData, error: barbersError } = await supabase
           .from('barbers')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: true });
 
         if (barbersError) {
           console.error('Error fetching barbers:', barbersError);
@@ -152,11 +131,29 @@ export default function Admin(): JSX.Element | null {
             barbersData.map((b: DBBarber) => ({
               id: b.id,
               name: b.name,
-              specialty: b.specialty,
-              image: b.image,
-              phone: b.phone || '',
-              price: Number(b.price),
-              workingDays: b.working_days || [],
+              status: b.status as 'active' | 'inactive',
+              description: b.description || '',
+              createdAt: b.created_at || undefined,
+            }))
+          );
+        }
+
+        const { data: exceptionsData, error: exceptionsError } = await supabase
+          .from('barber_exceptions')
+          .select('*')
+          .order('exception_date', { ascending: true });
+
+        if (exceptionsError) {
+          console.error('Error fetching barber exceptions:', exceptionsError);
+        } else if (exceptionsData) {
+          setExceptions(
+            (exceptionsData as DBBarberException[]).map((ex) => ({
+              id: ex.id,
+              barberId: ex.barber_id,
+              date: ex.exception_date,
+              isDayOff: ex.is_day_off,
+              startTime: ex.start_time || '',
+              endTime: ex.end_time || '',
             }))
           );
         }
@@ -215,62 +212,20 @@ export default function Admin(): JSX.Element | null {
     }
   };
 
-  const toggleWorkingDay = (day: string) => {
-    setNewBarber((prev) => {
-      const days = prev.workingDays.includes(day)
-        ? prev.workingDays.filter((d) => d !== day)
-        : [...prev.workingDays, day];
-      return { ...prev, workingDays: days };
-    });
-  };
-
   const handleAddBarber = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !newBarber.name.trim() ||
-      !newBarber.specialty.trim() ||
-      !newBarber.price.trim() ||
-      newBarber.workingDays.length === 0
-    ) {
-      alert('Please fill in all fields and select at least one working day');
+    if (!newBarber.name.trim()) {
+      alert('Please enter a barber name');
       return;
     }
 
     try {
-      let imageUrl =
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200';
-
-      if (newBarber.avatarFile) {
-        setNewBarber((prev) => ({ ...prev, uploadingAvatar: true }));
-        const ext = newBarber.avatarFile.name.split('.').pop() || 'jpg';
-        const fileName = `barbers/${Date.now()}-${Math.random()
-          .toString(36)
-          .slice(2)}.${ext}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('store-assets')
-          .upload(fileName, newBarber.avatarFile, {
-            cacheControl: '3600',
-            upsert: true,
-          });
-
-        if (uploadError) throw uploadError;
-
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from('store-assets').getPublicUrl(fileName);
-        imageUrl = publicUrl;
-      }
-
       const { data, error } = await supabase
         .from('barbers')
         .insert({
-          name: newBarber.name,
-          specialty: newBarber.specialty,
-          image: imageUrl,
-          phone: newBarber.phone.trim() || null,
-          price: Number(newBarber.price),
-          working_days: newBarber.workingDays,
+          name: newBarber.name.trim(),
+          description: newBarber.description.trim() || null,
+          status: newBarber.status,
         })
         .select()
         .single();
@@ -278,27 +233,20 @@ export default function Admin(): JSX.Element | null {
       if (error) throw error;
 
       if (data) {
-        setBarbers([
+        setBarbers((prev) => [
+          ...prev,
           {
             id: data.id,
             name: data.name,
-            specialty: data.specialty,
-            image: data.image,
-            phone: data.phone || '',
-            price: Number(data.price),
-            workingDays: data.working_days || [],
+            status: data.status as 'active' | 'inactive',
+            description: data.description || '',
+            createdAt: data.created_at || undefined,
           },
-          ...barbers,
         ]);
         setNewBarber({
           name: '',
-          specialty: '',
-          price: '',
-          phone: '',
-          workingDays: [],
-          avatarFile: null,
-          avatarPreview: '',
-          uploadingAvatar: false,
+          description: '',
+          status: 'active',
         });
         setShowAddBarber(false);
         alert('Barber added successfully!');
@@ -306,76 +254,34 @@ export default function Admin(): JSX.Element | null {
     } catch (error) {
       console.error('Error adding barber:', error);
       alert('Failed to add barber. Please try again.');
-    } finally {
-      setNewBarber((prev) => ({
-        ...prev,
-        uploadingAvatar: false,
-        avatarFile: null,
-      }));
     }
   };
 
   const handleEditBarber = (barber: Barber) => {
     setEditingBarber(barber);
+    setShowAddBarber(true);
     setNewBarber({
       name: barber.name,
-      specialty: barber.specialty,
-      price: String(barber.price),
-      phone: barber.phone || '',
-      workingDays: barber.workingDays,
-      avatarFile: null,
-      avatarPreview: barber.image,
-      uploadingAvatar: false,
+      description: barber.description || '',
+      status: barber.status,
     });
   };
 
   const handleUpdateBarber = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingBarber) return;
-    if (
-      !newBarber.name.trim() ||
-      !newBarber.specialty.trim() ||
-      !newBarber.price.trim() ||
-      newBarber.workingDays.length === 0
-    ) {
-      alert('Please fill in all fields and select at least one working day');
+    if (!newBarber.name.trim()) {
+      alert('Please enter a barber name');
       return;
     }
 
     try {
-      let imageUrl = editingBarber.image;
-
-      if (newBarber.avatarFile) {
-        setNewBarber((prev) => ({ ...prev, uploadingAvatar: true }));
-        const ext = newBarber.avatarFile.name.split('.').pop() || 'jpg';
-        const fileName = `barbers/${Date.now()}-${Math.random()
-          .toString(36)
-          .slice(2)}.${ext}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('store-assets')
-          .upload(fileName, newBarber.avatarFile, {
-            cacheControl: '3600',
-            upsert: true,
-          });
-
-        if (uploadError) throw uploadError;
-
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from('store-assets').getPublicUrl(fileName);
-        imageUrl = publicUrl;
-      }
-
       const { data, error } = await supabase
         .from('barbers')
         .update({
-          name: newBarber.name,
-          specialty: newBarber.specialty,
-          image: imageUrl,
-          phone: newBarber.phone.trim() || null,
-          price: Number(newBarber.price),
-          working_days: newBarber.workingDays,
+          name: newBarber.name.trim(),
+          description: newBarber.description.trim() || null,
+          status: newBarber.status,
         })
         .eq('id', editingBarber.id)
         .select()
@@ -384,43 +290,30 @@ export default function Admin(): JSX.Element | null {
       if (error) throw error;
 
       if (data) {
-        setBarbers(
-          barbers.map((b) =>
+        setBarbers((prev) =>
+          prev.map((b) =>
             b.id === editingBarber.id
               ? {
                   ...b,
                   name: data.name,
-                  specialty: data.specialty,
-                  image: data.image,
-                  phone: data.phone || '',
-                  price: Number(data.price),
-                  workingDays: data.working_days || [],
+                  status: data.status as 'active' | 'inactive',
+                  description: data.description || '',
                 }
               : b
           )
         );
         setEditingBarber(null);
+        setShowAddBarber(false);
         setNewBarber({
           name: '',
-          specialty: '',
-          price: '',
-          phone: '',
-          workingDays: [],
-          avatarFile: null,
-          avatarPreview: '',
-          uploadingAvatar: false,
+          description: '',
+          status: 'active',
         });
         alert('Barber updated successfully!');
       }
     } catch (error) {
       console.error('Error updating barber:', error);
       alert('Failed to update barber. Please try again.');
-    } finally {
-      setNewBarber((prev) => ({
-        ...prev,
-        uploadingAvatar: false,
-        avatarFile: null,
-      }));
     }
   };
 
@@ -475,17 +368,87 @@ export default function Admin(): JSX.Element | null {
     }
   };
 
+  const handleSaveException = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!exceptionForm.barberId || !exceptionForm.date) {
+      alert('Select a barber and date for the exception');
+      return;
+    }
+    if (
+      !exceptionForm.isDayOff &&
+      (!exceptionForm.startTime.trim() || !exceptionForm.endTime.trim())
+    ) {
+      alert('Specify start and end times or mark as a full day off');
+      return;
+    }
+
+    setSavingException(true);
+    try {
+      const payload = {
+        barber_id: exceptionForm.barberId,
+        exception_date: exceptionForm.date,
+        is_day_off: exceptionForm.isDayOff,
+        start_time: exceptionForm.isDayOff ? null : exceptionForm.startTime,
+        end_time: exceptionForm.isDayOff ? null : exceptionForm.endTime,
+      };
+
+      const { data, error } = await supabase
+        .from('barber_exceptions')
+        .insert(payload)
+        .select()
+        .single<DBBarberException>();
+
+      if (error) throw error;
+
+      if (data) {
+        setExceptions((prev) =>
+          [...prev, {
+            id: data.id,
+            barberId: data.barber_id,
+            date: data.exception_date,
+            isDayOff: data.is_day_off,
+            startTime: data.start_time || '',
+            endTime: data.end_time || '',
+          }].sort((a, b) => a.date.localeCompare(b.date))
+        );
+        setExceptionForm({
+          barberId: '',
+          date: '',
+          isDayOff: true,
+          startTime: '',
+          endTime: '',
+        });
+      }
+    } catch (error) {
+      console.error('Error saving exception:', error);
+      alert('Failed to save exception. Please try again.');
+    } finally {
+      setSavingException(false);
+    }
+  };
+
+  const handleDeleteException = async (id: string) => {
+    if (!window.confirm('Delete this exception?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('barber_exceptions')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setExceptions((prev) => prev.filter((ex) => ex.id !== id));
+    } catch (error) {
+      console.error('Error deleting exception:', error);
+      alert('Failed to delete exception. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       <NavBar />
 
       <div className="mx-auto max-w-7xl px-4 py-12">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Admin Panel</h1>
-          <p className="text-white/60">
-            Manage your store settings and barbers
-          </p>
-        </div>
 
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Store Settings</h2>
@@ -548,7 +511,7 @@ export default function Admin(): JSX.Element | null {
                 }
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
                 rows={1}
-                placeholder="+64 1 234 56789"
+                placeholder="0483 804 500"
               />
             </div>
 
@@ -563,8 +526,8 @@ export default function Admin(): JSX.Element | null {
                 }
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
                 rows={2}
-                placeholder="123 Barbershop Avenue
-Auckland, NZ 1010"
+                placeholder="1 Fern Court,
+Parafield Gardens, SA 5107"
               />
             </div>
 
@@ -605,13 +568,8 @@ Sun: Closed"
                 setEditingBarber(null);
                 setNewBarber({
                   name: '',
-                  specialty: '',
-                  price: '',
-                  phone: '',
-                  workingDays: [],
-                  avatarFile: null,
-                  avatarPreview: '',
-                  uploadingAvatar: false,
+                  description: '',
+                  status: 'active',
                 });
               }}
               className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 transition font-medium text-sm"
@@ -629,39 +587,6 @@ Sun: Closed"
                 onSubmit={editingBarber ? handleUpdateBarber : handleAddBarber}
                 className="space-y-4"
               >
-                <div className="flex flex-col gap-3">
-                  <label className="block text-sm font-medium text-white/70 mb-1">
-                    Avatar
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={
-                        newBarber.avatarPreview ||
-                        editingBarber?.image ||
-                        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200'
-                      }
-                      alt="Preview"
-                      className="w-16 h-16 rounded-xl object-cover border border-white/10 bg-white/5"
-                    />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0] || null;
-                        setNewBarber((prev) => ({
-                          ...prev,
-                          avatarFile: file,
-                          avatarPreview: file ? URL.createObjectURL(file) : '',
-                        }));
-                      }}
-                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-sky-500/90 file:text-white file:cursor-pointer"
-                    />
-                  </div>
-                  {newBarber.uploadingAvatar && (
-                    <p className="text-xs text-sky-400">Uploading image...</p>
-                  )}
-                </div>
-
                 <div>
                   <label className="block text-sm font-medium text-white/70 mb-2">
                     Name
@@ -679,67 +604,36 @@ Sun: Closed"
 
                 <div>
                   <label className="block text-sm font-medium text-white/70 mb-2">
-                    Phone Number
+                    Description
                   </label>
-                  <input
-                    type="tel"
-                    value={newBarber.phone}
+                  <textarea
+                    value={newBarber.description}
                     onChange={(e) =>
-                      setNewBarber({ ...newBarber, phone: e.target.value })
+                      setNewBarber({ ...newBarber, description: e.target.value })
                     }
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50"
-                    placeholder="+64 21 123 4567"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">
-                    Specialty
-                  </label>
-                  <input
-                    type="text"
-                    value={newBarber.specialty}
-                    onChange={(e) =>
-                      setNewBarber({ ...newBarber, specialty: e.target.value })
-                    }
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50"
-                    placeholder="e.g. Fades · Beard · Kids"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">
-                    Price ($)
-                  </label>
-                  <input
-                    type="number"
-                    value={newBarber.price}
-                    onChange={(e) =>
-                      setNewBarber({ ...newBarber, price: e.target.value })
-                    }
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50"
-                    placeholder="45"
+                    rows={3}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
+                    placeholder="Services, styles, or any notes about this barber"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white/70 mb-3">
-                    Working Days
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    Status
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {DAYS_OF_WEEK.map((day) => (
-                      <label
-                        key={day}
-                        className="flex items-center gap-2 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={newBarber.workingDays.includes(day)}
-                          onChange={() => toggleWorkingDay(day)}
-                          className="w-4 h-4 rounded border-white/30 bg-white/5 checked:bg-sky-500 cursor-pointer"
-                        />
-                        <span className="text-sm text-white/70">{day}</span>
-                      </label>
-                    ))}
-                  </div>
+                  <select
+                    value={newBarber.status}
+                    onChange={(e) =>
+                      setNewBarber({
+                        ...newBarber,
+                        status: e.target.value as 'active' | 'inactive',
+                      })
+                    }
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
                 </div>
 
                 <div className="flex gap-2 pt-4">
@@ -756,13 +650,8 @@ Sun: Closed"
                       setEditingBarber(null);
                       setNewBarber({
                         name: '',
-                        specialty: '',
-                        price: '',
-                        phone: '',
-                        workingDays: [],
-                        avatarFile: null,
-                        avatarPreview: '',
-                        uploadingAvatar: false,
+                        description: '',
+                        status: 'active',
                       });
                     }}
                     className="flex-1 px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition font-medium"
@@ -778,42 +667,25 @@ Sun: Closed"
             {barbers.map((barber) => (
               <div
                 key={barber.id}
-                className="bg-white/5 border border-white/10 rounded-xl p-6"
+                className="bg-white/5 border border-white/10 rounded-xl p-6 flex flex-col gap-4"
               >
-                <div className="flex gap-4 mb-4">
-                  <img
-                    src={barber.image}
-                    alt={barber.name}
-                    className="w-16 h-16 rounded-lg object-cover"
-                  />
+                <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">{barber.name}</h3>
-                    <p className="text-sm text-ios-textMuted">
-                      {barber.specialty}
+                    <p className="text-sm text-white/70 mt-1">
+                      {barber.description || 'No description provided.'}
                     </p>
-                    {barber.phone && (
-                      <p className="text-xs text-white/60">{barber.phone}</p>
-                    )}
-                    <p className="text-sky-400 font-medium mt-1">
-                      ${barber.price}
-                    </p>
+                    
                   </div>
-                </div>
-
-                <div className="mb-4 pb-4 border-t border-white/10">
-                  <p className="text-xs text-white/60 mb-2 uppercase">
-                    Working Days
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {barber.workingDays.map((day) => (
-                      <span
-                        key={day}
-                        className="inline-block px-2 py-1 rounded text-xs bg-sky-500/20 border border-sky-500/30 text-sky-300"
-                      >
-                        {day.slice(0, 3)}
-                      </span>
-                    ))}
-                  </div>
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                      barber.status === 'active'
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                        : 'bg-rose-500/20 text-rose-200 border border-rose-500/30'
+                    }`}
+                  >
+                    {barber.status === 'active' ? 'Active' : 'Inactive'}
+                  </span>
                 </div>
 
                 <div className="flex gap-2">
@@ -832,6 +704,162 @@ Sun: Closed"
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="mb-12">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold">Barber Exceptions - mark days off</h2>
+          </div>
+
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+            <form
+              onSubmit={handleSaveException}
+              className="grid gap-4 md:grid-cols-2"
+            >
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-2">
+                  Barber
+                </label>
+                <select
+                  value={exceptionForm.barberId}
+                  onChange={(e) =>
+                    setExceptionForm((prev) => ({
+                      ...prev,
+                      barberId: e.target.value,
+                    }))
+                  }
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                >
+                  <option value="">Select barber...</option>
+                  {barbers.map((barber) => (
+                    <option key={barber.id} value={barber.id}>
+                      {barber.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-2">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={exceptionForm.date}
+                  onChange={(e) =>
+                    setExceptionForm((prev) => ({ ...prev, date: e.target.value }))
+                  }
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-2">
+                  Exception Type
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    id="full-day-off"
+                    type="checkbox"
+                    checked={exceptionForm.isDayOff}
+                    onChange={(e) =>
+                      setExceptionForm((prev) => ({
+                        ...prev,
+                        isDayOff: e.target.checked,
+                        startTime: '',
+                        endTime: '',
+                      }))
+                    }
+                    className="w-4 h-4 rounded border-white/30 bg-white/5 checked:bg-sky-500 cursor-pointer"
+                  />
+                  <label htmlFor="full-day-off" className="text-sm text-white/80">
+                    Mark entire day as off
+                  </label>
+                </div>
+              </div>
+
+              {!exceptionForm.isDayOff && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-2">
+                      Start Time
+                    </label>
+                    <input
+                      type="time"
+                      value={exceptionForm.startTime}
+                      onChange={(e) =>
+                        setExceptionForm((prev) => ({
+                          ...prev,
+                          startTime: e.target.value,
+                        }))
+                      }
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-2">
+                      End Time
+                    </label>
+                    <input
+                      type="time"
+                      value={exceptionForm.endTime}
+                      onChange={(e) =>
+                        setExceptionForm((prev) => ({
+                          ...prev,
+                          endTime: e.target.value,
+                        }))
+                      }
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="md:col-span-2 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={savingException}
+                  className="px-5 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {savingException ? 'Saving...' : 'Add Exception'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div className="mt-6 space-y-3">
+              {exceptions.map((ex) => {
+                const barberName =
+                  barbers.find((b) => b.id === ex.barberId)?.name || 'Unknown barber';
+                const formattedDate = new Date(ex.date + 'T00:00:00').toLocaleDateString(
+                  'en-US',
+                  { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }
+                );
+                return (
+                  <div
+                    key={ex.id}
+                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 flex items-center justify-between gap-4"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-white/90">{barberName}</p>
+                      <p className="text-xs text-white/60">{formattedDate}</p>
+                      <p className="text-xs text-white/70 mt-1">
+                        {ex.isDayOff
+                          ? 'Full day off'
+                          : `Custom hours ${ex.startTime} – ${ex.endTime}`}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteException(ex.id)}
+                      className="text-xs text-rose-300 hover:text-rose-200 border border-rose-500/40 px-3 py-1 rounded-lg"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                );
+              })
+            }
           </div>
         </div>
       </div>

@@ -10,9 +10,20 @@ const dateFormatter = new Intl.DateTimeFormat('en-NZ', {
   day: 'numeric',
 });
 
-function formatDateTime(dateStr: string, timeStr: string) {
+function formatTimeLabel(value?: string | null) {
+  if (!value) return '--:--';
+  return value.slice(0, 5);
+}
+
+function formatDateTime(dateStr: string, timeStr?: string | null) {
+  if (!timeStr) return dateFormatter.format(new Date(dateStr));
   return `${dateFormatter.format(new Date(dateStr))} · ${timeStr}`;
 }
+
+type AppointmentRow = DBAppointment & {
+  barbers?: { name?: string };
+  users?: { name?: string; phone_number?: string; email?: string };
+};
 
 export default function Customers(): JSX.Element {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -29,47 +40,86 @@ export default function Customers(): JSX.Element {
       setLoading(true);
       setError(null);
       try {
-        const { data, error: appointmentsError } = await supabase
-          .from('appointments')
-          .select('*, barbers(name)')
-          .order('appointment_date', { ascending: false })
-          .order('slot_time', { ascending: false });
-
+        const { data: appointmentsData, error: appointmentsError } =
+          await supabase
+            .from('appointments')
+            .select(
+              '*, barbers(name), users:users!appointments_user_id_fkey(name, phone_number, last_login_at)'
+            )
+            .order('appointment_date', { ascending: false })
+            .order('start_time', { ascending: false });
         if (appointmentsError) throw appointmentsError;
 
         const grouped: Record<string, Customer> = {};
-        (
-          data as (DBAppointment & { barbers?: { name?: string } })[] | null
-        )?.forEach((appt) => {
-          const key = appt.customer_phone || appt.customer_name || appt.id;
+        const lastSeen: Record<string, number> = {};
+
+        (appointmentsData as AppointmentRow[] | null)?.forEach((appt) => {
+          const key = appt.user_id || appt.id;
+          const userInfo = appt.users;
+
           if (!grouped[key]) {
             grouped[key] = {
               id: key,
-              name: appt.customer_name || 'Unknown',
-              phone: appt.customer_phone || undefined,
+              name: userInfo?.name || 'Unknown',
+              phone: userInfo?.phone_number || undefined,
+              email: undefined,
               appointments: [],
             };
           }
 
           grouped[key].appointments.push({
             date: appt.appointment_date,
-            time: appt.slot_time,
+            time: `${formatTimeLabel(appt.start_time)} - ${formatTimeLabel(
+              appt.end_time
+            )}`,
             barberName: appt.barbers?.name || undefined,
             status: appt.status,
+            note: appt.note || undefined,
           });
 
-          if (!grouped[key].lastAppointment) {
+          if (!grouped[key].phone && userInfo?.phone_number) {
+            grouped[key].phone = userInfo.phone_number;
+          }
+          if (
+            (!grouped[key].name || grouped[key].name === 'Unknown') &&
+            userInfo?.name
+          ) {
+            grouped[key].name = userInfo.name;
+          }
+          const appointmentTs = Date.parse(
+            `${appt.appointment_date}T${appt.start_time}`
+          );
+          if (
+            !Number.isNaN(appointmentTs) &&
+            appointmentTs > (lastSeen[key] ?? 0)
+          ) {
             grouped[key].lastAppointment = formatDateTime(
               appt.appointment_date,
-              appt.slot_time
+              formatTimeLabel(appt.start_time)
             );
+            lastSeen[key] = appointmentTs;
           }
         });
 
-        setCustomers(Object.values(grouped));
+        const customersArray = Object.values(grouped).sort((a, b) => {
+          const aTs = lastSeen[a.id] ?? 0;
+          const bTs = lastSeen[b.id] ?? 0;
+          if (aTs && bTs) return bTs - aTs;
+          if (aTs) return -1;
+          if (bTs) return 1;
+          return a.name.localeCompare(b.name);
+        });
+
+        setCustomers(customersArray);
       } catch (err) {
         console.error('Error loading customers:', err);
-        setError('Failed to load customer data from Supabase.');
+        const message =
+          err instanceof Error
+            ? err.message
+            : typeof err === 'object'
+            ? JSON.stringify(err)
+            : String(err);
+        setError(`Failed to load customer data from Supabase. ${message}`);
       } finally {
         setLoading(false);
       }
@@ -84,7 +134,8 @@ export default function Customers(): JSX.Element {
     return customers.filter((c) => {
       return (
         c.name.toLowerCase().includes(term) ||
-        c.phone?.toLowerCase().includes(term)
+        c.phone?.toLowerCase().includes(term) ||
+        c.email?.toLowerCase().includes(term)
       );
     });
   }, [customers, search]);
@@ -98,6 +149,12 @@ export default function Customers(): JSX.Element {
           <div>
             <h1 className="text-4xl font-bold tracking-tight">Customers</h1>
           </div>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name, phone, or email…"
+            className="w-full sm:w-72 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+          />
         </header>
 
         {loading && (
@@ -125,10 +182,50 @@ export default function Customers(): JSX.Element {
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
                 <div>
                   <h2 className="text-xl font-semibold">{customer.name}</h2>
-                  <p className="text-sm text-white/60">
-                    {customer.phone || 'No phone'}
+                  <p className="text-sm text-white/70">
+                    {customer.phone || 'No phone on file'}
                   </p>
+                  {customer.email && (
+                    <p className="text-xs text-white/50">{customer.email}</p>
+                  )}
                 </div>
+                
+              </div>
+
+              <div className="space-y-3">
+                {customer.appointments.map((appt, idx) => (
+                  <div
+                    key={`${customer.id}-${idx}`}
+                    className="bg-black/30 border border-white/5 rounded-xl px-4 py-3 flex flex-col gap-1"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-medium text-white/90">{appt.time}</p>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[11px] uppercase tracking-wide ${
+                          appt.status === 'booked'
+                            ? 'bg-emerald-500/15 text-emerald-200 border border-emerald-500/30'
+                            : 'bg-rose-500/15 text-rose-200 border border-rose-500/30'
+                        }`}
+                      >
+                        {appt.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-white/70">
+                      {dateFormatter.format(new Date(appt.date))} ·{' '}
+                      {appt.barberName || 'Any barber'}
+                    </p>
+                    {appt.note && (
+                      <p className="text-xs text-white/60">
+                        Note: {appt.note}
+                      </p>
+                    )}
+                  </div>
+                ))}
+                {customer.appointments.length === 0 && (
+                  <p className="text-sm text-white/50">
+                    No appointments recorded yet.
+                  </p>
+                )}
               </div>
             </section>
           ))}
@@ -137,3 +234,4 @@ export default function Customers(): JSX.Element {
     </div>
   );
 }
+

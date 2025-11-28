@@ -10,7 +10,7 @@ export default function AdminConfirmCode(): JSX.Element | null {
     meta.setAttribute('name', 'description');
     meta.setAttribute(
       'content',
-      'Enter the 8-digit code sent to your email to sign in as admin.'
+      'Enter the 8 digit code sent to your email to sign in as admin.'
     );
     if (!document.querySelector('meta[name="description"]'))
       document.head.appendChild(meta);
@@ -128,21 +128,6 @@ export default function AdminConfirmCode(): JSX.Element | null {
       <div className="flex items-center justify-center p-4 min-h-screen">
         <div className="w-full max-w-md bg-gradient-to-b from-[#0b0b0b] to-[#0d0d0d] border border-ios-border rounded-2xl p-6 shadow-glow">
           <div className="mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500/20 to-cyan-500/20 border border-sky-500/30 flex items-center justify-center mb-3">
-              <svg
-                className="w-6 h-6 text-sky-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                />
-              </svg>
-            </div>
             <h1 className="text-2xl font-bold mb-2">Admin Verification</h1>
             <p className="text-sm text-ios-textMuted mb-4">
               We sent a login code to <strong>{email}</strong>.

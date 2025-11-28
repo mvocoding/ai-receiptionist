@@ -24,24 +24,33 @@ export type StoreSettings = {
 export type Barber = {
   id: string;
   name: string;
-  specialty: string;
-  image: string;
-  phone?: string;
-  price: number;
-  working_days: string[];
+  status: 'active' | 'inactive';
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type BarberException = {
+  id: string;
+  barber_id: string;
+  exception_date: string;
+  is_day_off: boolean;
+  start_time?: string;
+  end_time?: string;
   created_at?: string;
   updated_at?: string;
 };
 
 export type Appointment = {
   id: string;
+  user_id?: string;
   barber_id: string;
-  customer_name?: string;
-  customer_phone?: string;
   appointment_date: string;
-  slot_time: string;
+  start_time: string;
+  end_time: string;
   status: string;
-  notes?: string;
+  note?: string | null;
+  created_by?: string | null;
   created_at?: string;
   updated_at?: string;
 };
@@ -70,9 +79,20 @@ export type CommunicationMessage = {
   message_time?: string;
 };
 
+export type Conversation = {
+  id: string;
+  user_id?: string;
+  phone_number: string;
+  messages: any[];
+  created_at?: string;
+  updated_at?: string;
+};
+
 export type User = {
   id: string;
-  email: string;
+  email?: string;
+  phone_number?: string;
+  name?: string;
   created_at?: string;
   last_login_at?: string;
   updated_at?: string;
@@ -80,9 +100,26 @@ export type User = {
 
 export type AIKnowledge = {
   id: string;
-  nodes: any[]; 
-  connections: any[]; 
+  nodes: any[];
+  connections: any[];
   next_id: number;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type AgentSettings = {
+  id: string;
+  greeting: string;
+  prompt_sections: any[];
+  channel: 'call' | 'sms';
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type AgentFunctionDescription = {
+  id: string;
+  function_name: string;
+  description: string;
   created_at?: string;
   updated_at?: string;
 };
