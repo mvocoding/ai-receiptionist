@@ -2,20 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export default function AdminConfirmCode(): JSX.Element | null {
-  useEffect(() => {
-    document.title = 'Admin Confirm Code · Fade Station';
-    const meta =
-      document.querySelector('meta[name="description"]') ??
-      document.createElement('meta');
-    meta.setAttribute('name', 'description');
-    meta.setAttribute(
-      'content',
-      'Enter the 8 digit code sent to your email to sign in as admin.'
-    );
-    if (!document.querySelector('meta[name="description"]'))
-      document.head.appendChild(meta);
-  }, []);
-
   const [email, setEmail] = useState<string | null>(null);
   const [codeInput, setCodeInput] = useState('');
   const [error, setError] = useState<string | null>(null);

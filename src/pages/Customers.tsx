@@ -31,10 +31,6 @@ export default function Customers(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = 'Fade Station · Customers';
-  }, []);
-
-  useEffect(() => {
     const fetchCustomers = async () => {
       setLoading(true);
       setError(null);

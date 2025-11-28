@@ -26,27 +26,31 @@ type ExceptionMap = Record<
 >;
 
 export default function Barbers(): JSX.Element {
-  useEffect(() => {
-    document.title = 'Fade Station · Barbers';
-  }, []);
-
   const [day, setDay] = useState(() => new Date());
   const [barberList, setBarberList] = useState<BarberView[]>([]);
   const [busyBarber, setBusyBarber] = useState(true);
   const [slotBusy, setSlotBusy] = useState(false);
-  const [slotByBarber, setSlotByBarber] = useState<Record<string, AppointmentView[]>>({});
+  const [slotByBarber, setSlotByBarber] = useState<
+    Record<string, AppointmentView[]>
+  >({});
   const [excByBarber, setExcByBarber] = useState<ExceptionMap>({});
   const [modalInfo, setModalInfo] = useState<AppointmentView | null>(null);
   const [errText, setErrText] = useState<string | null>(null);
 
   const dayText = useMemo(() => formatDate(day), [day]);
-  const slotList = useMemo(() => makeSlotList(slotConfig.open, slotConfig.close, slotConfig.step), []);
+  const slotList = useMemo(
+    () => makeSlotList(slotConfig.open, slotConfig.close, slotConfig.step),
+    []
+  );
 
   useEffect(() => {
     async function loadBarber() {
       setBusyBarber(true);
       try {
-        const { data, error } = await supabase.from('barbers').select('*').order('created_at', { ascending: true });
+        const { data, error } = await supabase
+          .from('barbers')
+          .select('*')
+          .order('created_at', { ascending: true });
         if (error) throw error;
         setBarberList(
           (data as DBBarber[] | null)?.map((item) => ({
@@ -135,7 +139,6 @@ export default function Barbers(): JSX.Element {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
             <h1 className="text-3xl font-semibold">Barbers Availability</h1>
-            
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -186,17 +189,21 @@ export default function Barbers(): JSX.Element {
                 >
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>
-                      <p className="text-sm text-white/60">{barber.status === 'active' ? 'Active' : 'Inactive'} barber</p>
+                      <p className="text-sm text-white/60">
+                        {barber.status === 'active' ? 'Active' : 'Inactive'}{' '}
+                        barber
+                      </p>
                       <h2 className="text-xl font-semibold">{barber.name}</h2>
                       {excInfo && (
                         <p className="text-xs mt-1 text-amber-200">
                           {excInfo.isDayOff
                             ? 'Marked as day off'
-                            : `Custom hours ${excInfo.start ?? '--:--'} – ${excInfo.end ?? '--:--'}`}
+                            : `Custom hours ${excInfo.start ?? '--:--'} – ${
+                                excInfo.end ?? '--:--'
+                              }`}
                         </p>
                       )}
                     </div>
-                    
                   </div>
 
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
@@ -222,7 +229,9 @@ export default function Barbers(): JSX.Element {
                       );
                     })}
                   </div>
-                  {slotBusy && <p className="text-xs text-white/40">Refreshing slots…</p>}
+                  {slotBusy && (
+                    <p className="text-xs text-white/40">Refreshing slots…</p>
+                  )}
                 </section>
               );
             })}
@@ -248,20 +257,27 @@ export default function Barbers(): JSX.Element {
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="bg-white/5 border border-white/10 rounded-xl p-4">
                 <p className="text-white/50 text-xs mb-1">Date</p>
-                <p className="font-medium">{formatPretty(modalInfo.appointment_date)}</p>
+                <p className="font-medium">
+                  {formatPretty(modalInfo.appointment_date)}
+                </p>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-xl p-4">
                 <p className="text-white/50 text-xs mb-1">Time</p>
                 <p className="font-medium">
-                  {cutTime(modalInfo.start_time)} – {cutTime(modalInfo.end_time)}
+                  {cutTime(modalInfo.start_time)} –{' '}
+                  {cutTime(modalInfo.end_time)}
                 </p>
               </div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2 text-sm">
               <p className="text-white/50 text-xs">Customer</p>
               <p className="font-medium">{modalInfo.users?.name || '-'}</p>
-              <p className="text-white/60">{modalInfo.users?.phone_number || 'No phone'}</p>
-              {modalInfo.note && <p className="text-white/70">{modalInfo.note}</p>}
+              <p className="text-white/60">
+                {modalInfo.users?.phone_number || 'No phone'}
+              </p>
+              {modalInfo.note && (
+                <p className="text-white/70">{modalInfo.note}</p>
+              )}
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-sm">
               <p className="text-white/50 text-xs mb-1">Status</p>
@@ -317,10 +333,13 @@ function buildAllowedSet(
   if (info.isDayOff) return new Set<string>();
   const set = new Set<string>();
   slots.forEach((slot: string) => {
-    if (!info.start || !info.end || (slot >= (info.start || '00:00') && slot <= (info.end || '23:59'))) {
+    if (
+      !info.start ||
+      !info.end ||
+      (slot >= (info.start || '00:00') && slot <= (info.end || '23:59'))
+    ) {
       set.add(slot);
     }
   });
   return set;
 }
-

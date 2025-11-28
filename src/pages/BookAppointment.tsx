@@ -7,6 +7,76 @@ import {
   type BarberException as DBBarberException,
 } from '../lib/supabase';
 
+function formatIso(date: Date) {
+  return date.toISOString().split('T')[0];
+}
+
+function cutTime(time?: string | null) {
+  if (!time) return '';
+  return time.slice(0, 5);
+}
+
+function addMinutes(time: string, minute: number) {
+  const [h, m] = time.split(':').map(Number);
+  const total = h * 60 + m + minute;
+  const hh = String(Math.floor(total / 60)).padStart(2, '0');
+  const mm = String(total % 60).padStart(2, '0');
+  return `${hh}:${mm}:00`;
+}
+
+async function ensureUser(name: string, phone: string): Promise<string | null> {
+  const phoneClean = phone.replace(/\s+/g, '');
+  if (!phoneClean) return null;
+  const { data: existed, error } = await supabase
+    .from('users')
+    .select('id, name')
+    .eq('phone_number', phoneClean)
+    .maybeSingle();
+  if (error && error.code !== 'PGRST116') throw error;
+  if (existed) {
+    if (name && existed.name !== name) {
+      await supabase.from('users').update({ name }).eq('id', existed.id);
+    }
+    return existed.id;
+  }
+  const { data: inserted, error: insertError } = await supabase
+    .from('users')
+    .insert({ phone_number: phoneClean, name: name || null })
+    .select('id')
+    .single();
+  if (insertError) throw insertError;
+  return inserted.id;
+}
+
+function createSlotAllowMap(exc: ExceptionInfo) {
+  if (!exc || (!exc.start && !exc.end)) {
+    return new Set(slotList);
+  }
+  if (exc.isDayOff) return new Set<string>();
+  const allow = new Set<string>();
+  slotList.forEach((slot) => {
+    if (!exc.start || !exc.end || (slot >= exc.start && slot <= exc.end)) {
+      allow.add(slot);
+    }
+  });
+  return allow;
+}
+
+function InfoRow({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <p className="text-sm text-white/60 mb-1">{title}</p>
+      <div className="text-white/80 text-sm space-y-1">{children}</div>
+    </div>
+  );
+}
+
 const slotList = [
   '09:00',
   '09:30',
@@ -61,7 +131,9 @@ export default function BookAppointment(): JSX.Element {
   const [busySlot, setBusySlot] = useState(false);
   const [slotTaken, setSlotTaken] = useState<string[]>([]);
   const [dayException, setDayException] = useState<ExceptionInfo>(null);
-  const [bookState, setBookState] = useState<'idle' | 'saving' | 'done'>('idle');
+  const [bookState, setBookState] = useState<'idle' | 'saving' | 'done'>(
+    'idle'
+  );
   const [bookError, setBookError] = useState<string | null>(null);
 
   const [form, setForm] = useState<BookingForm>({
@@ -76,7 +148,10 @@ export default function BookAppointment(): JSX.Element {
   useEffect(() => {
     async function loadStore() {
       try {
-        const { data, error } = await supabase.from('store_settings').select('*').single();
+        const { data, error } = await supabase
+          .from('store_settings')
+          .select('*')
+          .single();
         if (error) throw error;
         if (data) {
           setStoreInfo({
@@ -139,7 +214,10 @@ export default function BookAppointment(): JSX.Element {
           .eq('appointment_date', form.date)
           .not('status', 'eq', 'cancelled');
         if (error) throw error;
-        const busy = (data as DBAppointment[] | null)?.map((item) => cutTime(item.start_time)) || [];
+        const busy =
+          (data as DBAppointment[] | null)?.map((item) =>
+            cutTime(item.start_time)
+          ) || [];
         setSlotTaken(busy);
 
         const { data: exData, error: exError } = await supabase
@@ -173,7 +251,13 @@ export default function BookAppointment(): JSX.Element {
   async function handleBook(e: React.FormEvent) {
     e.preventDefault();
     setBookError(null);
-    if (!form.barberId || !form.date || !form.time || !form.name.trim() || !form.phone.trim()) {
+    if (
+      !form.barberId ||
+      !form.date ||
+      !form.time ||
+      !form.name.trim() ||
+      !form.phone.trim()
+    ) {
       setBookError('Please fill all required information.');
       return;
     }
@@ -200,7 +284,14 @@ export default function BookAppointment(): JSX.Element {
       setSlotTaken((prev) => [...prev, form.time]);
       setTimeout(() => {
         setBookState('idle');
-        setForm({ barberId: '', date: '', time: '', name: '', phone: '', notes: '' });
+        setForm({
+          barberId: '',
+          date: '',
+          time: '',
+          name: '',
+          phone: '',
+          notes: '',
+        });
       }, 1400);
     } catch (err) {
       console.error('book fail', err);
@@ -224,7 +315,8 @@ export default function BookAppointment(): JSX.Element {
               alt="Fade Station"
               className="w-full h-96 object-cover"
               onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = fallbackStore.bannerUrl;
+                (e.currentTarget as HTMLImageElement).src =
+                  fallbackStore.bannerUrl;
               }}
             />
           </div>
@@ -240,7 +332,10 @@ export default function BookAppointment(): JSX.Element {
             </InfoRow>
             <InfoRow title="ADDRESS">
               {storeInfo.address.split('\n').map((line, idx) => (
-                <p key={`${line}-${idx}`} className={idx === 0 ? 'font-medium' : ''}>
+                <p
+                  key={`${line}-${idx}`}
+                  className={idx === 0 ? 'font-medium' : ''}
+                >
                   {line}
                 </p>
               ))}
@@ -270,15 +365,24 @@ export default function BookAppointment(): JSX.Element {
                 <button
                   key={barber.id}
                   onClick={() =>
-                    setForm((prev) => ({ ...prev, barberId: barber.id, date: '', time: '' }))
+                    setForm((prev) => ({
+                      ...prev,
+                      barberId: barber.id,
+                      date: '',
+                      time: '',
+                    }))
                   }
                   disabled={barber.status !== 'active'}
                   className={`rounded-xl border border-white/10 p-5 text-left transition ${
-                    form.barberId === barber.id ? 'ring-2 ring-sky-500 bg-white/5' : 'bg-black/40'
+                    form.barberId === barber.id
+                      ? 'ring-2 ring-sky-500 bg-white/5'
+                      : 'bg-black/40'
                   } ${barber.status !== 'active' ? 'opacity-40' : ''}`}
                 >
                   <h3 className="text-xl font-semibold">{barber.name}</h3>
-                  <p className="text-sm text-white/60 mt-1">{barber.desc || 'No desc'}</p>
+                  <p className="text-sm text-white/60 mt-1">
+                    {barber.desc || 'No desc'}
+                  </p>
                   <p className="text-xs mt-3">
                     Status:{' '}
                     <span className="font-medium">
@@ -300,7 +404,13 @@ export default function BookAppointment(): JSX.Element {
                   type="date"
                   value={form.date}
                   min={formatIso(today)}
-                  onChange={(e) => setForm((prev) => ({ ...prev, date: e.target.value, time: '' }))}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      date: e.target.value,
+                      time: '',
+                    }))
+                  }
                   className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/40"
                 />
                 {form.date && (
@@ -321,7 +431,8 @@ export default function BookAppointment(): JSX.Element {
                 )}
                 {!dayException?.isDayOff && dayException && (
                   <p className="text-amber-200 text-sm mb-3">
-                    Custom hours {dayException.start ?? '--:--'} – {dayException.end ?? '--:--'}
+                    Custom hours {dayException.start ?? '--:--'} –{' '}
+                    {dayException.end ?? '--:--'}
                   </p>
                 )}
                 {busySlot ? (
@@ -336,7 +447,9 @@ export default function BookAppointment(): JSX.Element {
                         <button
                           key={slot}
                           disabled={disabled}
-                          onClick={() => setForm((prev) => ({ ...prev, time: slot }))}
+                          onClick={() =>
+                            setForm((prev) => ({ ...prev, time: slot }))
+                          }
                           className={`px-3 py-2 rounded-lg text-sm border ${
                             taken
                               ? 'bg-rose-500/20 border-rose-500/40 text-rose-200'
@@ -357,33 +470,48 @@ export default function BookAppointment(): JSX.Element {
             )}
 
             {form.date && form.time && (
-              <form onSubmit={handleBook} className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+              <form
+                onSubmit={handleBook}
+                className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4"
+              >
                 <h3 className="text-2xl font-semibold">Customer info</h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-white/60 mb-1">Full name *</label>
+                    <label className="block text-sm text-white/60 mb-1">
+                      Full name *
+                    </label>
                     <input
                       value={form.name}
-                      onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                      onChange={(e) =>
+                        setForm((prev) => ({ ...prev, name: e.target.value }))
+                      }
                       className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/40"
                       placeholder="Nguyen Van A"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-white/60 mb-1">Phone *</label>
+                    <label className="block text-sm text-white/60 mb-1">
+                      Phone *
+                    </label>
                     <input
                       value={form.phone}
-                      onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
+                      onChange={(e) =>
+                        setForm((prev) => ({ ...prev, phone: e.target.value }))
+                      }
                       className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/40"
                       placeholder="0483 804 500"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm text-white/60 mb-1">Notes</label>
+                  <label className="block text-sm text-white/60 mb-1">
+                    Notes
+                  </label>
                   <textarea
                     value={form.notes}
-                    onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, notes: e.target.value }))
+                    }
                     rows={3}
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/40"
                   />
@@ -401,7 +529,9 @@ export default function BookAppointment(): JSX.Element {
                 <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={() => setForm((prev) => ({ ...prev, date: '', time: '' }))}
+                    onClick={() =>
+                      setForm((prev) => ({ ...prev, date: '', time: '' }))
+                    }
                     className="flex-1 px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition"
                   >
                     Back
@@ -422,68 +552,3 @@ export default function BookAppointment(): JSX.Element {
     </div>
   );
 }
-
-function formatIso(date: Date) {
-  return date.toISOString().split('T')[0];
-}
-
-function cutTime(time?: string | null) {
-  if (!time) return '';
-  return time.slice(0, 5);
-}
-
-function addMinutes(time: string, minute: number) {
-  const [h, m] = time.split(':').map(Number);
-  const total = h * 60 + m + minute;
-  const hh = String(Math.floor(total / 60)).padStart(2, '0');
-  const mm = String(total % 60).padStart(2, '0');
-  return `${hh}:${mm}:00`;
-}
-
-async function ensureUser(name: string, phone: string): Promise<string | null> {
-  const phoneClean = phone.replace(/\s+/g, '');
-  if (!phoneClean) return null;
-  const { data: existed, error } = await supabase
-    .from('users')
-    .select('id, name')
-    .eq('phone_number', phoneClean)
-    .maybeSingle();
-  if (error && error.code !== 'PGRST116') throw error;
-  if (existed) {
-    if (name && existed.name !== name) {
-      await supabase.from('users').update({ name }).eq('id', existed.id);
-    }
-    return existed.id;
-  }
-  const { data: inserted, error: insertError } = await supabase
-    .from('users')
-    .insert({ phone_number: phoneClean, name: name || null })
-    .select('id')
-    .single();
-  if (insertError) throw insertError;
-  return inserted.id;
-}
-
-function createSlotAllowMap(exc: ExceptionInfo) {
-  if (!exc || (!exc.start && !exc.end)) {
-    return new Set(slotList);
-  }
-  if (exc.isDayOff) return new Set<string>();
-  const allow = new Set<string>();
-  slotList.forEach((slot) => {
-    if (!exc.start || !exc.end || (slot >= exc.start && slot <= exc.end)) {
-      allow.add(slot);
-    }
-  });
-  return allow;
-}
-
-function InfoRow({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="text-sm text-white/60 mb-1">{title}</p>
-      <div className="text-white/80 text-sm space-y-1">{children}</div>
-    </div>
-  );
-}
-

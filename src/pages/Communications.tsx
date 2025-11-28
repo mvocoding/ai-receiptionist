@@ -19,17 +19,15 @@ export default function Communications(): JSX.Element {
   const [errText, setErrText] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = 'Fade Station · Communications';
-  }, []);
-
-  useEffect(() => {
     async function loadConvo() {
       setLoading(true);
       setErrText(null);
       try {
         const { data, error } = await supabase
           .from('conversations')
-          .select('*, users:users!conversations_user_id_fkey(name, phone_number)')
+          .select(
+            '*, users:users!conversations_user_id_fkey(name, phone_number)'
+          )
           .order('updated_at', { ascending: false });
 
         if (error) throw error;
@@ -39,7 +37,9 @@ export default function Communications(): JSX.Element {
             const joinedUser = (item as any)?.users;
             const msgList = Array.isArray(item.messages) ? item.messages : [];
             const cleanMsg: Message[] = msgList.map((msg) => {
-              const senderRaw = String(msg?.sender ?? msg?.role ?? 'system').toLowerCase();
+              const senderRaw = String(
+                msg?.sender ?? msg?.role ?? 'system'
+              ).toLowerCase();
               const sender: Message['sender'] =
                 senderRaw === 'customer' || senderRaw === 'user'
                   ? 'customer'
@@ -47,11 +47,17 @@ export default function Communications(): JSX.Element {
                   ? 'ai'
                   : 'system';
               const text =
-                msg?.message ?? msg?.text ?? msg?.content ?? msg?.body ?? '[no message]';
+                msg?.message ??
+                msg?.text ??
+                msg?.content ??
+                msg?.body ??
+                '[no message]';
               return {
                 sender,
                 message: typeof text === 'string' ? text : JSON.stringify(text),
-                time: readableMsgTime(msg?.timestamp ?? msg?.created_at ?? msg?.time ?? null),
+                time: readableMsgTime(
+                  msg?.timestamp ?? msg?.created_at ?? msg?.time ?? null
+                ),
               };
             });
 
@@ -95,7 +101,11 @@ export default function Communications(): JSX.Element {
           </p>
         </header>
 
-        {loading && <p className="text-center text-white/70 py-8">Loading conversations…</p>}
+        {loading && (
+          <p className="text-center text-white/70 py-8">
+            Loading conversations…
+          </p>
+        )}
         {!loading && errText && (
           <div className="text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4">
             {errText}

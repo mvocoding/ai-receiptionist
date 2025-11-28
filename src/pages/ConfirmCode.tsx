@@ -3,20 +3,6 @@ import NavBar from '../components/NavBar';
 import { supabase } from '../lib/supabase';
 
 export default function ConfirmCode(): JSX.Element | null {
-  useEffect(() => {
-    document.title = 'Confirm code · Fade Station';
-    const meta =
-      document.querySelector('meta[name="description"]') ??
-      document.createElement('meta');
-    meta.setAttribute('name', 'description');
-    meta.setAttribute(
-      'content',
-      'Enter the 8-digit code sent to your email to sign in.'
-    );
-    if (!document.querySelector('meta[name="description"]'))
-      document.head.appendChild(meta);
-  }, []);
-
   const [email, setEmail] = useState<string | null>(null);
   const [codeInput, setCodeInput] = useState('');
   const [error, setError] = useState<string | null>(null);

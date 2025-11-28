@@ -2,20 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export default function AdminSignIn(): JSX.Element {
-  useEffect(() => {
-    document.title = 'Admin Sign In · Fade Station';
-    const meta =
-      document.querySelector('meta[name="description"]') ??
-      document.createElement('meta');
-    meta.setAttribute('name', 'description');
-    meta.setAttribute(
-      'content',
-      'Admin sign in to Fade Station (enter your email to receive a code)'
-    );
-    if (!document.querySelector('meta[name="description"]'))
-      document.head.appendChild(meta);
-  }, []);
-
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);

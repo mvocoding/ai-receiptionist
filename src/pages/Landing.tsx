@@ -23,20 +23,6 @@ const features = [
 ];
 
 export default function Landing(): JSX.Element {
-  useEffect(() => {
-    document.title = 'Fade Station · AI Receptionist';
-    const meta =
-      document.querySelector('meta[name="description"]') ||
-      document.createElement('meta');
-    meta.setAttribute('name', 'description');
-    meta.setAttribute(
-      'content',
-      'Intelligent AI Receptionist for Your Barbershop · Never Miss a Call'
-    );
-    if (!document.querySelector('meta[name="description"]'))
-      document.head.appendChild(meta);
-  }, []);
-
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       <NavBar />

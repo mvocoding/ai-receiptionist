@@ -16,20 +16,6 @@ function CheckboxIcon(): JSX.Element {
 }
 
 export default function SignIn(): JSX.Element {
-  useEffect(() => {
-    document.title = 'Sign in · Fade Station';
-    const meta =
-      document.querySelector('meta[name="description"]') ??
-      document.createElement('meta');
-    meta.setAttribute('name', 'description');
-    meta.setAttribute(
-      'content',
-      'Sign in to Fade Station (enter your email to receive a code)'
-    );
-    if (!document.querySelector('meta[name="description"]'))
-      document.head.appendChild(meta);
-  }, []);
-
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
