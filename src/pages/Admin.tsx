@@ -7,7 +7,11 @@ import {
   type BarberException as DBBarberException,
 } from '../lib/supabase';
 
-import type { Barber, BarberException, StoreSettings } from '../lib/types-global';
+import type {
+  Barber,
+  BarberException,
+  StoreSettings,
+} from '../lib/types-global';
 
 export default function Admin(): JSX.Element | null {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -402,14 +406,17 @@ export default function Admin(): JSX.Element | null {
 
       if (data) {
         setExceptions((prev) =>
-          [...prev, {
-            id: data.id,
-            barberId: data.barber_id,
-            date: data.exception_date,
-            isDayOff: data.is_day_off,
-            startTime: data.start_time || '',
-            endTime: data.end_time || '',
-          }].sort((a, b) => a.date.localeCompare(b.date))
+          [
+            ...prev,
+            {
+              id: data.id,
+              barberId: data.barber_id,
+              date: data.exception_date,
+              isDayOff: data.is_day_off,
+              startTime: data.start_time || '',
+              endTime: data.end_time || '',
+            },
+          ].sort((a, b) => a.date.localeCompare(b.date))
         );
         setExceptionForm({
           barberId: '',
@@ -449,7 +456,6 @@ export default function Admin(): JSX.Element | null {
       <NavBar />
 
       <div className="mx-auto max-w-7xl px-4 py-12">
-
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Store Settings</h2>
           <div className="bg-white/5 border border-white/10 rounded-xl p-6 space-y-6">
@@ -474,9 +480,6 @@ export default function Admin(): JSX.Element | null {
               {uploadingBanner && (
                 <p className="text-xs text-sky-400 mt-2">Uploading...</p>
               )}
-              <p className="text-xs text-ios-textMuted mt-2">
-                Recommended size: 1200x400px
-              </p>
             </div>
 
             <div>
@@ -531,7 +534,6 @@ Parafield Gardens, SA 5107"
               />
             </div>
 
-            {/* Hours */}
             <div>
               <label className="block text-sm font-medium text-white/70 mb-2">
                 Hours
@@ -609,7 +611,10 @@ Sun: Closed"
                   <textarea
                     value={newBarber.description}
                     onChange={(e) =>
-                      setNewBarber({ ...newBarber, description: e.target.value })
+                      setNewBarber({
+                        ...newBarber,
+                        description: e.target.value,
+                      })
                     }
                     rows={3}
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
@@ -675,7 +680,6 @@ Sun: Closed"
                     <p className="text-sm text-white/70 mt-1">
                       {barber.description || 'No description provided.'}
                     </p>
-                    
                   </div>
                   <span
                     className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
@@ -709,7 +713,9 @@ Sun: Closed"
 
         <div className="mb-12">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold">Barber Exceptions - mark days off</h2>
+            <h2 className="text-2xl font-bold">
+              Barber Exceptions - mark days off
+            </h2>
           </div>
 
           <div className="bg-white/5 border border-white/10 rounded-xl p-6">
@@ -748,7 +754,10 @@ Sun: Closed"
                   type="date"
                   value={exceptionForm.date}
                   onChange={(e) =>
-                    setExceptionForm((prev) => ({ ...prev, date: e.target.value }))
+                    setExceptionForm((prev) => ({
+                      ...prev,
+                      date: e.target.value,
+                    }))
                   }
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50"
                 />
@@ -773,7 +782,10 @@ Sun: Closed"
                     }
                     className="w-4 h-4 rounded border-white/30 bg-white/5 checked:bg-sky-500 cursor-pointer"
                   />
-                  <label htmlFor="full-day-off" className="text-sm text-white/80">
+                  <label
+                    htmlFor="full-day-off"
+                    className="text-sm text-white/80"
+                  >
                     Mark entire day as off
                   </label>
                 </div>
@@ -829,37 +841,43 @@ Sun: Closed"
           </div>
 
           <div className="mt-6 space-y-3">
-              {exceptions.map((ex) => {
-                const barberName =
-                  barbers.find((b) => b.id === ex.barberId)?.name || 'Unknown barber';
-                const formattedDate = new Date(ex.date + 'T00:00:00').toLocaleDateString(
-                  'en-US',
-                  { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }
-                );
-                return (
-                  <div
-                    key={ex.id}
-                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 flex items-center justify-between gap-4"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-white/90">{barberName}</p>
-                      <p className="text-xs text-white/60">{formattedDate}</p>
-                      <p className="text-xs text-white/70 mt-1">
-                        {ex.isDayOff
-                          ? 'Full day off'
-                          : `Custom hours ${ex.startTime} – ${ex.endTime}`}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteException(ex.id)}
-                      className="text-xs text-rose-300 hover:text-rose-200 border border-rose-500/40 px-3 py-1 rounded-lg"
-                    >
-                      Delete
-                    </button>
+            {exceptions.map((ex) => {
+              const barberName =
+                barbers.find((b) => b.id === ex.barberId)?.name ||
+                'Unknown barber';
+              const formattedDate = new Date(
+                ex.date + 'T00:00:00'
+              ).toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              });
+              return (
+                <div
+                  key={ex.id}
+                  className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 flex items-center justify-between gap-4"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-white/90">
+                      {barberName}
+                    </p>
+                    <p className="text-xs text-white/60">{formattedDate}</p>
+                    <p className="text-xs text-white/70 mt-1">
+                      {ex.isDayOff
+                        ? 'Full day off'
+                        : `Custom hours ${ex.startTime} – ${ex.endTime}`}
+                    </p>
                   </div>
-                );
-              })
-            }
+                  <button
+                    onClick={() => handleDeleteException(ex.id)}
+                    className="text-xs text-rose-300 hover:text-rose-200 border border-rose-500/40 px-3 py-1 rounded-lg"
+                  >
+                    Delete
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

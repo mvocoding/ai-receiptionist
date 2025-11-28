@@ -9,7 +9,6 @@ import ConfirmCode from './pages/ConfirmCode';
 import AdminSignIn from './pages/AdminSignIn';
 import AdminConfirmCode from './pages/AdminConfirmCode';
 import BookAppointment from './pages/BookAppointment';
-import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
 import Customers from './pages/Customers';
 
@@ -77,14 +76,11 @@ export default function App(): JSX.Element {
     return <BookAppointment />;
 
   if (
-    p === '/admin/dashboard' ||
-    p === '/dashboard' ||
-    p.toLowerCase().includes('admin/dashboard') ||
-    p.toLowerCase().includes('dashboard')
+    p === '/admin' ||
+    (p.toLowerCase().includes('admin') &&
+      !p.toLowerCase().includes('admin/signin') &&
+      !p.toLowerCase().includes('admin/confirm'))
   )
-    return <Dashboard />;
-
-  if (p === '/admin' || (p.toLowerCase().includes('admin') && !p.toLowerCase().includes('admin/signin') && !p.toLowerCase().includes('admin/confirm')))
     return <Admin />;
 
   if (p === '/customers' || p.toLowerCase().includes('customers'))

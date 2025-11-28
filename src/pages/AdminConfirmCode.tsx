@@ -193,4 +193,3 @@ export default function AdminConfirmCode(): JSX.Element | null {
     </div>
   );
 }
-

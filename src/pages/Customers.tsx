@@ -29,7 +29,6 @@ export default function Customers(): JSX.Element {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
 
   useEffect(() => {
     document.title = 'Fade Station · Customers';
@@ -128,18 +127,6 @@ export default function Customers(): JSX.Element {
     fetchCustomers();
   }, []);
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return customers;
-    const term = search.trim().toLowerCase();
-    return customers.filter((c) => {
-      return (
-        c.name.toLowerCase().includes(term) ||
-        c.phone?.toLowerCase().includes(term) ||
-        c.email?.toLowerCase().includes(term)
-      );
-    });
-  }, [customers, search]);
-
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       <NavBar />
@@ -149,12 +136,6 @@ export default function Customers(): JSX.Element {
           <div>
             <h1 className="text-4xl font-bold tracking-tight">Customers</h1>
           </div>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name, phone, or email…"
-            className="w-full sm:w-72 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-          />
         </header>
 
         {loading && (
@@ -167,14 +148,14 @@ export default function Customers(): JSX.Element {
             {error}
           </div>
         )}
-        {!loading && filtered.length === 0 && (
+        {!loading && customers.length === 0 && (
           <div className="text-white/60 text-center py-12 border border-dashed border-white/20 rounded-2xl">
             No customers found.
           </div>
         )}
 
         <div className="grid gap-4">
-          {filtered.map((customer) => (
+          {customers.map((customer) => (
             <section
               key={customer.id}
               className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition"
@@ -189,7 +170,6 @@ export default function Customers(): JSX.Element {
                     <p className="text-xs text-white/50">{customer.email}</p>
                   )}
                 </div>
-                
               </div>
 
               <div className="space-y-3">
@@ -215,9 +195,7 @@ export default function Customers(): JSX.Element {
                       {appt.barberName || 'Any barber'}
                     </p>
                     {appt.note && (
-                      <p className="text-xs text-white/60">
-                        Note: {appt.note}
-                      </p>
+                      <p className="text-xs text-white/60">Note: {appt.note}</p>
                     )}
                   </div>
                 ))}
@@ -234,4 +212,3 @@ export default function Customers(): JSX.Element {
     </div>
   );
 }
-
