@@ -5,6 +5,16 @@ import type { Message, Comm } from '../lib/types-global';
 
 type Props = { id?: string };
 
+function toLongTime(ts?: string | null) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleString();
+}
+
+function toShortTime(ts?: string | null) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleTimeString();
+}
+
 export default function CommunicationDetail({ id }: Props): JSX.Element {
   const targetId = useMemo(() => {
     if (id) return id;
@@ -29,7 +39,9 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
       try {
         const { data, error } = await supabase
           .from('conversations')
-          .select('*, users:users!conversations_user_id_fkey(name, phone_number)')
+          .select(
+            '*, users:users!conversations_user_id_fkey(name, phone_number)'
+          )
           .eq('id', targetId)
           .maybeSingle<DBConversation>();
 
@@ -42,7 +54,9 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
         const listMsg = Array.isArray(data.messages) ? data.messages : [];
         const cleanMsg: Message[] =
           listMsg.map((msg: any) => {
-            const senderRaw = String(msg?.sender ?? msg?.role ?? 'system').toLowerCase();
+            const senderRaw = String(
+              msg?.sender ?? msg?.role ?? 'system'
+            ).toLowerCase();
             const sender: Message['sender'] =
               senderRaw === 'customer' || senderRaw === 'user'
                 ? 'customer'
@@ -50,11 +64,15 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
                 ? 'ai'
                 : 'system';
             const text =
-              msg?.message ?? msg?.text ?? msg?.content ?? msg?.body ?? '[no message]';
+              msg?.message ??
+              msg?.text ??
+              msg?.content ??
+              msg?.body ??
+              '[no message]';
             return {
               sender,
               message: typeof text === 'string' ? text : JSON.stringify(text),
-              time: shortTime(msg?.timestamp ?? msg?.created_at ?? null),
+              time: toShortTime(msg?.timestamp ?? msg?.created_at ?? null),
             };
           }) ?? [];
 
@@ -64,7 +82,7 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
           type: 'sms',
           contactName: joinedUser?.name || data.phone_number || 'Unknown',
           contactNumber: data.phone_number || 'Private',
-          timestamp: longTime(data.updated_at || data.created_at),
+          timestamp: toLongTime(data.updated_at || data.created_at),
           status: 'conversation',
           conversation: cleanMsg,
         });
@@ -89,11 +107,18 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
     <div className="min-h-screen bg-black text-white font-sans">
       <NavBar />
       <div className="mx-auto max-w-5xl px-4 py-10 space-y-6">
-        <button onClick={goBack} className="text-sm text-white/70 hover:text-white transition">
+        <button
+          onClick={goBack}
+          className="text-sm text-white/70 hover:text-white transition"
+        >
           ← Back to Communications
         </button>
 
-        {loading && <div className="text-center text-white/70 py-12">Loading communication…</div>}
+        {loading && (
+          <div className="text-center text-white/70 py-12">
+            Loading communication…
+          </div>
+        )}
         {!loading && errText && (
           <div className="text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4">
             {errText}
@@ -105,7 +130,9 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
             <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
               <div>
                 <p className="text-sm text-white/60">Summary</p>
-                <h2 className="text-xl font-semibold mt-1">{detail.contactName}</h2>
+                <h2 className="text-xl font-semibold mt-1">
+                  {detail.contactName}
+                </h2>
                 <p className="text-white/50 text-sm">{detail.contactNumber}</p>
               </div>
               <dl className="space-y-3 text-sm">
@@ -129,10 +156,14 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
                     className="rounded-2xl border border-white/10 p-4 bg-black/40"
                   >
                     <div className="flex items-center justify-between text-xs text-white/50 mb-2">
-                      <span className="uppercase tracking-wide">{msg.sender}</span>
+                      <span className="uppercase tracking-wide">
+                        {msg.sender}
+                      </span>
                       <span>{msg.time}</span>
                     </div>
-                    <p className="text-white/90 leading-relaxed">{msg.message}</p>
+                    <p className="text-white/90 leading-relaxed">
+                      {msg.message}
+                    </p>
                   </article>
                 ))
               ) : (
@@ -147,14 +178,3 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
     </div>
   );
 }
-
-function longTime(ts?: string | null) {
-  if (!ts) return '';
-  return new Date(ts).toLocaleString();
-}
-
-function shortTime(ts?: string | null) {
-  if (!ts) return '';
-  return new Date(ts).toLocaleTimeString();
-}
-
