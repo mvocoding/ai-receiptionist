@@ -129,7 +129,6 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
           <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
             <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
               <div>
-                <p className="text-sm text-white/60">Summary</p>
                 <h2 className="text-xl font-semibold mt-1">
                   {detail.contactName}
                 </h2>
