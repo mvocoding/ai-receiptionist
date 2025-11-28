@@ -35,56 +35,65 @@ export default function App(): JSX.Element {
 
   const p = (path || '/').replace(/\/+$/, '') || '/';
 
-  if (p === '/' || p === '/landing' || p === '/landing.html')
-    return <Landing />;
+  const lower = p.toLowerCase();
+  const routes = [
+    {
+      match: () => p === '/' || lower.includes('landing'),
+      element: <Landing />,
+    },
+    {
+      match: () => lower.includes('barbers'),
+      element: <Barbers />,
+    },
+    {
+      match: () => lower.includes('communications/'),
+      element: (() => {
+        const id = p.split('/communications/')[1] || '';
+        return <CommunicationDetail id={id} />;
+      })(),
+    },
+    {
+      match: () => lower.includes('communications'),
+      element: <Communications />,
+    },
+    {
+      match: () => lower.includes('ai-knowledge'),
+      element: <AIKnowledge />,
+    },
+    {
+      match: () => lower.includes('signin'),
+      element: <SignIn />,
+    },
+    {
+      match: () => lower.includes('confirm') && !lower.includes('admin'),
+      element: <ConfirmCode />,
+    },
+    {
+      match: () => lower.includes('admin/signin'),
+      element: <AdminSignIn />,
+    },
+    {
+      match: () => lower.includes('admin/confirm'),
+      element: <AdminConfirmCode />,
+    },
+    {
+      match: () => lower.includes('book'),
+      element: <BookAppointment />,
+    },
+    {
+      match: () =>
+        lower.startsWith('/admin') &&
+        !lower.includes('signin') &&
+        !lower.includes('confirm'),
+      element: <Admin />,
+    },
+    {
+      match: () => lower.includes('customers'),
+      element: <Customers />,
+    },
+  ];
 
-  if (p === '/barbers' || p.toLowerCase().includes('barbers.html'))
-    return <Barbers />;
+  const route = routes.find((r) => r.match());
 
-  if (
-    p.startsWith('/communications/') ||
-    p.toLowerCase().includes('communications/') ||
-    p.toLowerCase().includes('communications.html/')
-  ) {
-    const id = p.split('/communications/')[1] || '';
-    return <CommunicationDetail id={id} />;
-  }
-
-  if (
-    p === '/communications' ||
-    p.toLowerCase().includes('communications.html')
-  )
-    return <Communications />;
-
-  if (
-    p === '/ai-knowledge' ||
-    p === '/ai-knowledge.html' ||
-    p.toLowerCase().includes('ai-knowledge')
-  )
-    return <AIKnowledge />;
-
-  if (p === '/signin' || p.toLowerCase().includes('signin')) return <SignIn />;
-  if (p === '/confirm' || p.toLowerCase().includes('confirm'))
-    return <ConfirmCode />;
-
-  if (p === '/admin/signin' || p.toLowerCase().includes('admin/signin'))
-    return <AdminSignIn />;
-  if (p === '/admin/confirm' || p.toLowerCase().includes('admin/confirm'))
-    return <AdminConfirmCode />;
-
-  if (p === '/book' || p.toLowerCase().includes('book.html'))
-    return <BookAppointment />;
-
-  if (
-    p === '/admin' ||
-    (p.toLowerCase().includes('admin') &&
-      !p.toLowerCase().includes('admin/signin') &&
-      !p.toLowerCase().includes('admin/confirm'))
-  )
-    return <Admin />;
-
-  if (p === '/customers' || p.toLowerCase().includes('customers'))
-    return <Customers />;
-
-  return <Landing />;
+  return route ? route.element : <Landing />;
 }
