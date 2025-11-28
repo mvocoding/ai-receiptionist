@@ -19,9 +19,13 @@ const starterSections: PromptSection[] = [
   { title: 'Role', content: "You are Fade Station's AI receptionist." },
   {
     title: 'Workflow',
-    content: '1. Greet the customer\n2. Gather their info\n3. Help with bookings.',
+    content:
+      '1. Greet the customer\n2. Gather their info\n3. Help with bookings.',
   },
-  { title: 'Guidelines', content: 'Be concise, never guess, prefer function calls.' },
+  {
+    title: 'Guidelines',
+    content: 'Be concise, never guess, prefer function calls.',
+  },
 ];
 
 function simpleNormalize(raw: any): PromptSection[] {
@@ -37,7 +41,8 @@ function simpleNormalize(raw: any): PromptSection[] {
   if (raw && typeof raw === 'object') {
     return Object.keys(raw).map((key) => ({
       title: key,
-      content: typeof raw[key] === 'string' ? raw[key] : JSON.stringify(raw[key]),
+      content:
+        typeof raw[key] === 'string' ? raw[key] : JSON.stringify(raw[key]),
     }));
   }
 
@@ -84,19 +89,19 @@ export default function AIKnowledge(): JSX.Element {
   });
 
   const [funcData, setFuncData] = useState<AgentFunctionDescription[]>([]);
-  const [newFuncForm, setNewFuncForm] = useState({ function_name: '', description: '' });
-  const [editFunc, setEditFunc] = useState<{ id: string; description: string } | null>(
-    null
-  );
+  const [newFuncForm, setNewFuncForm] = useState({
+    function_name: '',
+    description: '',
+  });
+  const [editFunc, setEditFunc] = useState<{
+    id: string;
+    description: string;
+  } | null>(null);
 
   const promptJson = useMemo(
     () => JSON.stringify(simpleSerialize(settingInfo.promptSections), null, 2),
     [settingInfo.promptSections]
   );
-
-  useEffect(() => {
-    document.title = 'Fade Station · AI Knowledge';
-  }, []);
 
   useEffect(() => {
     async function loadPageData() {
@@ -155,7 +160,10 @@ export default function AIKnowledge(): JSX.Element {
           .update(body)
           .eq('id', settingInfo.id);
         if (error) throw error;
-        setSettingInfo((prev) => ({ ...prev, updatedAt: new Date().toISOString() }));
+        setSettingInfo((prev) => ({
+          ...prev,
+          updatedAt: new Date().toISOString(),
+        }));
       } else {
         const { data, error } = await supabase
           .from('agent_settings')
@@ -180,7 +188,8 @@ export default function AIKnowledge(): JSX.Element {
 
   async function handleAddFunc(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!newFuncForm.function_name.trim() || !newFuncForm.description.trim()) return;
+    if (!newFuncForm.function_name.trim() || !newFuncForm.description.trim())
+      return;
     setSaveFuncBusyId('new');
     setErrText(null);
     try {
@@ -194,7 +203,9 @@ export default function AIKnowledge(): JSX.Element {
         .single();
       if (error) throw error;
       setFuncData((prev) =>
-        [...prev, data].sort((a, b) => a.function_name.localeCompare(b.function_name))
+        [...prev, data].sort((a, b) =>
+          a.function_name.localeCompare(b.function_name)
+        )
       );
       setNewFuncForm({ function_name: '', description: '' });
     } catch (error) {
@@ -215,7 +226,9 @@ export default function AIKnowledge(): JSX.Element {
         .eq('id', id);
       if (error) throw error;
       setFuncData((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, description: text } : item))
+        prev.map((item) =>
+          item.id === id ? { ...item, description: text } : item
+        )
       );
       setEditFunc(null);
     } catch (error) {
@@ -245,7 +258,11 @@ export default function AIKnowledge(): JSX.Element {
     }
   }
 
-  function changePromptItem(idx: number, key: keyof PromptSection, value: string) {
+  function changePromptItem(
+    idx: number,
+    key: keyof PromptSection,
+    value: string
+  ) {
     setSettingInfo((prev) => {
       const dup = [...prev.promptSections];
       dup[idx] = { ...dup[idx], [key]: value };
@@ -256,7 +273,10 @@ export default function AIKnowledge(): JSX.Element {
   function addPromptItem() {
     setSettingInfo((prev) => ({
       ...prev,
-      promptSections: [...prev.promptSections, { title: 'New Section', content: '' }],
+      promptSections: [
+        ...prev.promptSections,
+        { title: 'New Section', content: '' },
+      ],
     }));
   }
 
@@ -273,7 +293,9 @@ export default function AIKnowledge(): JSX.Element {
       <div className="mx-auto max-w-6xl px-4 py-10 space-y-8">
         <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <p className="text-sm text-white/50 uppercase tracking-wide">AI Agent</p>
+            <p className="text-sm text-white/50 uppercase tracking-wide">
+              AI Agent
+            </p>
           </div>
           {tabId === 'settings' && (
             <button
@@ -309,7 +331,9 @@ export default function AIKnowledge(): JSX.Element {
         </div>
 
         {isLoading ? (
-          <div className="text-center text-white/70 py-20">Loading AI knowledge...</div>
+          <div className="text-center text-white/70 py-20">
+            Loading AI knowledge...
+          </div>
         ) : tabId === 'settings' ? (
           <AgentSettingsTab
             settings={settingInfo}
@@ -336,10 +360,14 @@ export default function AIKnowledge(): JSX.Element {
             onNewFunctionChange={(field, val) =>
               setNewFuncForm((prev) => ({ ...prev, [field]: val }))
             }
-            onStartEditing={(id, text) => setEditFunc({ id, description: text })}
+            onStartEditing={(id, text) =>
+              setEditFunc({ id, description: text })
+            }
             onCancelEditing={() => setEditFunc(null)}
             onEditDescriptionChange={(text) =>
-              setEditFunc((prev) => (prev ? { ...prev, description: text } : prev))
+              setEditFunc((prev) =>
+                prev ? { ...prev, description: text } : prev
+              )
             }
             onUpdateFunction={handleUpdateFunc}
             onDeleteFunction={handleDeleteFunc}
@@ -349,4 +377,3 @@ export default function AIKnowledge(): JSX.Element {
     </div>
   );
 }
-
