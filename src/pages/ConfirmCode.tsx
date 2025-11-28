@@ -20,19 +20,6 @@ export default function ConfirmCode(): JSX.Element | null {
     setEmail(storedEmail);
   }, []);
 
-  async function upsertUserProfile(authUserId: string, userEmail: string) {
-    const { error: upsertError } = await supabase.from('users').upsert(
-      {
-        id: authUserId,
-        email: userEmail,
-        last_login_at: new Date().toISOString(),
-      },
-      { onConflict: 'id' }
-    );
-
-    if (upsertError) throw upsertError;
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -61,8 +48,6 @@ export default function ConfirmCode(): JSX.Element | null {
         setError('Verification succeeded but user data is missing.');
         return;
       }
-
-      await upsertUserProfile(authUser.id, authUser.email ?? email);
 
       const sessionUser = {
         id: authUser.id,
