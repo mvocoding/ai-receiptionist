@@ -88,3 +88,13 @@ export function simpleSerialize(list: PromptSection[]) {
   });
   return obj;
 }
+
+
+export const fallbackStore = {
+  bannerUrl:
+    'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800',
+  intro: 'Welcome to Fade Station. Premium Barbershop Experience.',
+  hours: 'Mon-Fri: 9:00 AM - 6:00 PM\nSat: 9:00 AM - 5:00 PM\nSun: Closed',
+  address: '1 Fern Court, Parafield Gardens, SA 5107',
+  phone: '0483 804 500',
+};

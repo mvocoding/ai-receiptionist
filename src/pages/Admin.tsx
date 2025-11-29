@@ -12,15 +12,16 @@ import type {
   StoreSettings,
 } from '../lib/types-global';
 
+import { fallbackStore } from '../lib/utils';
+
 export default function Admin(): JSX.Element | null {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [settings, setSettings] = useState<StoreSettings>({
-    bannerUrl:
-      'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800',
-    introText: 'Welcome to Fade Station. Premium Barbershop Experience.',
-    phoneNumber: '0483 804 500',
-    address: '1 Fern Court,\nParafield Gardens, SA 5107',
-    hours: 'Mon-Fri: 9:00 AM - 6:00 PM\nSat: 9:00 AM - 5:00 PM\nSun: Closed',
+    bannerUrl: fallbackStore.bannerUrl,
+    introText: fallbackStore.intro,
+    phoneNumber: fallbackStore.phone,
+    address: fallbackStore.address,
+    hours: fallbackStore.hours,
   });
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [exceptions, setExceptions] = useState<BarberException[]>([]);
@@ -97,9 +98,7 @@ export default function Admin(): JSX.Element | null {
           .limit(1)
           .single();
 
-        if (settingsError && settingsError.code !== 'PGRST116') {
-          console.error('Error fetching settings:', settingsError);
-        } else if (settingsData) {
+        if (settingsData) {
           setSettingsId(settingsData.id);
           setSettings({
             bannerUrl: settingsData.banner_url || '',
@@ -502,7 +501,7 @@ export default function Admin(): JSX.Element | null {
                 }
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
                 rows={1}
-                placeholder="0483 804 500"
+                placeholder={fallbackStore.phone}
               />
             </div>
 
@@ -517,8 +516,7 @@ export default function Admin(): JSX.Element | null {
                 }
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
                 rows={2}
-                placeholder="1 Fern Court,
-Parafield Gardens, SA 5107"
+                placeholder={fallbackStore.address}
               />
             </div>
 
@@ -533,9 +531,7 @@ Parafield Gardens, SA 5107"
                 }
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/50 resize-none"
                 rows={3}
-                placeholder="Mon-Fri: 9:00 AM - 6:00 PM
-Sat: 9:00 AM - 5:00 PM
-Sun: Closed"
+                placeholder={fallbackStore.hours}
               />
             </div>
 

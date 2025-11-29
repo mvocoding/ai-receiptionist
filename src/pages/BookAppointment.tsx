@@ -13,7 +13,7 @@ import type {
   BookingForm,
 } from '../lib/types-global';
 
-import { slotList } from '../lib/utils';
+import { slotList, fallbackStore } from '../lib/utils';
 
 import { formatIso, cutTime, addMinutes } from '../lib/utils';
 
@@ -68,15 +68,6 @@ function InfoRow({
     </div>
   );
 }
-
-const fallbackStore = {
-  bannerUrl:
-    'https://images.unsplash.com/photo-1585191905284-8645af60f856?auto=format&fit=crop&q=80&w=800',
-  intro: 'Welcome to Fade Station. Premium Barbershop Experience.',
-  hours: 'Mon-Fri: 9:00 AM - 6:00 PM\nSat: 9:00 AM - 5:00 PM\nSun: Closed',
-  address: '1 Fern Court, Parafield Gardens, SA 5107',
-  phone: '0483 804 500',
-};
 
 export default function BookAppointment(): JSX.Element {
   const [storeInfo, setStoreInfo] = useState(fallbackStore);
