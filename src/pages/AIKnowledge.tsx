@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
 import AgentSettingsTab from '../components/AgentSettingsTab';
 import FunctionDescriptionsTab from '../components/FunctionDescriptionsTab';
@@ -8,7 +8,7 @@ import type { PromptSection } from '../lib/types-global';
 
 const tabOptions = [
   { id: 'settings', label: 'AI Helper Settings' },
-  { id: 'functions', label: 'Helper Abilities List' },
+  { id: 'functions', label: 'Function Descriptions' },
 ];
 
 const communicationTypeOptions = [
@@ -122,16 +122,6 @@ export default function AIKnowledgePage(): JSX.Element {
     description: string;
   } | null>(null);
 
-  const promptAsJsonText = useMemo(
-    () =>
-      JSON.stringify(
-        convertSectionListToObject(currentSettingInfo.promptSections),
-        null,
-        2
-      ),
-    [currentSettingInfo.promptSections]
-  );
-
   useEffect(() => {
     async function loadAllAIPageData() {
       setIsPageLoading(true);
@@ -187,7 +177,6 @@ export default function AIKnowledgePage(): JSX.Element {
         if (funcErr) throw funcErr;
         setFunctionDataList(funcRows || []);
       } catch (error) {
-        console.error('Failed to load AI page data:', error);
         setErrorMessage('Sorry, we could not load the data from the database.');
         toast.error('Failed to load AI settings.');
       } finally {
@@ -257,7 +246,6 @@ export default function AIKnowledgePage(): JSX.Element {
         toast.success('New AI Helper settings created!');
       }
     } catch (error) {
-      console.error('Failed to save setting:', error);
       setErrorMessage('Cannot save the AI helper settings.');
       toast.error('Cannot save AI settings.');
     } finally {
@@ -293,7 +281,6 @@ export default function AIKnowledgePage(): JSX.Element {
       setNewFunctionForm({ function_name: '', description: '' });
       toast.success('New ability added!');
     } catch (error) {
-      console.error('Failed to add new function:', error);
       setErrorMessage('Cannot add new function/ability.');
       toast.error('Cannot add new ability.');
     } finally {
@@ -319,7 +306,6 @@ export default function AIKnowledgePage(): JSX.Element {
       setFunctionToEdit(null);
       toast.success('Ability description updated!');
     } catch (error) {
-      console.error('Failed to update function:', error);
       setErrorMessage('Cannot update function/ability.');
       toast.error('Cannot update ability.');
     } finally {
@@ -342,7 +328,6 @@ export default function AIKnowledgePage(): JSX.Element {
       setFunctionDataList((prev) => prev.filter((item) => item.id !== id));
       toast.success('Ability deleted!');
     } catch (error) {
-      console.error('Failed to delete function:', error);
       setErrorMessage('Cannot delete function/ability.');
       toast.error('Cannot delete ability.');
     } finally {
