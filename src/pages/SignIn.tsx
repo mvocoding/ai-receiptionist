@@ -77,7 +77,7 @@ export default function SignIn(): JSX.Element {
       );
 
       setTimeout(() => {
-        (window as any).__navigate?.('/confirm') ??
+        (window as any).gotopage?.('/confirm') ??
           (window.location.pathname = '/confirm');
       }, 1500);
     } catch (err) {
@@ -195,7 +195,7 @@ export default function SignIn(): JSX.Element {
                 <button
                   type="button"
                   onClick={() => {
-                    (window as any).__navigate?.('/') ??
+                    (window as any).gotopage?.('/') ??
                       (window.location.pathname = '/');
                   }}
                   className="px-6 py-3 rounded-xl text-base font-medium bg-white/5 border border-white/10 hover:bg-white/10 transition"

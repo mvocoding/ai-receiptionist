@@ -195,7 +195,7 @@ export default function Barbers(): JSX.Element {
                         <p className="text-xs mt-1 text-amber-200">
                           {excInfo.isDayOff
                             ? 'Marked as day off'
-                            : `Custom hours ${excInfo.start ?? '--:--'} – ${
+                            : `Custom hours ${excInfo.start ?? '--:--'} - ${
                                 excInfo.end ?? '--:--'
                               }`}
                         </p>
@@ -261,7 +261,7 @@ export default function Barbers(): JSX.Element {
               <div className="bg-white/5 border border-white/10 rounded-xl p-4">
                 <p className="text-white/50 text-xs mb-1">Time</p>
                 <p className="font-medium">
-                  {cutTime(modalInfo.start_time)} –{' '}
+                  {cutTime(modalInfo.start_time)} -{' '}
                   {cutTime(modalInfo.end_time)}
                 </p>
               </div>

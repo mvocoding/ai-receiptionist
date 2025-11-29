@@ -121,7 +121,7 @@ export default function Landing(): JSX.Element {
                     const shopSlug = submittedShopName
                       ? slugify(submittedShopName)
                       : 'maxfade';
-                    (window as any).__navigate?.(
+                    (window as any).gotopage?.(
                       `/admin/login?store=${shopSlug}`
                     );
                   }}

@@ -90,8 +90,8 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
   }, [targetId]);
 
   const goBack = () => {
-    const nav = (window as any).__navigate;
-    if (nav) nav('/communications');
+    const gotopage = (window as any).gotopage;
+    if (gotopage) gotopage('/communications');
     else window.location.href = '/communications';
   };
 

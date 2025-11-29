@@ -10,6 +10,7 @@ import BookAppointment from './pages/BookAppointment';
 import Admin from './pages/Admin';
 import Customers from './pages/Customers';
 import Dashboard from './pages/Dashboard';
+import { ToastProvider } from './components/Toast';
 
 export default function App(): JSX.Element {
   const [path, setPath] = useState(() => window.location.pathname || '/');
@@ -18,7 +19,7 @@ export default function App(): JSX.Element {
     const onPop = () => setPath(window.location.pathname || '/');
     window.addEventListener('popstate', onPop);
 
-    (window as any).__navigate = (to: string) => {
+    (window as any).gotopage = (to: string) => {
       if (!to) return;
       if (to !== window.location.pathname) {
         window.history.pushState({}, '', to);
@@ -28,7 +29,7 @@ export default function App(): JSX.Element {
 
     return () => {
       window.removeEventListener('popstate', onPop);
-      delete (window as any).__navigate;
+      delete (window as any).gotopage;
     };
   }, []);
 
@@ -90,5 +91,5 @@ export default function App(): JSX.Element {
 
   const route = routes.find((r) => r.match());
 
-  return route ? route.element : <Landing />;
+  return <ToastProvider>{route ? route.element : <Landing />}</ToastProvider>;
 }

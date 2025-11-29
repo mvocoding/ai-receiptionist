@@ -48,7 +48,7 @@ export default function Admin(): JSX.Element | null {
       const userStr = localStorage.getItem('fs_user');
       if (!userStr) {
         setIsAuthenticated(false);
-        (window as any).__navigate?.('/admin/signin') ??
+        (window as any).gotopage?.('/admin/signin') ??
           (window.location.pathname = '/admin/signin');
         return;
       }
@@ -57,7 +57,7 @@ export default function Admin(): JSX.Element | null {
         const user = JSON.parse(userStr);
         if (!user || !user.email) {
           setIsAuthenticated(false);
-          (window as any).__navigate?.('/admin/signin') ??
+          (window as any).gotopage?.('/admin/signin') ??
             (window.location.pathname = '/admin/signin');
           return;
         }
@@ -68,7 +68,7 @@ export default function Admin(): JSX.Element | null {
         if (error || !session) {
           localStorage.removeItem('fs_user');
           setIsAuthenticated(false);
-          (window as any).__navigate?.('/admin/signin') ??
+          (window as any).gotopage?.('/admin/signin') ??
             (window.location.pathname = '/admin/signin');
           return;
         }
@@ -76,7 +76,7 @@ export default function Admin(): JSX.Element | null {
         setIsAuthenticated(true);
       } catch {
         setIsAuthenticated(false);
-        (window as any).__navigate?.('/admin/signin') ??
+        (window as any).gotopage?.('/admin/signin') ??
           (window.location.pathname = '/admin/signin');
       }
     };

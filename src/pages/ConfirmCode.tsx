@@ -13,7 +13,7 @@ export default function ConfirmCode(): JSX.Element | null {
   useEffect(() => {
     const storedEmail = sessionStorage.getItem('fs_signin_email');
     if (!storedEmail) {
-      (window as any).__navigate?.('/signin') ??
+      (window as any).gotopage?.('/signin') ??
         (window.location.pathname = '/signin');
       return;
     }
@@ -57,7 +57,7 @@ export default function ConfirmCode(): JSX.Element | null {
       localStorage.setItem('fs_user', JSON.stringify(sessionUser));
       sessionStorage.removeItem('fs_signin_email');
 
-      (window as any).__navigate?.('/admin/dashboard') ??
+      (window as any).gotopage?.('/admin/dashboard') ??
         (window.location.pathname = '/admin/dashboard');
     } catch (err) {
       console.error('Error verifying code:', err);
@@ -139,7 +139,7 @@ export default function ConfirmCode(): JSX.Element | null {
               <button
                 type="button"
                 onClick={() => {
-                  (window as any).__navigate?.('/signin') ??
+                  (window as any).gotopage?.('/signin') ??
                     (window.location.pathname = '/signin');
                 }}
                 className="px-4 py-2 rounded-2xl bg-white/5 border border-white/10"

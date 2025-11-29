@@ -86,7 +86,7 @@ export default function Communications(): JSX.Element {
   }, []);
 
   const goTo = (to: string) => {
-    const nav = (window as any).__navigate;
+    const nav = (window as any).gotopage;
     if (nav) nav(to);
     else window.location.href = to;
   };

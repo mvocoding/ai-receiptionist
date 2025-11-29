@@ -122,7 +122,7 @@ export default function Dashboard(): JSX.Element {
   }, []);
 
   function nav(to: string) {
-    const fn = (window as any).__navigate;
+    const fn = (window as any).gotopage;
     if (fn) fn(to);
     else window.location.pathname = to;
   }

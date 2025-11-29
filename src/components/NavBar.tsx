@@ -23,7 +23,7 @@ export default function NavBar(): JSX.Element {
     currentPath === '/home';
 
   function nav(to: string) {
-    const fn = (window as any).__navigate;
+    const fn = (window as any).gotopage;
     if (fn) fn(to);
     else window.location.pathname = to;
   }

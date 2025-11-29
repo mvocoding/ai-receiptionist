@@ -416,7 +416,7 @@ export default function BookAppointment(): JSX.Element {
                 )}
                 {!dayException?.isDayOff && dayException && (
                   <p className="text-amber-200 text-sm mb-3">
-                    Custom hours {dayException.start ?? '--:--'} –{' '}
+                    Custom hours {dayException.start ?? '--:--'} -{' '}
                     {dayException.end ?? '--:--'}
                   </p>
                 )}
