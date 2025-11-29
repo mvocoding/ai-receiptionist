@@ -18,7 +18,7 @@ import { formatIso, cutTime, addMinutes } from '../lib/utils';
 async function ensureUser(name: string, phone: string): Promise<string | null> {
   const phoneClean = phone.replace(/\s+/g, '');
   if (!phoneClean) return null;
-  const { data: existed, error } = await supabase
+  const { data: existed } = await supabase
     .from('users')
     .select('id, name')
     .eq('phone_number', phoneClean)
@@ -161,8 +161,6 @@ export default function BookAppointment(): JSX.Element {
     void loadBarber();
   }, []);
 
-  const today = useMemo(() => new Date(), []);
-
   const getTodayDate = () => {
     const d = new Date();
     return formatIso(d);
@@ -197,7 +195,7 @@ export default function BookAppointment(): JSX.Element {
           ) || [];
         setSlotTaken(busy);
 
-        const { data: exData, error: exError } = await supabase
+        const { data: exData } = await supabase
           .from('barber_exceptions')
           .select('*')
           .eq('barber_id', form.barberId)

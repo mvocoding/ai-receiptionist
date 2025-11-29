@@ -11,7 +11,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 
 export default function Dashboard(): JSX.Element {
@@ -48,29 +47,24 @@ export default function Dashboard(): JSX.Element {
       try {
         const today = new Date().toISOString().split('T')[0];
 
-        // Fetch all appointments for total count and date distribution
-        const { data: appointments, error: appointmentsError } = await supabase
+        const { data: appointments } = await supabase
           .from('appointments')
           .select('appointment_date, status, start_time')
           .not('status', 'eq', 'cancelled')
           .order('appointment_date', { ascending: false });
 
-        // Fetch today's appointments with time details
-        const { data: todayAppointments, error: todayError } = await supabase
+        const { data: todayAppointments } = await supabase
           .from('appointments')
           .select('id, start_time')
           .eq('appointment_date', today)
           .not('status', 'eq', 'cancelled');
 
-        const { data: barbers, error: barbersError } = await supabase
-          .from('barbers')
-          .select('id');
+        const { data: barbers } = await supabase.from('barbers').select('id');
 
-        const { data: communications, error: commError } = await supabase
+        const { data: communications } = await supabase
           .from('communications')
           .select('id');
 
-        // Process appointments by date (last 7 days)
         const last7Days: { date: string; count: number }[] = [];
         const todayDate = new Date();
         for (let i = 6; i >= 0; i--) {
@@ -89,7 +83,6 @@ export default function Dashboard(): JSX.Element {
           });
         }
 
-        // Process today's appointments by hour (business hours: 9 AM - 6 PM)
         const businessHours = Array.from({ length: 10 }, (_, i) => {
           const hourIndex = i + 9; // 9 AM to 6 PM
           const hour = hourIndex.toString().padStart(2, '0') + ':00';
@@ -98,7 +91,7 @@ export default function Dashboard(): JSX.Element {
 
         todayAppointments?.forEach((apt) => {
           if (apt.start_time) {
-            const hour = apt.start_time.substring(0, 5); // Extract HH:MM
+            const hour = apt.start_time.substring(0, 5);
             const hourIndex = parseInt(hour.split(':')[0]);
             if (hourIndex >= 9 && hourIndex <= 18) {
               const idx = hourIndex - 9;
