@@ -13,6 +13,39 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
+const menulist = [
+  {
+    name: 'Admin Panel',
+    path: '/admin',
+    description: 'Manage store settings and barbers',
+  },
+  {
+    name: 'Communications',
+    path: '/communications',
+    description: 'View calls, SMS, and recordings',
+  },
+  {
+    name: 'Customers',
+    path: '/customers',
+    description: 'View customer list and history',
+  },
+  {
+    name: 'AI Knowledge',
+    path: '/ai-knowledge',
+    description: 'Design call and SMS conversation flows',
+  },
+  {
+    name: 'Barbers',
+    path: '/barbers',
+    description: 'View barber schedules and availability',
+  },
+  {
+    name: 'Book Appointment',
+    path: '/book',
+    description: 'Public booking page',
+  },
+];
+
 export default function Dashboard(): JSX.Element {
   const [stats, setStats] = useState({
     totalAppointments: 0,
@@ -200,75 +233,18 @@ export default function Dashboard(): JSX.Element {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <button
-                onClick={() => (window as any).gotopage('/admin')}
-                className="bg-white/5 border border-white/10 rounded-xl p-6 text-left hover:bg-white/10 transition group"
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <h3 className="text-lg font-semibold">Admin Panel</h3>
-                </div>
-                <p className="text-sm text-white/60">
-                  Manage store settings and barbers
-                </p>
-              </button>
-
-              <button
-                onClick={() => (window as any).gotopage('/communications')}
-                className="bg-white/5 border border-white/10 rounded-xl p-6 text-left hover:bg-white/10 transition group"
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <h3 className="text-lg font-semibold">Communications</h3>
-                </div>
-                <p className="text-sm text-white/60">
-                  View calls, SMS, and recordings
-                </p>
-              </button>
-
-              <button
-                onClick={() => (window as any).gotopage('/customers')}
-                className="bg-white/5 border border-white/10 rounded-xl p-6 text-left hover:bg-white/10 transition group"
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <h3 className="text-lg font-semibold">Customers</h3>
-                </div>
-                <p className="text-sm text-white/60">
-                  View customer list and history
-                </p>
-              </button>
-
-              <button
-                onClick={() => (window as any).gotopage('/ai-knowledge')}
-                className="bg-white/5 border border-white/10 rounded-xl p-6 text-left hover:bg-white/10 transition group"
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <h3 className="text-lg font-semibold">AI Knowledge</h3>
-                </div>
-                <p className="text-sm text-white/60">
-                  Design call and SMS conversation flows
-                </p>
-              </button>
-
-              <button
-                onClick={() => (window as any).gotopage('/barbers')}
-                className="bg-white/5 border border-white/10 rounded-xl p-6 text-left hover:bg-white/10 transition group"
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <h3 className="text-lg font-semibold">Barbers</h3>
-                </div>
-                <p className="text-sm text-white/60">
-                  View barber schedules and availability
-                </p>
-              </button>
-
-              <button
-                onClick={() => (window as any).gotopage('/book')}
-                className="bg-white/5 border border-white/10 rounded-xl p-6 text-left hover:bg-white/10 transition group"
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <h3 className="text-lg font-semibold">Book Appointment</h3>
-                </div>
-                <p className="text-sm text-white/60">Public booking page</p>
-              </button>
+              {menulist.map((menu) => (
+                <button
+                  key={menu.name}
+                  onClick={() => (window as any).gotopage(menu.path)}
+                  className="bg-white/5 border border-white/10 rounded-xl p-6 text-left hover:bg-white/10 transition group"
+                >
+                  <div className="flex items-center gap-4 mb-4">
+                    <h3 className="text-lg font-semibold">{menu.name}</h3>
+                  </div>
+                  <p className="text-sm text-white/60">{menu.description}</p>
+                </button>
+              ))}
             </div>
           </>
         )}

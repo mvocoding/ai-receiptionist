@@ -1,4 +1,4 @@
-import { supabase, type Appointment as DBAppointment } from './supabase';
+import { type Appointment as DBAppointment } from './supabase';
 
 export type Customer = {
   id: string;

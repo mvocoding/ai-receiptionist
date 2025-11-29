@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import NavBar from '../components/NavBar';
+import { useToast } from '../components/Toast';
 
 const features = [
   {
@@ -29,20 +30,10 @@ type SignupFormData = {
   shopSize: string;
 };
 
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
 export default function Landing(): JSX.Element {
+  const toast = useToast();
   const [showSignupForm, setShowSignupForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [submittedShopName, setSubmittedShopName] = useState<string>('');
   const [formData, setFormData] = useState<SignupFormData>({
     barbershopName: '',
     ownerEmail: '',
@@ -74,8 +65,9 @@ export default function Landing(): JSX.Element {
     setTimeout(() => {
       setIsSubmitting(false);
       setShowSignupForm(false);
-      setSubmittedShopName(shopName);
-      setShowSuccess(true);
+      toast.success(
+        `Thank you, ${shopName}! Your free trial request has been submitted.`
+      );
 
       setFormData({
         barbershopName: '',
@@ -83,10 +75,6 @@ export default function Landing(): JSX.Element {
         ownerPhone: '',
         shopSize: '',
       });
-
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 8000);
     }, 1000);
   };
 
@@ -103,37 +91,6 @@ export default function Landing(): JSX.Element {
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       <NavBar />
-
-      {showSuccess && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
-          <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white px-8 py-6 rounded-2xl shadow-lg border border-emerald-400/30 backdrop-blur-md max-w-md">
-            <div className="flex items-start gap-3">
-              <div className="text-2xl mt-1">✓</div>
-              <div className="flex-1">
-                <p className="font-semibold text-lg mb-1">
-                  Submitted Successfully!
-                </p>
-                <p className="text-sm text-emerald-100 mb-3">
-                  We'll be in touch soon.
-                </p>
-                <button
-                  onClick={() => {
-                    const shopSlug = submittedShopName
-                      ? slugify(submittedShopName)
-                      : 'maxfade';
-                    (window as any).gotopage?.(
-                      `/admin/login?store=${shopSlug}`
-                    );
-                  }}
-                  className="text-sm underline hover:text-emerald-50 transition"
-                >
-                  Go to Login →
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showSignupForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">

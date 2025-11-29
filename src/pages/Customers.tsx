@@ -147,12 +147,9 @@ export default function Customers(): JSX.Element {
                       </span>
                     </div>
                     <p className="text-sm text-white/70">
-                      {dateFormatter.format(new Date(appt.date))} ·{' '}
-                      {appt.barberName || 'Any barber'}
+                      {dateFormatter.format(new Date(appt.date))} -{' '}
+                      {appt.barberName}
                     </p>
-                    {appt.note && (
-                      <p className="text-xs text-white/60">Note: {appt.note}</p>
-                    )}
                   </div>
                 ))}
                 {customer.appointments.length === 0 && (

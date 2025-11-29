@@ -259,10 +259,8 @@ export default function Barbers(): JSX.Element {
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2 text-sm">
               <p className="text-white/50 text-xs">Customer</p>
-              <p className="font-medium">{modalInfo.users?.name || '-'}</p>
-              <p className="text-white/60">
-                {modalInfo.users?.phone_number || 'No phone'}
-              </p>
+              <p className="font-medium">{modalInfo.users?.name}</p>
+              <p className="text-white/60">{modalInfo.users?.phone_number}</p>
               {modalInfo.note && (
                 <p className="text-white/70">{modalInfo.note}</p>
               )}

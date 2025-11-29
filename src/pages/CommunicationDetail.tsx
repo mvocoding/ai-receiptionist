@@ -68,7 +68,7 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
           id: data.id,
           type: 'sms',
           contactName: joinedUser?.name || data.phone_number || 'Unknown',
-          contactNumber: data.phone_number || 'Private',
+          contactNumber: data.phone_number || 'Unknown',
           timestamp: toLongTime(data.updated_at || data.created_at),
           status: 'conversation',
           conversation: cleanMsg,
@@ -108,7 +108,7 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
         )}
 
         {!loading && !errText && detail && (
-          <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+          <div className="grid gap-6 lg:grid-cols-[250px_1fr]">
             <section className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
               <div>
                 <h2 className="text-xl font-semibold mt-1">
