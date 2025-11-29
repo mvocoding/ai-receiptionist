@@ -46,7 +46,7 @@ export default function Admin(): JSX.Element | null {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const userStr = localStorage.getItem('fs_user');
+      const userStr = localStorage.getItem('currentUser');
       if (!userStr) {
         setIsAuthenticated(false);
         (window as any).gotopage?.('/admin/signin');
@@ -65,7 +65,7 @@ export default function Admin(): JSX.Element | null {
           error,
         } = await supabase.auth.getSession();
         if (error || !session) {
-          localStorage.removeItem('fs_user');
+          localStorage.removeItem('currentUser');
           setIsAuthenticated(false);
           (window as any).gotopage?.('/admin/signin');
           return;

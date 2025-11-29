@@ -11,7 +11,7 @@ export default function ConfirmCode(): JSX.Element | null {
   const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
-    const storedEmail = sessionStorage.getItem('fs_signin_email');
+    const storedEmail = sessionStorage.getItem('user_email');
     if (!storedEmail) {
       (window as any).gotopage?.('/signin');
       return;
@@ -53,8 +53,8 @@ export default function ConfirmCode(): JSX.Element | null {
         email: authUser.email ?? email,
         loggedAt: Date.now(),
       };
-      localStorage.setItem('fs_user', JSON.stringify(sessionUser));
-      sessionStorage.removeItem('fs_signin_email');
+      localStorage.setItem('currentUser', JSON.stringify(sessionUser));
+      sessionStorage.removeItem('user_email');
 
       (window as any).gotopage?.('/admin/dashboard');
     } catch (err) {

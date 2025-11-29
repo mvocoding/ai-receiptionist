@@ -6,7 +6,7 @@ export default function NavBar(): JSX.Element {
   let user: { email?: string } | null = null;
 
   if (isBrowser) {
-    const raw = localStorage.getItem('fs_user');
+    const raw = localStorage.getItem('currentUser');
     if (raw) {
       try {
         user = JSON.parse(raw);
@@ -29,7 +29,7 @@ export default function NavBar(): JSX.Element {
     } catch (err) {
       console.error('Failed to sign out from Supabase:', err);
     } finally {
-      localStorage.removeItem('fs_user');
+      localStorage.removeItem('currentUser');
       sessionStorage.clear();
       (window as any).gotopage('/landing');
     }
@@ -41,7 +41,10 @@ export default function NavBar(): JSX.Element {
         <div className="flex items-center justify-between max-w-6xl mx-auto">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => (window as any).gotopage('/landing')}
+              onClick={() => {
+                if (user) (window as any).gotopage('/dashboard');
+                else (window as any).gotopage('/');
+              }}
               className="flex items-center gap-3 hover:opacity-80 transition"
             >
               <div>

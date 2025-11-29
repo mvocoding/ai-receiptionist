@@ -63,12 +63,10 @@ export default function SignIn(): JSX.Element {
           );
           return;
         }
-
-        console.warn('OTP request error:', res.error);
         throw res.error;
       }
 
-      sessionStorage.setItem('fs_signin_email', trimmed);
+      sessionStorage.setItem('user_email', trimmed);
 
       setInfo(
         `A 8-digit verification code was sent to ${trimmed}. Please check your email.`
