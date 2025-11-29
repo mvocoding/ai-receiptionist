@@ -45,9 +45,7 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
         const listMsg = Array.isArray(data.messages) ? data.messages : [];
         const cleanMsg: Message[] =
           listMsg.map((msg: any) => {
-            const senderRaw = String(
-              msg?.sender ?? msg?.role ?? 'system'
-            ).toLowerCase();
+            const senderRaw = String(msg?.role ?? 'system').toLowerCase();
 
             let sender: Message['sender'] = 'system';
             if (senderRaw === 'customer' || senderRaw === 'user') {
@@ -56,10 +54,7 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
               sender = 'ai';
             }
 
-            const text =
-              ['message', 'text', 'content', 'body']
-                .map((key) => msg?.[key])
-                .find((v) => v) || '[no message]';
+            const text = msg?.content || '[no message]';
 
             return {
               sender,

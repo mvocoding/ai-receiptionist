@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
 import { supabase } from '../lib/supabase';
 
-import type { Customer, AppointmentRow } from '../lib/types-global';
+import type { Customer } from '../lib/types-global';
 
 const dateFormatter = new Intl.DateTimeFormat('en-NZ', {
   weekday: 'short',
@@ -15,11 +15,6 @@ function formatTimeLabel(value?: string | null) {
   return value.slice(0, 5);
 }
 
-function formatDateTime(dateStr: string, timeStr?: string | null) {
-  if (!timeStr) return dateFormatter.format(new Date(dateStr));
-  return `${dateFormatter.format(new Date(dateStr))} · ${timeStr}`;
-}
-
 export default function Customers(): JSX.Element {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,82 +24,58 @@ export default function Customers(): JSX.Element {
     const fetchCustomers = async () => {
       setLoading(true);
       setError(null);
+
       try {
-        const { data: appointmentsData, error: appointmentsError } =
-          await supabase
-            .from('appointments')
-            .select(
-              '*, barbers(name), users:users!appointments_user_id_fkey(name, phone_number, last_login_at)'
-            )
-            .order('appointment_date', { ascending: false })
-            .order('start_time', { ascending: false });
-        if (appointmentsError) throw appointmentsError;
+        const { data, error } = await supabase
+          .from('appointments')
+          .select(
+            '*, barbers(name), users:users!appointments_user_id_fkey(name, phone_number, last_login_at)'
+          )
+          .order('appointment_date', { ascending: false })
+          .order('start_time', { ascending: false });
+
+        if (error) throw error;
 
         const grouped: Record<string, Customer> = {};
-        const lastSeen: Record<string, number> = {};
 
-        (appointmentsData as AppointmentRow[] | null)?.forEach((appt) => {
+        data?.forEach((appt) => {
           const key = appt.user_id || appt.id;
-          const userInfo = appt.users;
+          const user = appt.users;
 
           if (!grouped[key]) {
             grouped[key] = {
               id: key,
-              name: userInfo?.name || 'Unknown',
-              phone: userInfo?.phone_number || undefined,
+              name: user?.name || 'Unknown',
+              phone: user?.phone_number,
               email: undefined,
               appointments: [],
             };
           }
 
-          grouped[key].appointments.push({
+          const customer = grouped[key];
+
+          customer.appointments.push({
             date: appt.appointment_date,
             time: `${formatTimeLabel(appt.start_time)} - ${formatTimeLabel(
               appt.end_time
             )}`,
-            barberName: appt.barbers?.name || undefined,
+            barberName: appt.barbers?.name,
             status: appt.status,
             note: appt.note || undefined,
           });
 
-          if (!grouped[key].phone && userInfo?.phone_number) {
-            grouped[key].phone = userInfo.phone_number;
-          }
-          if (
-            (!grouped[key].name || grouped[key].name === 'Unknown') &&
-            userInfo?.name
-          ) {
-            grouped[key].name = userInfo.name;
-          }
-          const appointmentTs = Date.parse(
-            `${appt.appointment_date}T${appt.start_time}`
-          );
-          if (
-            !Number.isNaN(appointmentTs) &&
-            appointmentTs > (lastSeen[key] ?? 0)
-          ) {
-            grouped[key].lastAppointment = formatDateTime(
-              appt.appointment_date,
-              formatTimeLabel(appt.start_time)
-            );
-            lastSeen[key] = appointmentTs;
-          }
+          if (!customer.phone && user?.phone_number)
+            customer.phone = user.phone_number;
+          if (customer.name === 'Unknown' && user?.name)
+            customer.name = user.name;
         });
 
-        const customersArray = Object.values(grouped).sort((a, b) => {
-          return a.name.localeCompare(b.name);
-        });
-
-        setCustomers(customersArray);
+        setCustomers(
+          Object.values(grouped).sort((a, b) => a.name.localeCompare(b.name))
+        );
       } catch (err) {
         console.error('Error loading customers:', err);
-        const message =
-          err instanceof Error
-            ? err.message
-            : typeof err === 'object'
-            ? JSON.stringify(err)
-            : String(err);
-        setError(`Failed to load customer data from Supabase. ${message}`);
+        setError(`Failed to load customer data from Supabase. ${String(err)}`);
       } finally {
         setLoading(false);
       }

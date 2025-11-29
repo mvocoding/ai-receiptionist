@@ -3,16 +3,6 @@ import NavBar from '../components/NavBar';
 import { supabase, type Conversation as DBConversation } from '../lib/supabase';
 import type { Message, Comm } from '../lib/types-global';
 
-function readableTime(ts?: string | null) {
-  if (!ts) return '';
-  return new Date(ts).toLocaleString();
-}
-
-function readableMsgTime(ts?: string | null) {
-  if (!ts) return '';
-  return new Date(ts).toLocaleTimeString();
-}
-
 export default function Communications(): JSX.Element {
   const [listConvo, setListConvo] = useState<Comm[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,9 +27,7 @@ export default function Communications(): JSX.Element {
             const joinedUser = (item as any)?.users;
             const msgList = Array.isArray(item.messages) ? item.messages : [];
             const cleanMsg: Message[] = msgList.map((msg) => {
-              const senderRaw = String(
-                msg?.sender ?? msg?.role ?? 'system'
-              ).toLowerCase();
+              const senderRaw = String(msg?.role ?? 'system').toLowerCase();
 
               let sender: Message['sender'] = 'system';
               if (senderRaw === 'customer' || senderRaw === 'user') {
@@ -48,26 +36,21 @@ export default function Communications(): JSX.Element {
                 sender = 'ai';
               }
 
-              const text =
-                ['message', 'text', 'content', 'body']
-                  .map((key) => msg?.[key])
-                  .find((v) => v) || '[no message]';
+              const text = msg?.content || '[no message]';
 
               return {
                 sender,
                 message: typeof text === 'string' ? text : JSON.stringify(text),
-                time: readableMsgTime(
-                  msg?.timestamp ?? msg?.created_at ?? msg?.time ?? null
-                ),
+                time: new Date(msg?.timestamp ?? null).toLocaleTimeString(),
               };
             });
 
             return {
               id: item.id,
               type: 'sms',
-              contactName: joinedUser?.name || item.phone_number || 'Unknown',
-              contactNumber: item.phone_number || 'Private',
-              timestamp: readableTime(item.updated_at || item.created_at),
+              contactName: joinedUser?.name || 'Unknown',
+              contactNumber: item.phone_number || 'Unknown',
+              timestamp: new Date(item.created_at || '').toLocaleString(),
               status: 'conversation',
               conversation: cleanMsg,
             };
@@ -97,9 +80,6 @@ export default function Communications(): JSX.Element {
       <div className="mx-auto max-w-6xl px-4 py-10">
         <header className="mb-8">
           <h1 className="text-3xl font-semibold">Communications</h1>
-          <p className="text-white/60 mt-3 max-w-2xl">
-            Live view of SMS or calls from Fade Station AI receptionist.
-          </p>
         </header>
 
         {loading && (
