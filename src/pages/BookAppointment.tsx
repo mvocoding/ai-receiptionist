@@ -127,7 +127,6 @@ export default function BookAppointment(): JSX.Element {
           })) || []
         );
       } catch (err) {
-        console.error('load barber fail', err);
         setBarberList([]);
       } finally {
         setBusyBarber(false);
@@ -188,7 +187,6 @@ export default function BookAppointment(): JSX.Element {
           setDayException(null);
         }
       } catch (err) {
-        console.error('load slots fail', err);
         setSlotTaken([]);
         setDayException(null);
       } finally {
@@ -245,7 +243,6 @@ export default function BookAppointment(): JSX.Element {
         });
       }, 1400);
     } catch (err) {
-      console.error('book fail', err);
       setBookState('idle');
       setBookError('Failed to save booking. Try again later.');
     }

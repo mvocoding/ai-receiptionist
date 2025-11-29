@@ -22,12 +22,6 @@ export default function NavBar(): JSX.Element {
     currentPath === '/landing' ||
     currentPath === '/home';
 
-  function nav(to: string) {
-    const fn = (window as any).gotopage;
-    if (fn) fn(to);
-    else window.location.pathname = to;
-  }
-
   async function signOut(e: React.MouseEvent) {
     e.preventDefault();
     try {
@@ -37,7 +31,7 @@ export default function NavBar(): JSX.Element {
     } finally {
       localStorage.removeItem('fs_user');
       sessionStorage.clear();
-      nav('/landing');
+      (window as any).gotopage('/landing');
     }
   }
 
@@ -47,7 +41,7 @@ export default function NavBar(): JSX.Element {
         <div className="flex items-center justify-between max-w-6xl mx-auto">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => nav('/landing')}
+              onClick={() => (window as any).gotopage('/landing')}
               className="flex items-center gap-3 hover:opacity-80 transition"
             >
               <div>
@@ -61,43 +55,43 @@ export default function NavBar(): JSX.Element {
           {user && (
             <nav className="flex items-center gap-3">
               <button
-                onClick={() => nav('/dashboard')}
+                onClick={() => (window as any).gotopage('/dashboard')}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
                 Dashboard
               </button>
               <button
-                onClick={() => nav('/admin')}
+                onClick={() => (window as any).gotopage('/admin')}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
                 Admin
               </button>
               <button
-                onClick={() => nav('/communications')}
+                onClick={() => (window as any).gotopage('/communications')}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
                 Communications
               </button>
               <button
-                onClick={() => nav('/barbers')}
+                onClick={() => (window as any).gotopage('/barbers')}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
                 Barbers
               </button>
               <button
-                onClick={() => nav('/customers')}
+                onClick={() => (window as any).gotopage('/customers')}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
                 Customers
               </button>
               <button
-                onClick={() => nav('/ai-knowledge')}
+                onClick={() => (window as any).gotopage('/ai-knowledge')}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
                 AI Knowledge
               </button>
               <button
-                onClick={() => nav('/book')}
+                onClick={() => (window as any).gotopage('/book')}
                 className="text-sm text-ios-textMuted hover:text-white transition"
               >
                 Book Appointment
@@ -120,14 +114,14 @@ export default function NavBar(): JSX.Element {
               </>
             ) : isLanding ? (
               <button
-                onClick={() => nav('/signin')}
+                onClick={() => (window as any).gotopage('/signin')}
                 className="px-3 py-1.5 rounded-xl text-xs bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 transition shadow-lg"
               >
                 Client Sign in
               </button>
             ) : (
               <button
-                onClick={() => nav('/signin')}
+                onClick={() => (window as any).gotopage('/signin')}
                 className="px-3 py-1.5 rounded-xl text-xs bg-emerald-500/90 hover:bg-emerald-500 transition shadow"
               >
                 Client Sign in

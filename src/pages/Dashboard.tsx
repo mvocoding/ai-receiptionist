@@ -29,20 +29,6 @@ export default function Dashboard(): JSX.Element {
   >([]);
 
   useEffect(() => {
-    document.title = 'Dashboard · Fade Station';
-    const meta =
-      document.querySelector('meta[name="description"]') ??
-      document.createElement('meta');
-    meta.setAttribute('name', 'description');
-    meta.setAttribute(
-      'content',
-      'Fade Station Dashboard · Overview and Statistics'
-    );
-    if (!document.querySelector('meta[name="description"]'))
-      document.head.appendChild(meta);
-  }, []);
-
-  useEffect(() => {
     const fetchStats = async () => {
       try {
         const today = new Date().toISOString().split('T')[0];
@@ -120,12 +106,6 @@ export default function Dashboard(): JSX.Element {
 
     fetchStats();
   }, []);
-
-  function nav(to: string) {
-    const fn = (window as any).gotopage;
-    if (fn) fn(to);
-    else window.location.pathname = to;
-  }
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
@@ -221,7 +201,7 @@ export default function Dashboard(): JSX.Element {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               <button
-                onClick={() => nav('/admin')}
+                onClick={() => (window as any).gotopage('/admin')}
                 className="bg-white/5 border border-white/10 rounded-xl p-6 text-left hover:bg-white/10 transition group"
               >
                 <div className="flex items-center gap-4 mb-4">
@@ -233,7 +213,7 @@ export default function Dashboard(): JSX.Element {
               </button>
 
               <button
-                onClick={() => nav('/communications')}
+                onClick={() => (window as any).gotopage('/communications')}
                 className="bg-white/5 border border-white/10 rounded-xl p-6 text-left hover:bg-white/10 transition group"
               >
                 <div className="flex items-center gap-4 mb-4">
@@ -245,7 +225,7 @@ export default function Dashboard(): JSX.Element {
               </button>
 
               <button
-                onClick={() => nav('/customers')}
+                onClick={() => (window as any).gotopage('/customers')}
                 className="bg-white/5 border border-white/10 rounded-xl p-6 text-left hover:bg-white/10 transition group"
               >
                 <div className="flex items-center gap-4 mb-4">
@@ -257,7 +237,7 @@ export default function Dashboard(): JSX.Element {
               </button>
 
               <button
-                onClick={() => nav('/ai-knowledge')}
+                onClick={() => (window as any).gotopage('/ai-knowledge')}
                 className="bg-white/5 border border-white/10 rounded-xl p-6 text-left hover:bg-white/10 transition group"
               >
                 <div className="flex items-center gap-4 mb-4">
@@ -269,7 +249,7 @@ export default function Dashboard(): JSX.Element {
               </button>
 
               <button
-                onClick={() => nav('/barbers')}
+                onClick={() => (window as any).gotopage('/barbers')}
                 className="bg-white/5 border border-white/10 rounded-xl p-6 text-left hover:bg-white/10 transition group"
               >
                 <div className="flex items-center gap-4 mb-4">
@@ -281,7 +261,7 @@ export default function Dashboard(): JSX.Element {
               </button>
 
               <button
-                onClick={() => nav('/book')}
+                onClick={() => (window as any).gotopage('/book')}
                 className="bg-white/5 border border-white/10 rounded-xl p-6 text-left hover:bg-white/10 transition group"
               >
                 <div className="flex items-center gap-4 mb-4">

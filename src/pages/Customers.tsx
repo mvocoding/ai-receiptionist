@@ -74,7 +74,6 @@ export default function Customers(): JSX.Element {
           Object.values(grouped).sort((a, b) => a.name.localeCompare(b.name))
         );
       } catch (err) {
-        console.error('Error loading customers:', err);
         setError(`Failed to load customer data from Supabase. ${String(err)}`);
       } finally {
         setLoading(false);

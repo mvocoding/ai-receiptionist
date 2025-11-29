@@ -49,8 +49,7 @@ export default function Admin(): JSX.Element | null {
       const userStr = localStorage.getItem('fs_user');
       if (!userStr) {
         setIsAuthenticated(false);
-        (window as any).gotopage?.('/admin/signin') ??
-          (window.location.pathname = '/admin/signin');
+        (window as any).gotopage?.('/admin/signin');
         return;
       }
 
@@ -58,8 +57,7 @@ export default function Admin(): JSX.Element | null {
         const user = JSON.parse(userStr);
         if (!user || !user.email) {
           setIsAuthenticated(false);
-          (window as any).gotopage?.('/admin/signin') ??
-            (window.location.pathname = '/admin/signin');
+          (window as any).gotopage?.('/admin/signin');
           return;
         }
         const {
@@ -69,16 +67,14 @@ export default function Admin(): JSX.Element | null {
         if (error || !session) {
           localStorage.removeItem('fs_user');
           setIsAuthenticated(false);
-          (window as any).gotopage?.('/admin/signin') ??
-            (window.location.pathname = '/admin/signin');
+          (window as any).gotopage?.('/admin/signin');
           return;
         }
 
         setIsAuthenticated(true);
       } catch {
         setIsAuthenticated(false);
-        (window as any).gotopage?.('/admin/signin') ??
-          (window.location.pathname = '/admin/signin');
+        (window as any).gotopage?.('/admin/signin');
       }
     };
 
@@ -109,15 +105,12 @@ export default function Admin(): JSX.Element | null {
           });
         }
 
-        // Fetch barbers
         const { data: barbersData, error: barbersError } = await supabase
           .from('barbers')
           .select('*')
           .order('created_at', { ascending: true });
 
-        if (barbersError) {
-          console.error('Error fetching barbers:', barbersError);
-        } else if (barbersData) {
+        if (barbersData) {
           setBarbers(
             barbersData.map((b: DBBarber) => ({
               id: b.id,
@@ -134,9 +127,7 @@ export default function Admin(): JSX.Element | null {
           .select('*')
           .order('date', { ascending: true });
 
-        if (exceptionsError) {
-          console.error('Error fetching barber exceptions:', exceptionsError);
-        } else if (exceptionsData) {
+        if (exceptionsData) {
           setExceptions(
             (exceptionsData as DBBarberException[]).map((ex) => ({
               id: ex.id,
@@ -149,7 +140,6 @@ export default function Admin(): JSX.Element | null {
           );
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
@@ -196,7 +186,6 @@ export default function Admin(): JSX.Element | null {
         bannerUrl: publicUrl,
       }));
     } catch (error) {
-      console.error('Error uploading banner:', error);
       alert('Failed to upload banner image. Please try again.');
     } finally {
       setUploadingBanner(false);
@@ -243,7 +232,6 @@ export default function Admin(): JSX.Element | null {
         alert('Barber added successfully!');
       }
     } catch (error) {
-      console.error('Error adding barber:', error);
       alert('Failed to add barber. Please try again.');
     }
   };
@@ -303,7 +291,6 @@ export default function Admin(): JSX.Element | null {
         alert('Barber updated successfully!');
       }
     } catch (error) {
-      console.error('Error updating barber:', error);
       alert('Failed to update barber. Please try again.');
     }
   };
@@ -319,7 +306,6 @@ export default function Admin(): JSX.Element | null {
       setBarbers(barbers.filter((b) => b.id !== id));
       alert('Barber deleted successfully!');
     } catch (error) {
-      console.error('Error deleting barber:', error);
       alert('Failed to delete barber. Please try again.');
     }
   };
@@ -354,7 +340,6 @@ export default function Admin(): JSX.Element | null {
 
       alert('Store settings saved!');
     } catch (error) {
-      console.error('Error saving settings:', error);
       alert('Failed to save settings. Please try again.');
     }
   };
@@ -414,7 +399,6 @@ export default function Admin(): JSX.Element | null {
         });
       }
     } catch (error) {
-      console.error('Error saving exception:', error);
       alert('Failed to save exception. Please try again.');
     } finally {
       setSavingException(false);
@@ -433,7 +417,6 @@ export default function Admin(): JSX.Element | null {
       if (error) throw error;
       setExceptions((prev) => prev.filter((ex) => ex.id !== id));
     } catch (error) {
-      console.error('Error deleting exception:', error);
       alert('Failed to delete exception. Please try again.');
     }
   };

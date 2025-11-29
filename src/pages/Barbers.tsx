@@ -52,7 +52,6 @@ export default function Barbers(): JSX.Element {
           })) || []
         );
       } catch (err) {
-        console.error('load barber fail', err);
         setBarberList([]);
       } finally {
         setBusyBarber(false);
@@ -81,7 +80,6 @@ export default function Barbers(): JSX.Element {
         });
         setSlotByBarber(bucket);
       } catch (err) {
-        console.error('load appointments fail', err);
         setSlotByBarber({});
         setErrText('Unable to load appointments for this day.');
       } finally {
@@ -106,7 +104,6 @@ export default function Barbers(): JSX.Element {
         });
         setExcByBarber(obj);
       } catch (err) {
-        console.error('load exceptions fail', err);
         setExcByBarber({});
       }
     }

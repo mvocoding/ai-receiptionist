@@ -74,7 +74,6 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
           conversation: cleanMsg,
         });
       } catch (error) {
-        console.error('load conversation detail fail', error);
         setErrText('Failed to load conversation.');
       } finally {
         setLoading(false);
@@ -84,18 +83,14 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
     void loadDetail();
   }, [targetId]);
 
-  const goBack = () => {
-    const gotopage = (window as any).gotopage;
-    if (gotopage) gotopage('/communications');
-    else window.location.href = '/communications';
-  };
-
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       <NavBar />
       <div className="mx-auto max-w-5xl px-4 py-10 space-y-6">
         <button
-          onClick={goBack}
+          onClick={() => {
+            (window as any).gotopage?.('/communications');
+          }}
           className="text-sm text-white/70 hover:text-white transition"
         >
           ← Back

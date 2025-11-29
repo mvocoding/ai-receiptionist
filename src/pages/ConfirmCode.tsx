@@ -13,8 +13,7 @@ export default function ConfirmCode(): JSX.Element | null {
   useEffect(() => {
     const storedEmail = sessionStorage.getItem('fs_signin_email');
     if (!storedEmail) {
-      (window as any).gotopage?.('/signin') ??
-        (window.location.pathname = '/signin');
+      (window as any).gotopage?.('/signin');
       return;
     }
     setEmail(storedEmail);
@@ -57,10 +56,8 @@ export default function ConfirmCode(): JSX.Element | null {
       localStorage.setItem('fs_user', JSON.stringify(sessionUser));
       sessionStorage.removeItem('fs_signin_email');
 
-      (window as any).gotopage?.('/admin/dashboard') ??
-        (window.location.pathname = '/admin/dashboard');
+      (window as any).gotopage?.('/admin/dashboard');
     } catch (err) {
-      console.error('Error verifying code:', err);
       setError('Failed to verify code. Please try again.');
     } finally {
       setVerifying(false);
@@ -83,7 +80,6 @@ export default function ConfirmCode(): JSX.Element | null {
 
       setInfo(`A new code was sent to ${email}. Please check your email.`);
     } catch (err) {
-      console.error('Error resending code:', err);
       setError('Failed to resend code. Please try again.');
     } finally {
       setLoading(false);
@@ -139,8 +135,7 @@ export default function ConfirmCode(): JSX.Element | null {
               <button
                 type="button"
                 onClick={() => {
-                  (window as any).gotopage?.('/signin') ??
-                    (window.location.pathname = '/signin');
+                  (window as any).gotopage?.('/signin');
                 }}
                 className="px-4 py-2 rounded-2xl bg-white/5 border border-white/10"
               >

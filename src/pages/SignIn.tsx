@@ -41,7 +41,6 @@ export default function SignIn(): JSX.Element {
             });
 
             if (signUpError) {
-              console.error('Sign up failed:', signUpError);
               setError('Failed to create account. Please try again.');
               return;
             }
@@ -52,7 +51,6 @@ export default function SignIn(): JSX.Element {
             );
             return;
           } catch (signErr) {
-            console.error('Unexpected signUp error:', signErr);
             setError('Failed to create account. Please try again.');
             return;
           }
@@ -81,7 +79,6 @@ export default function SignIn(): JSX.Element {
           (window.location.pathname = '/confirm');
       }, 1500);
     } catch (err) {
-      console.error('Error sending verification code:', err);
       setError('Failed to send verification code. Please try again.');
     } finally {
       setLoading(false);
@@ -195,8 +192,7 @@ export default function SignIn(): JSX.Element {
                 <button
                   type="button"
                   onClick={() => {
-                    (window as any).gotopage?.('/') ??
-                      (window.location.pathname = '/');
+                    (window as any).gotopage?.('/');
                   }}
                   className="px-6 py-3 rounded-xl text-base font-medium bg-white/5 border border-white/10 hover:bg-white/10 transition"
                 >

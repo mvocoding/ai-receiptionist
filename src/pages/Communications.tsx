@@ -58,7 +58,6 @@ export default function Communications(): JSX.Element {
 
         setListConvo(mapped);
       } catch (err) {
-        console.error('load conversations fail', err);
         setErrText('Failed to load conversations from Supabase.');
       } finally {
         setLoading(false);
@@ -67,12 +66,6 @@ export default function Communications(): JSX.Element {
 
     void loadConvo();
   }, []);
-
-  const goTo = (to: string) => {
-    const nav = (window as any).gotopage;
-    if (nav) nav(to);
-    else window.location.href = to;
-  };
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
@@ -113,7 +106,9 @@ export default function Communications(): JSX.Element {
                     <tr
                       key={item.id}
                       className="border-b border-white/5 hover:bg-white/5 cursor-pointer"
-                      onClick={() => goTo(`/communications/${item.id}`)}
+                      onClick={() =>
+                        (window as any).gotopage(`/communications/${item.id}`)
+                      }
                     >
                       <td className="py-3 pr-4">{item.contactName}</td>
                       <td className="py-3 pr-4">{item.contactNumber}</td>
