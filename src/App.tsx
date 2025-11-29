@@ -6,8 +6,6 @@ import CommunicationDetail from './pages/CommunicationDetail';
 import AIKnowledge from './pages/AIKnowledge';
 import SignIn from './pages/SignIn';
 import ConfirmCode from './pages/ConfirmCode';
-import AdminSignIn from './pages/AdminSignIn';
-import AdminConfirmCode from './pages/AdminConfirmCode';
 import BookAppointment from './pages/BookAppointment';
 import Admin from './pages/Admin';
 import Customers from './pages/Customers';
@@ -67,14 +65,6 @@ export default function App(): JSX.Element {
     {
       match: () => lower.includes('confirm') && !lower.includes('admin'),
       element: <ConfirmCode />,
-    },
-    {
-      match: () => lower.includes('admin/signin'),
-      element: <AdminSignIn />,
-    },
-    {
-      match: () => lower.includes('admin/confirm'),
-      element: <AdminConfirmCode />,
     },
     {
       match: () => lower.includes('book'),

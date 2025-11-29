@@ -30,29 +30,39 @@ export default function SignIn(): JSX.Element {
     setLoading(true);
 
     try {
-      const { error: otpError } = await supabase.auth.signInWithOtp({
+      const res = await supabase.auth.signInWithOtp({
         email: trimmed,
         options: {
           shouldCreateUser: false,
         },
       });
 
-      if (otpError) {
-        const message = otpError.message?.toLowerCase() ?? '';
+      if (res.error) {
+        const message = String((res.error as any).message ?? '').toLowerCase();
 
-        if (message.includes('user not found')) {
-          const { error: signUpError } = await supabase.auth.signUp({
-            email: trimmed,
-            password: DEFAULT_PASSWORD,
-          });
+        if (message.includes('signups not allowed for otp')) {
+          try {
+            const { error: signUpError } = await supabase.auth.signUp({
+              email: trimmed,
+              password: DEFAULT_PASSWORD,
+            });
 
-          if (signUpError) throw signUpError;
+            if (signUpError) {
+              console.error('Sign up failed:', signUpError);
+              setError('Failed to create account. Please try again.');
+              return;
+            }
 
-          setNeedsEmailConfirmation(true);
-          setInfo(
-            `We created an account for ${trimmed}. Please confirm your email from the Supabase message, then click "I confirmed my email" below.`
-          );
-          return;
+            setNeedsEmailConfirmation(true);
+            setInfo(
+              `We created an account for ${trimmed}. Please confirm your email from the Supabase message, then click "I confirmed my email" below.`
+            );
+            return;
+          } catch (signErr) {
+            console.error('Unexpected signUp error:', signErr);
+            setError('Failed to create account. Please try again.');
+            return;
+          }
         }
 
         if (message.includes('email not confirmed')) {
@@ -63,7 +73,8 @@ export default function SignIn(): JSX.Element {
           return;
         }
 
-        throw otpError;
+        console.warn('OTP request error:', res.error);
+        throw res.error;
       }
 
       sessionStorage.setItem('fs_signin_email', trimmed);

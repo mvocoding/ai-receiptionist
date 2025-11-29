@@ -57,18 +57,19 @@ export default function CommunicationDetail({ id }: Props): JSX.Element {
             const senderRaw = String(
               msg?.sender ?? msg?.role ?? 'system'
             ).toLowerCase();
-            const sender: Message['sender'] =
-              senderRaw === 'customer' || senderRaw === 'user'
-                ? 'customer'
-                : senderRaw === 'ai' || senderRaw === 'assistant'
-                ? 'ai'
-                : 'system';
+
+            let sender: Message['sender'] = 'system';
+            if (senderRaw === 'customer' || senderRaw === 'user') {
+              sender = 'customer';
+            } else if (senderRaw === 'ai' || senderRaw === 'assistant') {
+              sender = 'ai';
+            }
+
             const text =
-              msg?.message ??
-              msg?.text ??
-              msg?.content ??
-              msg?.body ??
-              '[no message]';
+              ['message', 'text', 'content', 'body']
+                .map((key) => msg?.[key])
+                .find((v) => v) || '[no message]';
+
             return {
               sender,
               message: typeof text === 'string' ? text : JSON.stringify(text),
