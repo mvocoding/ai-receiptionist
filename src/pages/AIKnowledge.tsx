@@ -146,19 +146,17 @@ export default function AIKnowledgePage(): JSX.Element {
 
         const settingsMap: Record<string, typeof currentSettingInfo> = {};
 
-        if (Array.isArray(settingRows)) {
-          settingRows.forEach((row: any) => {
-            const communicationType = row.channel ?? 'call';
-            settingsMap[communicationType] = {
-              id: row.id,
-              greeting: row.greeting || '',
-              channel: communicationType,
-              promptSections: convertToSectionList(row.prompt_sections),
-              createdAt: row.created_at,
-              updatedAt: row.updated_at,
-            };
-          });
-        }
+        settingRows.forEach((row: any) => {
+          const communicationType = row.channel ?? 'call';
+          settingsMap[communicationType] = {
+            id: row.id,
+            greeting: row.greeting || '',
+            channel: communicationType,
+            promptSections: convertToSectionList(row.prompt_sections),
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+          };
+        });
 
         communicationTypeOptions.forEach((c) => {
           if (!settingsMap[c.value]) {
@@ -198,7 +196,6 @@ export default function AIKnowledgePage(): JSX.Element {
     }
 
     void loadAllAIPageData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function selectCommunicationType(channel: string) {
@@ -436,7 +433,6 @@ export default function AIKnowledgePage(): JSX.Element {
           <AgentSettingsTab
             settings={currentSettingInfo}
             channelOptions={communicationTypeOptions}
-            promptJson={promptAsJsonText}
             onChannelChange={(val) => selectCommunicationType(val)}
             onGreetingChange={(val) =>
               setCurrentSettingInfo((prev) => ({ ...prev, greeting: val }))

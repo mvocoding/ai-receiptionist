@@ -76,6 +76,9 @@ export function buildAllowedSet(
   return set;
 }
 
+export const slotConfig = { open: '09:00', close: '18:30', step: 30 };
+export const slotList = makeSlotList(slotConfig.open, slotConfig.close, slotConfig.step);
+
 
 export function simpleSerialize(list: PromptSection[]) {
   const obj: Record<string, string> = {};

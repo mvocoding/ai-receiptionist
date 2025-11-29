@@ -16,11 +16,9 @@ import {
   formatDate,
   formatPretty,
   cutTime,
-  makeSlotList,
   buildAllowedSet,
+  slotList,
 } from '../lib/utils';
-
-const slotConfig = { open: '09:00', close: '18:00', step: 30 };
 
 export default function Barbers(): JSX.Element {
   const [day, setDay] = useState(() => new Date());
@@ -35,10 +33,6 @@ export default function Barbers(): JSX.Element {
   const [errText, setErrText] = useState<string | null>(null);
 
   const dayText = useMemo(() => formatDate(day), [day]);
-  const slotList = useMemo(
-    () => makeSlotList(slotConfig.open, slotConfig.close, slotConfig.step),
-    []
-  );
 
   useEffect(() => {
     async function loadBarber() {

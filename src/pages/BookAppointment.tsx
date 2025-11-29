@@ -13,6 +13,8 @@ import type {
   BookingForm,
 } from '../lib/types-global';
 
+import { slotList } from '../lib/utils';
+
 import { formatIso, cutTime, addMinutes } from '../lib/utils';
 
 async function ensureUser(name: string, phone: string): Promise<string | null> {
@@ -66,14 +68,6 @@ function InfoRow({
     </div>
   );
 }
-
-const slotList = [
-  '09:00', '09:30', '10:00',
-  '10:30', '11:00', '11:30',
-  '14:00', '14:30', '15:00',
-  '15:30', '16:00', '16:30',
-  '17:00',
-];
 
 const fallbackStore = {
   bannerUrl:

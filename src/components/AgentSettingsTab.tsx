@@ -1,4 +1,3 @@
-import React from 'react';
 import type { PromptSection } from '../lib/types-global';
 
 type ChannelOption = { value: string; label: string };
@@ -15,18 +14,20 @@ type SettingData = {
 type Props = {
   settings: SettingData;
   channelOptions: ChannelOption[];
-  promptJson: string;
   onChannelChange: (value: string) => void;
   onGreetingChange: (value: string) => void;
   onAddSection: () => void;
   onRemoveSection: (index: number) => void;
-  onUpdateSection: (index: number, key: keyof PromptSection, value: string) => void;
+  onUpdateSection: (
+    index: number,
+    key: keyof PromptSection,
+    value: string
+  ) => void;
 };
 
 export default function AgentSettingsTab({
   settings,
   channelOptions,
-  promptJson,
   onChannelChange,
   onGreetingChange,
   onAddSection,
@@ -35,7 +36,6 @@ export default function AgentSettingsTab({
 }: Props): JSX.Element {
   return (
     <section className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
-
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label className="block text-xs uppercase tracking-wide text-white/50 mb-2">
@@ -66,7 +66,6 @@ export default function AgentSettingsTab({
         </div>
       </div>
 
-
       <div>
         <div className="flex items-center justify-between mb-3">
           <p className="font-semibold">Prompt Sections</p>
@@ -86,7 +85,9 @@ export default function AgentSettingsTab({
               <div className="flex items-center gap-2">
                 <input
                   value={section.title}
-                  onChange={(e) => onUpdateSection(index, 'title', e.target.value)}
+                  onChange={(e) =>
+                    onUpdateSection(index, 'title', e.target.value)
+                  }
                   className="flex-1 bg-transparent border-b border-white/20 text-sm focus:outline-none focus:border-white"
                   placeholder="Section title"
                 />
@@ -99,7 +100,9 @@ export default function AgentSettingsTab({
               </div>
               <textarea
                 value={section.content}
-                onChange={(e) => onUpdateSection(index, 'content', e.target.value)}
+                onChange={(e) =>
+                  onUpdateSection(index, 'content', e.target.value)
+                }
                 rows={3}
                 className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/50"
                 placeholder="Instructions or reference content..."
@@ -111,8 +114,6 @@ export default function AgentSettingsTab({
           )}
         </div>
       </div>
-
     </section>
   );
 }
-
