@@ -1,22 +1,9 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-function CheckboxIcon(): JSX.Element {
-  return (
-    <svg
-      className="w-5 h-5 text-emerald-400"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="M5 13l4 4L19 7" />
-    </svg>
-  );
-}
-
 export default function SignIn(): JSX.Element {
   const [email, setEmail] = useState('');
+  const [shopCode, setShopCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -24,6 +11,11 @@ export default function SignIn(): JSX.Element {
   const DEFAULT_PASSWORD = '0123456789';
 
   async function startOtpFlow(trimmed: string) {
+    if (shopCode.trim() !== 'maxstore') {
+      setError('Invalid shop code');
+      return;
+    }
+
     setError(null);
     setInfo(null);
     setNeedsEmailConfirmation(false);
@@ -127,6 +119,24 @@ export default function SignIn(): JSX.Element {
             <form onSubmit={handleSendCode} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-white/70 mb-2">
+                  Shop Code
+                </label>
+                <input
+                  type="text"
+                  value={shopCode}
+                  onChange={(e) => {
+                    setShopCode(e.target.value);
+                    setError(null);
+                    setInfo(null);
+                  }}
+                  className="w-full bg-white/5 border border-ios-border rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-shadow"
+                  placeholder="shopcode"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-2">
                   Email address
                 </label>
                 <input
@@ -191,23 +201,6 @@ export default function SignIn(): JSX.Element {
                 </button>
               </div>
             </form>
-
-            <div className="mt-12 pt-8 border-t border-white/10">
-              <div className="flex gap-8 text-sm text-ios-textMuted">
-                <div className="flex items-center gap-2">
-                  <CheckboxIcon />
-                  <span>24/7 AI Support</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckboxIcon />
-                  <span>Smart Booking</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckboxIcon />
-                  <span>Free Trial</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

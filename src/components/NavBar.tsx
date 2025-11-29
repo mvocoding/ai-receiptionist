@@ -117,14 +117,14 @@ export default function NavBar(): JSX.Element {
                 onClick={() => nav('/signin')}
                 className="px-3 py-1.5 rounded-xl text-xs bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 transition shadow-lg"
               >
-                Get Started
+                Client Sign in
               </button>
             ) : (
               <button
                 onClick={() => nav('/signin')}
                 className="px-3 py-1.5 rounded-xl text-xs bg-emerald-500/90 hover:bg-emerald-500 transition shadow"
               >
-                Sign in
+                Client Sign in
               </button>
             )}
           </div>
