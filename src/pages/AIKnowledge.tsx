@@ -12,7 +12,7 @@ const tabMenu = [
 
 const channelMenu = [
   { value: 'call', label: 'Voice Calls' },
-  { value: 'sms', label: 'SMS / Text' },
+  { value: 'sms', label: 'SMS' },
 ];
 
 const starterSections: PromptSection[] = [

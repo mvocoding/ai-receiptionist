@@ -3,79 +3,24 @@ import NavBar from '../components/NavBar';
 import {
   supabase,
   type Barber as DBBarber,
-  type Appointment as DBAppointment,
   type BarberException as DBBarberException,
 } from '../lib/supabase';
 
+import type {
+  BarberView,
+  AppointmentView,
+  ExceptionMap,
+} from '../lib/types-global';
+
+import {
+  formatDate,
+  formatPretty,
+  cutTime,
+  makeSlotList,
+  buildAllowedSet,
+} from '../lib/utils';
+
 const slotConfig = { open: '09:00', close: '18:00', step: 30 };
-
-type BarberView = {
-  id: string;
-  name: string;
-  desc: string;
-  status: 'active' | 'inactive';
-};
-
-type AppointmentView = DBAppointment & {
-  users?: { name?: string; phone_number?: string } | null;
-};
-
-type ExceptionMap = Record<
-  string,
-  { isDayOff: boolean; start?: string; end?: string } | undefined
->;
-
-function formatDate(date: Date) {
-  return date.toISOString().split('T')[0];
-}
-
-function formatPretty(dateStr: string) {
-  const date = new Date(dateStr + 'T00:00:00');
-  if (Number.isNaN(date.getTime())) return dateStr;
-  return date.toDateString();
-}
-
-function cutTime(value?: string | null) {
-  if (!value) return '';
-  return value.slice(0, 5);
-}
-
-function makeSlotList(open: string, close: string, step: number) {
-  const result: string[] = [];
-  let current = parseTime(open);
-  const end = parseTime(close);
-  while (current < end) {
-    const hour = String(Math.floor(current / 60)).padStart(2, '0');
-    const minute = String(current % 60).padStart(2, '0');
-    result.push(`${hour}:${minute}`);
-    current += step;
-  }
-  return result;
-}
-
-function parseTime(time: string) {
-  const [h, m] = time.split(':').map(Number);
-  return h * 60 + m;
-}
-
-function buildAllowedSet(
-  info: { isDayOff: boolean; start?: string; end?: string } | undefined,
-  slots: string[]
-) {
-  if (!info) return new Set(slots);
-  if (info.isDayOff) return new Set<string>();
-  const set = new Set<string>();
-  slots.forEach((slot: string) => {
-    if (
-      !info.start ||
-      !info.end ||
-      (slot >= (info.start || '00:00') && slot <= (info.end || '23:59'))
-    ) {
-      set.add(slot);
-    }
-  });
-  return set;
-}
 
 export default function Barbers(): JSX.Element {
   const [day, setDay] = useState(() => new Date());
@@ -155,7 +100,7 @@ export default function Barbers(): JSX.Element {
         const { data, error } = await supabase
           .from('barber_exceptions')
           .select('*')
-          .eq('exception_date', dayText);
+          .eq('date', dayText);
         if (error) throw error;
         const obj: ExceptionMap = {};
         (data as DBBarberException[] | null)?.forEach((item) => {

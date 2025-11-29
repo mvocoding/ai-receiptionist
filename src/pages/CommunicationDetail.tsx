@@ -2,18 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import NavBar from '../components/NavBar';
 import { supabase, type Conversation as DBConversation } from '../lib/supabase';
 import type { Message, Comm } from '../lib/types-global';
+import { toLongTime, toShortTime } from '../lib/utils';
 
 type Props = { id?: string };
-
-function toLongTime(ts?: string | null) {
-  if (!ts) return '';
-  return new Date(ts).toLocaleString();
-}
-
-function toShortTime(ts?: string | null) {
-  if (!ts) return '';
-  return new Date(ts).toLocaleTimeString();
-}
 
 export default function CommunicationDetail({ id }: Props): JSX.Element {
   const targetId = useMemo(() => {

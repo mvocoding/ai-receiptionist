@@ -7,22 +7,13 @@ import {
   type BarberException as DBBarberException,
 } from '../lib/supabase';
 
-function formatIso(date: Date) {
-  return date.toISOString().split('T')[0];
-}
+import type {
+  BarberView,
+  ExceptionInfo,
+  BookingForm,
+} from '../lib/types-global';
 
-function cutTime(time?: string | null) {
-  if (!time) return '';
-  return time.slice(0, 5);
-}
-
-function addMinutes(time: string, minute: number) {
-  const [h, m] = time.split(':').map(Number);
-  const total = h * 60 + m + minute;
-  const hh = String(Math.floor(total / 60)).padStart(2, '0');
-  const mm = String(total % 60).padStart(2, '0');
-  return `${hh}:${mm}:00`;
-}
+import { formatIso, cutTime, addMinutes } from '../lib/utils';
 
 async function ensureUser(name: string, phone: string): Promise<string | null> {
   const phoneClean = phone.replace(/\s+/g, '');
@@ -32,7 +23,6 @@ async function ensureUser(name: string, phone: string): Promise<string | null> {
     .select('id, name')
     .eq('phone_number', phoneClean)
     .maybeSingle();
-  if (error && error.code !== 'PGRST116') throw error;
   if (existed) {
     if (name && existed.name !== name) {
       await supabase.from('users').update({ name }).eq('id', existed.id);
@@ -102,28 +92,6 @@ const fallbackStore = {
   phone: '0483 804 500',
 };
 
-type BarberView = {
-  id: string;
-  name: string;
-  desc: string;
-  status: 'active' | 'inactive';
-};
-
-type ExceptionInfo = {
-  isDayOff: boolean;
-  start?: string;
-  end?: string;
-} | null;
-
-type BookingForm = {
-  barberId: string;
-  date: string;
-  time: string;
-  name: string;
-  phone: string;
-  notes: string;
-};
-
 export default function BookAppointment(): JSX.Element {
   const [storeInfo, setStoreInfo] = useState(fallbackStore);
   const [barberList, setBarberList] = useState<BarberView[]>([]);
@@ -162,9 +130,7 @@ export default function BookAppointment(): JSX.Element {
             phone: data.phone_number || fallbackStore.phone,
           });
         }
-      } catch {
-        // keep fallback
-      }
+      } catch {}
     }
 
     async function loadBarber() {
@@ -197,6 +163,17 @@ export default function BookAppointment(): JSX.Element {
 
   const today = useMemo(() => new Date(), []);
 
+  const getTodayDate = () => {
+    const d = new Date();
+    return formatIso(d);
+  };
+
+  const getTomorrowDate = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return formatIso(d);
+  };
+
   useEffect(() => {
     async function loadSlots() {
       if (!form.barberId || !form.date) {
@@ -224,9 +201,8 @@ export default function BookAppointment(): JSX.Element {
           .from('barber_exceptions')
           .select('*')
           .eq('barber_id', form.barberId)
-          .eq('exception_date', form.date)
+          .eq('date', form.date)
           .maybeSingle<DBBarberException>();
-        if (exError && exError.code !== 'PGRST116') throw exError;
         if (exData) {
           setDayException({
             isDayOff: exData.is_day_off,
@@ -379,9 +355,7 @@ export default function BookAppointment(): JSX.Element {
                   } ${barber.status !== 'active' ? 'opacity-40' : ''}`}
                 >
                   <h3 className="text-xl font-semibold">{barber.name}</h3>
-                  <p className="text-sm text-white/60 mt-1">
-                    {barber.desc || 'No desc'}
-                  </p>
+
                   <p className="text-xs mt-3">
                     Status:{' '}
                     <span className="font-medium">
@@ -398,25 +372,39 @@ export default function BookAppointment(): JSX.Element {
           <section className="space-y-10">
             <div>
               <h3 className="text-2xl font-semibold mb-4">Pick a day</h3>
-              <div className="flex flex-wrap gap-4 items-center">
-                <input
-                  type="date"
-                  value={form.date}
-                  min={formatIso(today)}
-                  onChange={(e) =>
+              <div className="grid grid-cols-2 gap-x-6">
+                <button
+                  onClick={() =>
                     setForm((prev) => ({
                       ...prev,
-                      date: e.target.value,
+                      date: getTodayDate(),
                       time: '',
                     }))
                   }
-                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-                />
-                {form.date && (
-                  <p className="text-white/60 text-sm">
-                    Selected: {new Date(form.date + 'T00:00:00').toDateString()}
-                  </p>
-                )}
+                  className={`px-6 py-3 rounded-xl border text-sm font-medium transition ${
+                    form.date === getTodayDate()
+                      ? 'bg-sky-500/20 border-sky-500/40 text-sky-200 ring-2 ring-sky-500/40'
+                      : 'bg-white/5 border-white/10 hover:bg-white/10 text-white/80'
+                  }`}
+                >
+                  Today
+                </button>
+                <button
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      date: getTomorrowDate(),
+                      time: '',
+                    }))
+                  }
+                  className={`px-6 py-3 rounded-xl border text-sm font-medium transition ${
+                    form.date === getTomorrowDate()
+                      ? 'bg-sky-500/20 border-sky-500/40 text-sky-200 ring-2 ring-sky-500/40'
+                      : 'bg-white/5 border-white/10 hover:bg-white/10 text-white/80'
+                  }`}
+                >
+                  Tomorrow
+                </button>
               </div>
             </div>
 

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
-import { supabase, type Appointment as DBAppointment } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 
-import type { Customer } from '../lib/types-global';
+import type { Customer, AppointmentRow } from '../lib/types-global';
 
 const dateFormatter = new Intl.DateTimeFormat('en-NZ', {
   weekday: 'short',
@@ -19,11 +19,6 @@ function formatDateTime(dateStr: string, timeStr?: string | null) {
   if (!timeStr) return dateFormatter.format(new Date(dateStr));
   return `${dateFormatter.format(new Date(dateStr))} · ${timeStr}`;
 }
-
-type AppointmentRow = DBAppointment & {
-  barbers?: { name?: string };
-  users?: { name?: string; phone_number?: string; email?: string };
-};
 
 export default function Customers(): JSX.Element {
   const [customers, setCustomers] = useState<Customer[]>([]);

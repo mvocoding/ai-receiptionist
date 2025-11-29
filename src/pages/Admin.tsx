@@ -133,7 +133,7 @@ export default function Admin(): JSX.Element | null {
         const { data: exceptionsData, error: exceptionsError } = await supabase
           .from('barber_exceptions')
           .select('*')
-          .order('exception_date', { ascending: true });
+          .order('date', { ascending: true });
 
         if (exceptionsError) {
           console.error('Error fetching barber exceptions:', exceptionsError);
@@ -142,7 +142,7 @@ export default function Admin(): JSX.Element | null {
             (exceptionsData as DBBarberException[]).map((ex) => ({
               id: ex.id,
               barberId: ex.barber_id,
-              date: ex.exception_date,
+              date: ex.date,
               isDayOff: ex.is_day_off,
               startTime: ex.start_time || '',
               endTime: ex.end_time || '',
@@ -378,7 +378,7 @@ export default function Admin(): JSX.Element | null {
     try {
       const payload = {
         barber_id: exceptionForm.barberId,
-        exception_date: exceptionForm.date,
+        date: exceptionForm.date,
         is_day_off: exceptionForm.isDayOff,
         start_time: exceptionForm.isDayOff ? null : exceptionForm.startTime,
         end_time: exceptionForm.isDayOff ? null : exceptionForm.endTime,
@@ -399,7 +399,7 @@ export default function Admin(): JSX.Element | null {
             {
               id: data.id,
               barberId: data.barber_id,
-              date: data.exception_date,
+              date: data.date,
               isDayOff: data.is_day_off,
               startTime: data.start_time || '',
               endTime: data.end_time || '',

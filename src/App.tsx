@@ -9,6 +9,7 @@ import ConfirmCode from './pages/ConfirmCode';
 import BookAppointment from './pages/BookAppointment';
 import Admin from './pages/Admin';
 import Customers from './pages/Customers';
+import Dashboard from './pages/Dashboard';
 
 export default function App(): JSX.Element {
   const [path, setPath] = useState(() => window.location.pathname || '/');
@@ -61,6 +62,10 @@ export default function App(): JSX.Element {
     {
       match: () => lower.includes('signin'),
       element: <SignIn />,
+    },
+    {
+      match: () => lower.includes('dashboard'),
+      element: <Dashboard />,
     },
     {
       match: () => lower.includes('confirm') && !lower.includes('admin'),

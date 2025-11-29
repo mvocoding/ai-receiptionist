@@ -33,7 +33,7 @@ export type Barber = {
 export type BarberException = {
   id: string;
   barber_id: string;
-  exception_date: string;
+  date: string;
   is_day_off: boolean;
   start_time?: string;
   end_time?: string;
