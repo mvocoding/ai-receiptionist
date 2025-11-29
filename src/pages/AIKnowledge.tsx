@@ -198,6 +198,7 @@ export default function AIKnowledgePage(): JSX.Element {
     }
 
     void loadAllAIPageData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function selectCommunicationType(channel: string) {
