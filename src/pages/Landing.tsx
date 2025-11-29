@@ -104,7 +104,6 @@ export default function Landing(): JSX.Element {
     <div className="min-h-screen bg-black text-white font-sans">
       <NavBar />
 
-      {/* Success Message */}
       {showSuccess && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
           <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white px-8 py-6 rounded-2xl shadow-lg border border-emerald-400/30 backdrop-blur-md max-w-md">

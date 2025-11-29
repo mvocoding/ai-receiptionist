@@ -9,9 +9,10 @@ export default function SignIn(): JSX.Element {
   const [loading, setLoading] = useState(false);
   const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
   const DEFAULT_PASSWORD = '0123456789';
+  const MAX_STORE_CODE = 'maxstore';
 
   async function startOtpFlow(trimmed: string) {
-    if (shopCode.trim() !== 'maxstore') {
+    if (shopCode.trim() !== MAX_STORE_CODE) {
       setError('Invalid shop code');
       return;
     }
@@ -152,7 +153,9 @@ export default function SignIn(): JSX.Element {
                   required
                 />
               </div>
-
+              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-4 py-3 text-emerald-300">
+                Use shopcode: <strong>{MAX_STORE_CODE}</strong> for testing
+              </div>
               {error && (
                 <div className="bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-3 text-rose-300">
                   {error}
