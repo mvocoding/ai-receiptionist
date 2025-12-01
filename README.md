@@ -1,50 +1,63 @@
-# Gemini Live Chat
+# ITA602 - Fade Station AI Receptionist
 
-A minimal React application for real-time chat with Google Gemini using the Live API.
+**Making barbershops better with an AI that handles customer service and bookings.**
 
-## Features
+---
 
-- Real-time text chat with Gemini
-- Simple, clean UI with Tailwind CSS
-- WebSocket-based Live API connection
-- No unnecessary dependencies
+## Project Goal
 
-## Setup
+The main goal of the Fade Station project is to build a smart AI assistant that will change how barbershops deal with customers. The project aims to automate booking appointments, take customer requests by text or call (using Twilio), and send reminders. This work will help lower the number of missed appointments and make the shop run more smoothly.
 
-1. Install dependencies:
-```bash
-npm install
-```
+---
 
-2. Start the development server:
-```bash
-npm start
-```
+## Technologies Used
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser
+This project uses these core tools:
 
-4. Enter your Gemini API key and click "Connect" to start chatting
+- **Frontend (User Interface):** React
+- **Design/Look:** Tailwind CSS
+- **Backend (Server Code):** Python
+- **AI System:** Google Gemini
+- **Database/Storage:** Supabase
+- **Communication:** Twilio API
 
-## Get Your API Key
+---
 
-Get your free Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey)
+## Key Features
 
-## Project Structure
+The Fade Station AI Receptionist has these important features:
 
-```
-src/
-  components/
-    LiveGemini.tsx    # Main chat component
-  lib/
-    genai-live-client.ts  # WebSocket client wrapper
-  App.tsx             # Root component
-  index.tsx           # Entry point
-  index.css           # Tailwind styles
-```
+- **Smart Chat AI:** A program that can manage booking requests, cancellations, and questions using voice and text. The AI uses Gemini AI to figure out what the customer wants and gives good, helpful answers.
+- **Works Across Many Channels:** The system connects to SMS, phone call via Twillio phone number, or Web Chat. This lets customers talk to the barbershop in the easiest way for them.
+- **Manager's Live Dashboard:** A special page that shows shop owners real-time data on bookings and staff availability. This data helps owners make smart choices about their staff and services.
 
-## Dependencies
+---
 
-- `@google/genai` - Google Gemini SDK
-- `react` & `react-dom` - React framework
-- `eventemitter3` - Event handling
-- `tailwindcss` - Styling
+## Team
+
+Project Manager - Raphael Bernard Bonifacio
+QA and Tester - Nijesh Manandhar  
+Developer (Front-end) - Minh Quoc Vo  
+Developer (Back-end) - Hien Pham
+
+---
+
+## Setup Instructions
+
+To get this project running locally, you must set up the Frontend (React) and the Backend (Python) parts.
+
+**Install all needed packages:**
+`bash
+    npm install
+    `
+
+Start the program:
+`bash
+    npm run start
+    `
+
+### 1. Configuration
+
+You must create a file named `.env` in the main project folder. Add the required information for the SUPABASE service:
+REACT_APP_SUPABASE_URL=REACT_APP_SUPABASE_URL
+REACT_APP_SUPABASE_ANON_KEY=REACT_APP_SUPABASE_ANON_KEY

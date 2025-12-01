@@ -23,9 +23,7 @@ export function ToastProvider({
 
   const push = useCallback(
     (type: ToastType, message: string, title?: string) => {
-      const id = `${Date.now().toString(36)}_${Math.floor(
-        Math.random() * 10000
-      )}`;
+      const id = `${Math.floor(Math.random() * 1000000)}`;
       setToasts((s) => [...s, { id, type, title, message }]);
       setTimeout(() => {
         setToasts((s) => s.filter((t) => t.id !== id));
@@ -52,9 +50,9 @@ export function ToastProvider({
             key={t.id}
             className={`max-w-lg w-full rounded-lg p-3 shadow-lg border ${
               t.type === 'success'
-                ? 'bg-emerald-600/95 border-emerald-400 text-white'
+                ? 'bg-emerald-600/90 border-emerald-400 text-white'
                 : t.type === 'error'
-                ? 'bg-rose-600/95 border-rose-400 text-white'
+                ? 'bg-rose-600/90 border-rose-400 text-white'
                 : 'bg-white/90 border-white/20 text-black'
             }`}
           >
