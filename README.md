@@ -1,6 +1,6 @@
 # ITA602 - Fade Station AI Receptionist
 
-**Making barbershops better with an AI that handles customer service and bookings.**
+**Never Miss a Call - AI Receptionist for Your Barbershop**
 
 ---
 
@@ -14,12 +14,10 @@ The main goal of the Fade Station project is to build a smart AI assistant that 
 
 This project uses these core tools:
 
-- **Frontend (User Interface):** React
-- **Design/Look:** Tailwind CSS
-- **Backend (Server Code):** Python
-- **AI System:** Google Gemini
-- **Database/Storage:** Supabase
-- **Communication:** Twilio API
+- **Frontend:** React, Tailwind CSS
+- **Backend:** Python, Twilio API
+- **AI Service:** Google Gemini
+- **Database:** Supabase
 
 ---
 

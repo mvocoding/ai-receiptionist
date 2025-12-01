@@ -206,8 +206,8 @@ export default function Landing(): JSX.Element {
               </span>
             </h1>
             <p className="text-xl text-ios-textMuted mb-10 max-w-2xl mx-auto">
-              Answer calls 24/7, book appointments, answer FAQs, and handle
-              customer inquiries
+              Answer calls 24/7, book appointments, and handle customer
+              inquiries
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
