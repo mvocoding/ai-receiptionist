@@ -36,8 +36,11 @@ The Fade Station AI Receptionist has these important features:
 ## Team
 
 Project Manager - Raphael Bernard Bonifacio
-QA and Tester - Nijesh Manandhar  
-Developer (Front-end) - Minh Quoc Vo  
+
+QA and Tester - Nijesh Manandhar
+
+Developer (Front-end) - Minh Quoc Vo
+
 Developer (Back-end) - Hien Pham
 
 ---
